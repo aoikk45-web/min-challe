@@ -1,5 +1,14 @@
 import { Link } from 'react-router-dom'
-import { formatPlanDay, todayJstISO, usePlans, type Household, type StudyPlan } from '../api'
+import { useEffect, useState } from 'react'
+import {
+  fetchPointSummary,
+  formatPlanDay,
+  todayJstISO,
+  usePlans,
+  type Household,
+  type PointSummary,
+  type StudyPlan,
+} from '../api'
 import type { Role } from '../role'
 
 const pillars = [
@@ -28,6 +37,7 @@ export default function HomePage({ household, role }: { household: Household; ro
       </section>
 
       <TodayPlans role={role} />
+      <HomeBalance role={role} />
 
       <ul className="grid grid-cols-2 gap-3">
         {pillars.map((p) => (
@@ -73,6 +83,47 @@ function TodayPlans({ role }: { role: Role }) {
             </li>
           ))}
         </ul>
+      )}
+    </section>
+  )
+}
+
+function HomeBalance({ role }: { role: Role }) {
+  const [summary, setSummary] = useState<PointSummary | null>(null)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchPointSummary(role)
+      .then((data) => {
+        if (!cancelled) setSummary(data)
+      })
+      .catch(() => {
+        if (!cancelled) setError(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [role])
+
+  return (
+    <section className="rounded-3xl bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-black">ポイント</h3>
+        <Link to="/points" className="text-xs font-bold text-sky">
+          くわしく
+        </Link>
+      </div>
+      {error && <p className="mt-2 text-sm text-coral">つながらなかったよ。</p>}
+      {summary && (
+        <p className="mt-2 text-3xl font-black">{summary.balance}点</p>
+      )}
+      {summary?.next_reward && (
+        <p className="mt-1 text-sm text-ink/70">
+          {summary.next_reward.remaining > 0
+            ? `「${summary.next_reward.name}」まで あと${summary.next_reward.remaining}点`
+            : `「${summary.next_reward.name}」と こうかんできるよ`}
+        </p>
       )}
     </section>
   )

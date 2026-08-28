@@ -1,0 +1,317 @@
+from __future__ import annotations
+
+import uuid
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from .database import get_db
+from .deps import demo_family, parse_role, require_child, require_parent
+from .ledger import BUILTIN_KEYS, award, balance_of, now_utc
+from .models import Household, Member, PointLedger, PointRule, Reward
+
+router = APIRouter(prefix="/api/points", tags=["points"])
+
+
+class RuleOut(BaseModel):
+    id: int
+    event_key: str
+    label: str
+    points: int
+    enabled: bool
+
+    model_config = {"from_attributes": True}
+
+
+class RuleIn(BaseModel):
+    id: int | None = None
+    event_key: str | None = None
+    label: str = Field(min_length=1, max_length=80)
+    points: int = Field(ge=0, le=999)
+    enabled: bool = True
+
+    @field_validator("label")
+    @classmethod
+    def strip_label(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("label required")
+        return value
+
+
+class RewardOut(BaseModel):
+    id: int
+    name: str
+    cost: int
+    enabled: bool
+
+    model_config = {"from_attributes": True}
+
+
+class RewardIn(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    cost: int = Field(ge=1, le=9999)
+    enabled: bool = True
+
+    @field_validator("name")
+    @classmethod
+    def strip_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("name required")
+        return value
+
+
+class RewardPatch(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    cost: int | None = Field(default=None, ge=1, le=9999)
+    enabled: bool | None = None
+
+    @field_validator("name")
+    @classmethod
+    def strip_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        value = value.strip()
+        if not value:
+            raise ValueError("name required")
+        return value
+
+
+class LedgerOut(BaseModel):
+    id: int
+    delta: int
+    reason: str
+    event_key: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class NextReward(BaseModel):
+    id: int
+    name: str
+    cost: int
+    remaining: int
+
+
+class SummaryOut(BaseModel):
+    balance: int
+    next_reward: NextReward | None
+    progress: float
+
+
+class StampIn(BaseModel):
+    note: str = Field(default="", max_length=80)
+
+
+def _child(family: tuple[Household, Member, Member]) -> Member:
+    return family[1]
+
+
+def _hh(family: tuple[Household, Member, Member]) -> Household:
+    return family[0]
+
+
+def _build_summary(db: Session, family: tuple[Household, Member, Member]) -> SummaryOut:
+    child = _child(family)
+    balance = balance_of(db, child.id)
+    rewards = [
+        r
+        for r in db.scalars(
+            select(Reward).where(Reward.household_id == _hh(family).id, Reward.enabled.is_(True))
+        ).all()
+        if r.cost > 0
+    ]
+    rewards.sort(key=lambda r: r.cost)
+    next_reward = None
+    progress = 0.0
+    if rewards:
+        target = next((r for r in rewards if r.cost > balance), rewards[0])
+        remaining = max(0, target.cost - balance)
+        next_reward = NextReward(id=target.id, name=target.name, cost=target.cost, remaining=remaining)
+        progress = 1.0 if target.cost <= 0 else min(1.0, balance / target.cost)
+    return SummaryOut(balance=balance, next_reward=next_reward, progress=round(progress, 3))
+
+
+@router.get("/summary", response_model=SummaryOut)
+def points_summary(
+    _role: str = Depends(parse_role),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    return _build_summary(db, family)
+
+
+@router.get("/ledger", response_model=list[LedgerOut])
+def points_ledger(
+    _role: str = Depends(parse_role),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    child = _child(family)
+    return db.scalars(
+        select(PointLedger)
+        .where(PointLedger.member_id == child.id)
+        .order_by(PointLedger.created_at.desc(), PointLedger.id.desc())
+    ).all()
+
+
+@router.get("/rules", response_model=list[RuleOut])
+def list_rules(
+    _role: str = Depends(parse_role),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    return db.scalars(
+        select(PointRule).where(PointRule.household_id == _hh(family).id).order_by(PointRule.id)
+    ).all()
+
+
+@router.put("/rules", response_model=list[RuleOut])
+def put_rules(
+    body: list[RuleIn],
+    _role: str = Depends(require_parent),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    hh = _hh(family)
+    existing = {r.id: r for r in db.scalars(select(PointRule).where(PointRule.household_id == hh.id)).all()}
+    kept: set[int] = set()
+    for item in body:
+        if item.id is not None:
+            rule = existing.get(item.id)
+            if rule is None:
+                raise HTTPException(404, "rule not found")
+            rule.label = item.label
+            rule.points = item.points
+            rule.enabled = item.enabled
+            kept.add(rule.id)
+        else:
+            key = item.event_key if item.event_key and item.event_key.startswith("custom_") else f"custom_{uuid.uuid4().hex[:8]}"
+            rule = PointRule(
+                household_id=hh.id,
+                event_key=key,
+                label=item.label,
+                points=item.points,
+                enabled=item.enabled,
+            )
+            db.add(rule)
+            db.flush()
+            kept.add(rule.id)
+    for rule in existing.values():
+        if rule.id not in kept and rule.event_key not in BUILTIN_KEYS:
+            db.delete(rule)
+    db.commit()
+    return db.scalars(select(PointRule).where(PointRule.household_id == hh.id).order_by(PointRule.id)).all()
+
+
+@router.get("/rewards", response_model=list[RewardOut])
+def list_rewards(
+    _role: str = Depends(parse_role),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    return db.scalars(
+        select(Reward).where(Reward.household_id == _hh(family).id).order_by(Reward.cost, Reward.id)
+    ).all()
+
+
+@router.post("/rewards", response_model=RewardOut, status_code=201)
+def create_reward(
+    body: RewardIn,
+    _role: str = Depends(require_parent),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    reward = Reward(household_id=_hh(family).id, name=body.name, cost=body.cost, enabled=body.enabled)
+    db.add(reward)
+    db.commit()
+    db.refresh(reward)
+    return reward
+
+
+@router.patch("/rewards/{reward_id}", response_model=RewardOut)
+def patch_reward(
+    reward_id: int,
+    body: RewardPatch,
+    _role: str = Depends(require_parent),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    reward = db.get(Reward, reward_id)
+    if reward is None or reward.household_id != _hh(family).id:
+        raise HTTPException(404, "reward not found")
+    data = body.model_dump(exclude_unset=True)
+    for key, value in data.items():
+        setattr(reward, key, value)
+    db.commit()
+    db.refresh(reward)
+    return reward
+
+
+@router.delete("/rewards/{reward_id}", status_code=204)
+def delete_reward(
+    reward_id: int,
+    _role: str = Depends(require_parent),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    reward = db.get(Reward, reward_id)
+    if reward is None or reward.household_id != _hh(family).id:
+        raise HTTPException(404, "reward not found")
+    db.delete(reward)
+    db.commit()
+
+
+@router.post("/rewards/{reward_id}/redeem", response_model=SummaryOut)
+def redeem_reward(
+    reward_id: int,
+    _role: str = Depends(require_child),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    child = _child(family)
+    reward = db.get(Reward, reward_id)
+    if reward is None or reward.household_id != _hh(family).id or not reward.enabled:
+        raise HTTPException(404, "reward not found")
+    bal = balance_of(db, child.id)
+    if bal < reward.cost:
+        raise HTTPException(400, f"あと{reward.cost - bal}点")
+    db.add(
+        PointLedger(
+            member_id=child.id,
+            delta=-reward.cost,
+            reason=f"ごほうび: {reward.name}",
+            event_key="redeem",
+            related_id=reward.id,
+            created_at=now_utc(),
+        )
+    )
+    db.commit()
+    return _build_summary(db, family)
+
+
+@router.post("/stamp", response_model=SummaryOut)
+def give_stamp(
+    body: StampIn,
+    _role: str = Depends(require_parent),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    note = body.note.strip()
+    reason = f"できたねスタンプ{(' ・' + note) if note else ''}"
+    awarded = award(
+        db,
+        household_id=_hh(family).id,
+        member_id=_child(family).id,
+        event_key="stamp",
+        reason=reason,
+    )
+    if awarded == 0:
+        raise HTTPException(400, "スタンプのルールがオフです")
+    db.commit()
+    return _build_summary(db, family)

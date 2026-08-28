@@ -155,6 +155,109 @@ export function fetchDrillHistory(role: Role) {
   return fetch(`/api/drills/history?role=${role}`).then((res) => readJson<DrillHistoryItem[]>(res))
 }
 
+export type PointRule = {
+  id: number
+  event_key: string
+  label: string
+  points: number
+  enabled: boolean
+}
+
+export type Reward = {
+  id: number
+  name: string
+  cost: number
+  enabled: boolean
+}
+
+export type LedgerEntry = {
+  id: number
+  delta: number
+  reason: string
+  event_key: string
+  created_at: string
+}
+
+export type PointSummary = {
+  balance: number
+  progress: number
+  next_reward: { id: number; name: string; cost: number; remaining: number } | null
+}
+
+export function fetchPointSummary(role: Role) {
+  return fetch(`/api/points/summary?role=${role}`).then((res) => readJson<PointSummary>(res))
+}
+
+export function fetchLedger(role: Role) {
+  return fetch(`/api/points/ledger?role=${role}`).then((res) => readJson<LedgerEntry[]>(res))
+}
+
+export function fetchRules(role: Role) {
+  return fetch(`/api/points/rules?role=${role}`).then((res) => readJson<PointRule[]>(res))
+}
+
+export function saveRules(rules: Array<Partial<PointRule> & Pick<PointRule, 'label' | 'points' | 'enabled'>>) {
+  const payload = rules.map((rule) => {
+    const body: Record<string, unknown> = {
+      label: rule.label,
+      points: rule.points,
+      enabled: rule.enabled,
+    }
+    if (rule.id && rule.id > 0) body.id = rule.id
+    if (rule.event_key) body.event_key = rule.event_key
+    return body
+  })
+  return fetch('/api/points/rules?role=parent', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).then((res) => readJson<PointRule[]>(res))
+}
+
+export function fetchRewards(role: Role) {
+  return fetch(`/api/points/rewards?role=${role}`).then((res) => readJson<Reward[]>(res))
+}
+
+export function createReward(body: { name: string; cost: number }) {
+  return fetch('/api/points/rewards?role=parent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then((res) => readJson<Reward>(res))
+}
+
+export function updateReward(id: number, body: Partial<Pick<Reward, 'name' | 'cost' | 'enabled'>>) {
+  return fetch(`/api/points/rewards/${id}?role=parent`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then((res) => readJson<Reward>(res))
+}
+
+export function deleteReward(id: number) {
+  return fetch(`/api/points/rewards/${id}?role=parent`, { method: 'DELETE' }).then((res) => {
+    if (!res.ok) throw new Error('request failed')
+  })
+}
+
+export async function redeemReward(id: number) {
+  const res = await fetch(`/api/points/rewards/${id}/redeem?role=child`, { method: 'POST' })
+  if (res.status === 400) {
+    const body = (await res.json()) as { detail?: string }
+    throw new Error(typeof body.detail === 'string' ? body.detail : 'request failed')
+  }
+  if (!res.ok) throw new Error('request failed')
+  return (await res.json()) as PointSummary
+}
+
+export function giveStamp(note: string) {
+  return fetch('/api/points/stamp?role=parent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ note }),
+  }).then((res) => readJson<PointSummary>(res))
+}
+
 export function useHousehold(role: Role) {
   const [data, setData] = useState<Household | null>(null)
   const [error, setError] = useState<string | null>(null)

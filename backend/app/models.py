@@ -16,6 +16,8 @@ class Household(Base):
     name: Mapped[str] = mapped_column(String(80))
 
     members: Mapped[list[Member]] = relationship(back_populates="household")
+    point_rules: Mapped[list[PointRule]] = relationship(back_populates="household")
+    rewards: Mapped[list[Reward]] = relationship(back_populates="household")
 
 
 class Member(Base):
@@ -31,6 +33,7 @@ class Member(Base):
     household: Mapped[Household] = relationship(back_populates="members")
     study_plans: Mapped[list[StudyPlan]] = relationship(back_populates="member")
     drill_sessions: Mapped[list[DrillSession]] = relationship(back_populates="member")
+    point_ledger: Mapped[list[PointLedger]] = relationship(back_populates="member")
 
 
 class StudyPlan(Base):
@@ -76,3 +79,42 @@ class DrillQuestion(Base):
     is_correct: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
 
     session: Mapped[DrillSession] = relationship(back_populates="questions")
+
+
+class PointRule(Base):
+    __tablename__ = "point_rules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    household_id: Mapped[int] = mapped_column(ForeignKey("households.id"))
+    event_key: Mapped[str] = mapped_column(String(40))
+    label: Mapped[str] = mapped_column(String(80))
+    points: Mapped[int] = mapped_column(Integer)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    household: Mapped[Household] = relationship(back_populates="point_rules")
+
+
+class Reward(Base):
+    __tablename__ = "rewards"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    household_id: Mapped[int] = mapped_column(ForeignKey("households.id"))
+    name: Mapped[str] = mapped_column(String(80))
+    cost: Mapped[int] = mapped_column(Integer)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    household: Mapped[Household] = relationship(back_populates="rewards")
+
+
+class PointLedger(Base):
+    __tablename__ = "point_ledger"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    delta: Mapped[int] = mapped_column(Integer)
+    reason: Mapped[str] = mapped_column(String(120))
+    event_key: Mapped[str] = mapped_column(String(40))
+    related_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+
+    member: Mapped[Member] = relationship(back_populates="point_ledger")
