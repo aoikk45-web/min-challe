@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from .database import get_db
 from .deps import demo_family, parse_role, require_parent
+from .album import record_album
 from .ledger import award
 from .models import Household, Member, StudyPlan
 from .timeutil import today_jst, week_bounds
@@ -164,6 +165,14 @@ def complete_plan(
         member_id=plan.member_id,
         event_key="plan_complete",
         reason=f"けいかく: {plan.title}",
+        related_id=plan.id,
+    )
+    record_album(
+        db,
+        member_id=plan.member_id,
+        kind="plan",
+        title="けいかくをやりきった",
+        body=f"{plan.subject} ・ {plan.title}",
         related_id=plan.id,
     )
     db.commit()

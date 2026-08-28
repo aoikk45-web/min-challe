@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from .database import get_db
 from .deps import demo_family, parse_role, require_child, require_parent
+from .album import record_album
 from .ledger import BUILTIN_KEYS, award, balance_of, now_utc
 from .models import Household, Member, PointLedger, PointRule, Reward
 
@@ -291,6 +292,13 @@ def redeem_reward(
             created_at=now_utc(),
         )
     )
+    record_album(
+        db,
+        member_id=child.id,
+        kind="redeem",
+        title="ごほうびとこうかんした",
+        body=reward.name,
+    )
     db.commit()
     return _build_summary(db, family)
 
@@ -313,5 +321,12 @@ def give_stamp(
     )
     if awarded == 0:
         raise HTTPException(400, "スタンプのルールがオフです")
+    record_album(
+        db,
+        member_id=_child(family).id,
+        kind="stamp",
+        title="できたねスタンプ",
+        body=note,
+    )
     db.commit()
     return _build_summary(db, family)
