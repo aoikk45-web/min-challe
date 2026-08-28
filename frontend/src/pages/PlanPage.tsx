@@ -35,7 +35,11 @@ export default function PlanPage({ role }: { role: Role }) {
       <section className="rounded-3xl bg-white p-5 shadow-sm">
         <h2 className="text-xl font-black">きょうのけいかく</h2>
         {todayPlans.length === 0 ? (
-          <p className="mt-2 text-sm text-ink/70">きょうの よては まだないよ。</p>
+          <p className="mt-2 text-sm text-ink/70">
+            {role === 'child'
+              ? 'きょうの よては まだないよ。おうちの人につくってもらおう。'
+              : 'きょうの よては まだないよ。下からついかできるよ。'}
+          </p>
         ) : (
           <ul className="mt-3 space-y-2">
             {todayPlans.map((plan) => (
@@ -54,7 +58,7 @@ export default function PlanPage({ role }: { role: Role }) {
           body={
             role === 'child'
               ? 'まだ予定がないよ。おうちの人につくってもらおう。'
-              : '今週の計画を下から追加できます。'
+              : '今週の計画を下からついかできるよ。'
           }
         />
       )}

@@ -25,3 +25,12 @@ def test_household_is_sakura_grade_3():
 def test_role_query_rejects_unknown():
     client = TestClient(app)
     assert client.get("/api/household", params={"role": "teacher"}).status_code == 400
+
+
+def test_four_pillars_are_reachable():
+    client = TestClient(app)
+    assert client.get("/api/plans").status_code == 200
+    assert client.get("/api/drills/history").status_code == 200
+    assert client.get("/api/points/summary").status_code == 200
+    assert client.get("/api/album").status_code == 200
+    assert client.get("/api/household", params={"role": "parent"}).status_code == 200

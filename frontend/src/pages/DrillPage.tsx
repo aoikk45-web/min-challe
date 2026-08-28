@@ -125,7 +125,7 @@ export default function DrillPage({ role }: { role: Role }) {
 
       <HistoryList
         history={history.filter((row) => row.status === 'finished')}
-        empty={role === 'child' ? 'まだ 1かいも やってないよ。' : 'まだ履歴がありません。'}
+        empty={role === 'child' ? 'まだ 1かいも やってないよ。' : 'まだ履歴がないよ。'}
         onOpen={(id) => openSession(id)}
       />
     </div>
