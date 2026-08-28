@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -30,6 +30,7 @@ class Member(Base):
 
     household: Mapped[Household] = relationship(back_populates="members")
     study_plans: Mapped[list[StudyPlan]] = relationship(back_populates="member")
+    drill_sessions: Mapped[list[DrillSession]] = relationship(back_populates="member")
 
 
 class StudyPlan(Base):
@@ -44,3 +45,34 @@ class StudyPlan(Base):
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     member: Mapped[Member] = relationship(back_populates="study_plans")
+
+
+class DrillSession(Base):
+    __tablename__ = "drill_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    kind: Mapped[str] = mapped_column(String(16))
+    grade: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(16), default="in_progress")
+    correct_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    duration_sec: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime)
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    member: Mapped[Member] = relationship(back_populates="drill_sessions")
+    questions: Mapped[list[DrillQuestion]] = relationship(back_populates="session")
+
+
+class DrillQuestion(Base):
+    __tablename__ = "drill_questions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("drill_sessions.id"))
+    seq: Mapped[int] = mapped_column(Integer)
+    prompt: Mapped[str] = mapped_column(String(40))
+    correct: Mapped[int] = mapped_column(Integer)
+    child_answer: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    is_correct: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+
+    session: Mapped[DrillSession] = relationship(back_populates="questions")
