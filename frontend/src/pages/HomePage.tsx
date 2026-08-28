@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import type { Household } from '../api'
+import { formatPlanDay, todayJstISO, usePlans, type Household, type StudyPlan } from '../api'
 import type { Role } from '../role'
 
 const pillars = [
@@ -23,9 +23,11 @@ export default function HomePage({ household, role }: { household: Household; ro
         <p className="mt-1 text-sm leading-relaxed text-ink/70">
           {role === 'child'
             ? `小学${child.grade}年生。きょうも じぶんで やってみよう。`
-            : `${child.display_name}（小学${child.grade}年生）の学習を見守る画面です。4本柱の中身は次のループで足します。`}
+            : `${child.display_name}（小学${child.grade}年生）の学習を見守る画面です。`}
         </p>
       </section>
+
+      <TodayPlans role={role} />
 
       <ul className="grid grid-cols-2 gap-3">
         {pillars.map((p) => (
@@ -41,6 +43,53 @@ export default function HomePage({ household, role }: { household: Household; ro
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+function TodayPlans({ role }: { role: Role }) {
+  const { plans, loading, error } = usePlans(role)
+  const today = todayJstISO()
+  const todayPlans = plans.filter((p) => p.plan_date === today)
+
+  return (
+    <section className="rounded-3xl bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-lg font-black">きょうのけいかく</h3>
+        <Link to="/plan" className="text-xs font-bold text-sky">
+          ぜんぶみる
+        </Link>
+      </div>
+      {loading && <p className="mt-2 text-sm text-ink/60">よみこみちゅう…</p>}
+      {error && <p className="mt-2 text-sm text-coral">つながらなかったよ。</p>}
+      {!loading && !error && todayPlans.length === 0 && (
+        <p className="mt-2 text-sm text-ink/70">きょうの よては まだないよ。おうちの人につくってもらおう。</p>
+      )}
+      {!loading && todayPlans.length > 0 && (
+        <ul className="mt-3 space-y-2">
+          {todayPlans.map((plan) => (
+            <li key={plan.id}>
+              <HomePlanRow plan={plan} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+function HomePlanRow({ plan }: { plan: StudyPlan }) {
+  const done = plan.completed_at != null
+  return (
+    <div className={`rounded-2xl px-3 py-2 ${done ? 'bg-mint/15' : 'bg-cream'}`}>
+      <p className="text-xs font-bold text-sky">{plan.subject}</p>
+      <p className="font-black">
+        {plan.title}
+        {done ? ' ・できたね' : ''}
+      </p>
+      <p className="text-xs text-ink/50">
+        {formatPlanDay(plan.plan_date)} ・ {plan.minutes}ふん
+      </p>
     </div>
   )
 }

@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 
-from .database import Base, engine, get_db
+from .database import Base, engine
+from .deps import demo_family, parse_role
 from .models import Household, Member
-from .seed import HOUSEHOLD_ID, seed_if_empty
+from .plans import router as plans_router
+from .seed import seed_if_empty
 
 
 class MemberOut(BaseModel):
@@ -43,6 +44,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(plans_router)
 
 
 @app.get("/api/health")
@@ -50,23 +52,10 @@ def health():
     return {"ok": True}
 
 
-def _household(db: Session) -> tuple[Household, Member, Member]:
-    hh = db.get(Household, HOUSEHOLD_ID)
-    if hh is None:
-        raise HTTPException(500, "demo household missing")
-    child = next((m for m in hh.members if m.role == "child"), None)
-    parent = next((m for m in hh.members if m.role == "parent"), None)
-    if child is None or parent is None:
-        raise HTTPException(500, "demo members missing")
-    return hh, child, parent
-
-
 @app.get("/api/household", response_model=HouseholdOut)
 def get_household(
-    db: Session = Depends(get_db),
-    role: str = Query(default="child"),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    _role: str = Depends(parse_role),
 ):
-    if role not in ("child", "parent"):
-        raise HTTPException(400, "role must be child or parent")
-    hh, child, parent = _household(db)
+    hh, child, parent = family
     return HouseholdOut(id=hh.id, name=hh.name, child=child, parent=parent)
