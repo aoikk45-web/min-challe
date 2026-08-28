@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, selectinload
 from .database import get_db
 from .deps import demo_family, parse_role, require_child
 from .generate import KINDS, generate_ten
+from .ledger import award
 from .models import DrillQuestion, DrillSession, Household, Member
 
 Kind = Literal["たしざん", "ひきざん", "かけざん", "わりざん"]
@@ -197,6 +198,23 @@ def answer_drill(
         session.correct_count = sum(1 for q in session.questions if q.is_correct)
         elapsed = (now - session.started_at).total_seconds()
         session.duration_sec = max(0, int(elapsed))
+        award(
+            db,
+            household_id=family[0].id,
+            member_id=session.member_id,
+            event_key="drill_complete",
+            reason=f"ドリル: {session.kind}",
+            related_id=session.id,
+        )
+        if session.correct_count == 10:
+            award(
+                db,
+                household_id=family[0].id,
+                member_id=session.member_id,
+                event_key="drill_perfect",
+                reason="全問正解ボーナス",
+                related_id=session.id,
+            )
     db.commit()
     db.refresh(session)
     return _serialize(_get_session(db, session.id, _child(family).id))

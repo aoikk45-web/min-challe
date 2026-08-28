@@ -3,23 +3,33 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from .database import SessionLocal
-from .models import Household, Member, StudyPlan
+from .models import Household, Member, PointLedger, PointRule, Reward, StudyPlan
 from .timeutil import today_jst
 
 HOUSEHOLD_ID = 1
+
+DEFAULT_RULES = [
+    ("drill_complete", "ドリルを1回やりきる", 10),
+    ("drill_perfect", "全問正解ボーナス", 5),
+    ("plan_complete", "計画を1つ完了", 8),
+    ("stamp", "できたねスタンプ", 3),
+]
 
 
 def seed_if_empty() -> None:
     db = SessionLocal()
     try:
-        if db.get(Household, HOUSEHOLD_ID) is None:
+        hh = db.get(Household, HOUSEHOLD_ID)
+        if hh is None:
             _seed(db)
             db.commit()
             return
-        child = next((m for m in db.get(Household, HOUSEHOLD_ID).members if m.role == "child"), None)
+        child = next((m for m in hh.members if m.role == "child"), None)
         if child is not None and db.query(StudyPlan).filter(StudyPlan.member_id == child.id).count() == 0:
             _seed_plans(db, child.id)
-            db.commit()
+        if db.query(PointRule).filter(PointRule.household_id == HOUSEHOLD_ID).count() == 0:
+            _seed_points(db, HOUSEHOLD_ID, child.id if child else None)
+        db.commit()
     finally:
         db.close()
 
@@ -57,6 +67,7 @@ def _seed(db: Session) -> None:
     db.add_all([parent, child])
     db.flush()
     _seed_plans(db, child.id)
+    _seed_points(db, hh.id, child.id)
 
 
 def _seed_plans(db: Session, child_id: int) -> None:
@@ -82,3 +93,57 @@ def _seed_plans(db: Session, child_id: int) -> None:
                 completed_at=completed_at,
             )
         )
+
+
+def _seed_points(db: Session, household_id: int, child_id: int | None) -> None:
+    for key, label, points in DEFAULT_RULES:
+        db.add(
+            PointRule(
+                household_id=household_id,
+                event_key=key,
+                label=label,
+                points=points,
+                enabled=True,
+            )
+        )
+    db.add_all(
+        [
+            Reward(household_id=household_id, name="ゲーム 15ふん", cost=30, enabled=True),
+            Reward(household_id=household_id, name="すきなおやつ", cost=50, enabled=True),
+        ]
+    )
+    if child_id is None:
+        return
+    db.flush()
+    completed = db.query(StudyPlan).filter(StudyPlan.member_id == child_id, StudyPlan.completed_at.is_not(None)).all()
+    for plan in completed:
+        db.add(
+            PointLedger(
+                member_id=child_id,
+                delta=8,
+                reason=f"けいかく: {plan.title}",
+                event_key="plan_complete",
+                related_id=plan.id,
+                created_at=plan.completed_at,
+            )
+        )
+    db.add(
+        PointLedger(
+            member_id=child_id,
+            delta=10,
+            reason="ドリル: たしざん",
+            event_key="drill_complete",
+            related_id=None,
+            created_at=datetime.now().replace(hour=16, minute=0, second=0, microsecond=0),
+        )
+    )
+    db.add(
+        PointLedger(
+            member_id=child_id,
+            delta=3,
+            reason="できたねスタンプ ・おうちの片付け",
+            event_key="stamp",
+            related_id=None,
+            created_at=datetime.now().replace(hour=17, minute=0, second=0, microsecond=0),
+        )
+    )

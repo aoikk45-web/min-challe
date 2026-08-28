@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from .database import get_db
 from .deps import demo_family, parse_role, require_parent
+from .ledger import award
 from .models import Household, Member, StudyPlan
 from .timeutil import today_jst, week_bounds
 
@@ -157,6 +158,14 @@ def complete_plan(
     if plan.completed_at is not None:
         raise HTTPException(409, "already completed")
     plan.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    award(
+        db,
+        household_id=family[0].id,
+        member_id=plan.member_id,
+        event_key="plan_complete",
+        reason=f"けいかく: {plan.title}",
+        related_id=plan.id,
+    )
     db.commit()
     db.refresh(plan)
     return plan

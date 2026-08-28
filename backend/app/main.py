@@ -11,6 +11,7 @@ from .deps import demo_family, parse_role
 from .models import Household, Member
 from .plans import router as plans_router
 from .drills import router as drills_router
+from .points import router as points_router
 from .seed import seed_if_empty
 
 
@@ -47,6 +48,7 @@ app.add_middleware(
 )
 app.include_router(plans_router)
 app.include_router(drills_router)
+app.include_router(points_router)
 
 
 @app.get("/api/health")
