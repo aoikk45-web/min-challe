@@ -107,6 +107,13 @@ class SummaryOut(BaseModel):
 
 class StampIn(BaseModel):
     note: str = Field(default="", max_length=80)
+    event_key: str = Field(default="stamp", max_length=40)
+
+    @field_validator("event_key")
+    @classmethod
+    def strip_key(cls, value: str) -> str:
+        value = value.strip() or "stamp"
+        return value
 
 
 def _child(family: tuple[Household, Member, Member]) -> Member:
@@ -183,7 +190,7 @@ def put_rules(
     existing = {r.id: r for r in db.scalars(select(PointRule).where(PointRule.household_id == hh.id)).all()}
     kept: set[int] = set()
     for item in body:
-        if item.id is not None:
+        if item.id is not None and item.id > 0:
             rule = existing.get(item.id)
             if rule is None:
                 raise HTTPException(404, "rule not found")
@@ -303,6 +310,9 @@ def redeem_reward(
     return _build_summary(db, family)
 
 
+AUTO_AWARD_KEYS = ("drill_complete", "drill_perfect", "plan_complete")
+
+
 @router.post("/stamp", response_model=SummaryOut)
 def give_stamp(
     body: StampIn,
@@ -310,22 +320,30 @@ def give_stamp(
     family: tuple[Household, Member, Member] = Depends(demo_family),
     db: Session = Depends(get_db),
 ):
+    event_key = body.event_key
+    if event_key in AUTO_AWARD_KEYS or (event_key != "stamp" and not event_key.startswith("custom_")):
+        raise HTTPException(400, "このルールでは押せないよ")
+    rule = db.scalars(
+        select(PointRule).where(PointRule.household_id == _hh(family).id, PointRule.event_key == event_key)
+    ).first()
+    if rule is None:
+        raise HTTPException(404, "rule not found")
     note = body.note.strip()
-    reason = f"できたねスタンプ{(' ・' + note) if note else ''}"
+    reason = f"{rule.label}{(' ・' + note) if note else ''}"
     awarded = award(
         db,
         household_id=_hh(family).id,
         member_id=_child(family).id,
-        event_key="stamp",
+        event_key=event_key,
         reason=reason,
     )
     if awarded == 0:
-        raise HTTPException(400, "スタンプのルールがオフです")
+        raise HTTPException(400, "このルールがオフです")
     record_album(
         db,
         member_id=_child(family).id,
         kind="stamp",
-        title="できたねスタンプ",
+        title=rule.label,
         body=note,
     )
     db.commit()

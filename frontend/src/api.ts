@@ -250,12 +250,18 @@ export async function redeemReward(id: number) {
   return (await res.json()) as PointSummary
 }
 
-export function giveStamp(note: string) {
-  return fetch('/api/points/stamp?role=parent', {
+export async function giveStamp(note: string, eventKey = 'stamp') {
+  const res = await fetch('/api/points/stamp?role=parent', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ note }),
-  }).then((res) => readJson<PointSummary>(res))
+    body: JSON.stringify({ note, event_key: eventKey }),
+  })
+  if (res.status === 400) {
+    const body = (await res.json()) as { detail?: string }
+    throw new Error(typeof body.detail === 'string' ? body.detail : 'request failed')
+  }
+  if (!res.ok) throw new Error('request failed')
+  return (await res.json()) as PointSummary
 }
 
 export type AlbumKind = 'plan' | 'drill' | 'redeem' | 'stamp' | 'memo'
