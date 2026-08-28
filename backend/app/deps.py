@@ -20,6 +20,12 @@ def require_parent(role: str = Depends(parse_role)) -> str:
     return role
 
 
+def require_child(role: str = Depends(parse_role)) -> str:
+    if role != "child":
+        raise HTTPException(403, "child only")
+    return role
+
+
 def demo_family(db: Session = Depends(get_db)) -> tuple[Household, Member, Member]:
     hh = db.get(Household, HOUSEHOLD_ID)
     if hh is None:

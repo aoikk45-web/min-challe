@@ -10,6 +10,7 @@ from .database import Base, engine
 from .deps import demo_family, parse_role
 from .models import Household, Member
 from .plans import router as plans_router
+from .drills import router as drills_router
 from .seed import seed_if_empty
 
 
@@ -45,6 +46,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(plans_router)
+app.include_router(drills_router)
 
 
 @app.get("/api/health")

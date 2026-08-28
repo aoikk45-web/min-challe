@@ -106,6 +106,55 @@ export function completePlan(role: Role, id: number) {
   )
 }
 
+export type DrillKind = 'たしざん' | 'ひきざん' | 'かけざん' | 'わりざん'
+
+export type DrillQuestion = {
+  id: number
+  seq: number
+  prompt: string
+  child_answer: number | null
+  is_correct: boolean | null
+  correct: number | null
+}
+
+export type DrillSession = {
+  id: number
+  kind: string
+  grade: number
+  status: 'in_progress' | 'finished'
+  correct_count: number | null
+  duration_sec: number | null
+  started_at: string
+  finished_at: string | null
+  questions: DrillQuestion[]
+}
+
+export type DrillHistoryItem = Omit<DrillSession, 'questions'>
+
+export function startDrill(kind: DrillKind) {
+  return fetch('/api/drills/start?role=child', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind }),
+  }).then((res) => readJson<DrillSession>(res))
+}
+
+export function fetchDrill(role: Role, id: number) {
+  return fetch(`/api/drills/${id}?role=${role}`).then((res) => readJson<DrillSession>(res))
+}
+
+export function answerDrill(sessionId: number, questionId: number, answer: number) {
+  return fetch(`/api/drills/${sessionId}/answer?role=child`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question_id: questionId, answer }),
+  }).then((res) => readJson<DrillSession>(res))
+}
+
+export function fetchDrillHistory(role: Role) {
+  return fetch(`/api/drills/history?role=${role}`).then((res) => readJson<DrillHistoryItem[]>(res))
+}
+
 export function useHousehold(role: Role) {
   const [data, setData] = useState<Household | null>(null)
   const [error, setError] = useState<string | null>(null)
