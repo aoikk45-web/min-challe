@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Hiragino Maru Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+  --color-cream: #fff8ee;
+  --color-ink: #3d2c1e;
+  --color-coral: #ff7a45;
+  --color-sky: #4db6e2;
+  --color-sun: #ffd166;
+  --color-mint: #2bb673;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-ink);
+}
+
+#root {
+  width: 100%;
+  max-width: none;
+  border: 0;
+  text-align: initial;
+  min-height: 100svh;
+}
