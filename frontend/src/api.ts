@@ -258,6 +258,41 @@ export function giveStamp(note: string) {
   }).then((res) => readJson<PointSummary>(res))
 }
 
+export type AlbumKind = 'plan' | 'drill' | 'redeem' | 'stamp' | 'memo'
+
+export type AlbumEntry = {
+  id: number
+  kind: AlbumKind
+  title: string
+  body: string
+  stamp: string
+  created_at: string
+}
+
+export function formatAlbumAt(iso: string): string {
+  const aware = iso.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : `${iso}+09:00`
+  const d = new Date(aware)
+  return d.toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+export function fetchAlbum(role: Role) {
+  return fetch(`/api/album?role=${role}`).then((res) => readJson<AlbumEntry[]>(res))
+}
+
+export function addAlbumMemo(title: string, body: string) {
+  return fetch('/api/album?role=parent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, body }),
+  }).then((res) => readJson<AlbumEntry>(res))
+}
+
 export function useHousehold(role: Role) {
   const [data, setData] = useState<Household | null>(null)
   const [error, setError] = useState<string | null>(null)

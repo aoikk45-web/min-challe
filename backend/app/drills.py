@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, selectinload
 from .database import get_db
 from .deps import demo_family, parse_role, require_child
 from .generate import KINDS, generate_ten
+from .album import record_album
 from .ledger import award
 from .models import DrillQuestion, DrillSession, Household, Member
 
@@ -215,6 +216,14 @@ def answer_drill(
                 reason="全問正解ボーナス",
                 related_id=session.id,
             )
+        record_album(
+            db,
+            member_id=session.member_id,
+            kind="drill",
+            title="ドリルをやりきった",
+            body=f"{session.kind} {session.correct_count}/10",
+            related_id=session.id,
+        )
     db.commit()
     db.refresh(session)
     return _serialize(_get_session(db, session.id, _child(family).id))

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from .database import SessionLocal
-from .models import Household, Member, PointLedger, PointRule, Reward, StudyPlan
+from .models import AlbumEntry, Household, Member, PointLedger, PointRule, Reward, StudyPlan
 from .timeutil import today_jst
 
 HOUSEHOLD_ID = 1
@@ -29,6 +29,8 @@ def seed_if_empty() -> None:
             _seed_plans(db, child.id)
         if db.query(PointRule).filter(PointRule.household_id == HOUSEHOLD_ID).count() == 0:
             _seed_points(db, HOUSEHOLD_ID, child.id if child else None)
+        if child is not None and db.query(AlbumEntry).filter(AlbumEntry.member_id == child.id).count() == 0:
+            _seed_album(db, child.id)
         db.commit()
     finally:
         db.close()
@@ -68,6 +70,7 @@ def _seed(db: Session) -> None:
     db.flush()
     _seed_plans(db, child.id)
     _seed_points(db, hh.id, child.id)
+    _seed_album(db, child.id)
 
 
 def _seed_plans(db: Session, child_id: int) -> None:
@@ -146,4 +149,44 @@ def _seed_points(db: Session, household_id: int, child_id: int | None) -> None:
             related_id=None,
             created_at=datetime.now().replace(hour=17, minute=0, second=0, microsecond=0),
         )
+    )
+
+
+def _seed_album(db: Session, child_id: int) -> None:
+    from .album import record_album
+
+    completed = db.query(StudyPlan).filter(StudyPlan.member_id == child_id, StudyPlan.completed_at.is_not(None)).all()
+    for plan in completed:
+        record_album(
+            db,
+            member_id=child_id,
+            kind="plan",
+            title="けいかくをやりきった",
+            body=f"{plan.subject} ・ {plan.title}",
+            related_id=plan.id,
+            created_at=plan.completed_at,
+        )
+    record_album(
+        db,
+        member_id=child_id,
+        kind="drill",
+        title="ドリルをやりきった",
+        body="たしざん 8/10",
+        created_at=datetime.now() - timedelta(hours=5),
+    )
+    record_album(
+        db,
+        member_id=child_id,
+        kind="stamp",
+        title="できたねスタンプ",
+        body="おうちの片付け",
+        created_at=datetime.now() - timedelta(hours=3),
+    )
+    record_album(
+        db,
+        member_id=child_id,
+        kind="memo",
+        title="がんばってるね",
+        body="音読の声がはっきりしてきたよ。",
+        created_at=datetime.now() - timedelta(hours=1),
     )

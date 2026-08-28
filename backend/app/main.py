@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from .database import Base, engine
 from .deps import demo_family, parse_role
 from .models import Household, Member
+from .album import router as album_router
 from .plans import router as plans_router
 from .drills import router as drills_router
 from .points import router as points_router
@@ -49,6 +50,7 @@ app.add_middleware(
 app.include_router(plans_router)
 app.include_router(drills_router)
 app.include_router(points_router)
+app.include_router(album_router)
 
 
 @app.get("/api/health")

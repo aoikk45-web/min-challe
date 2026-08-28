@@ -34,6 +34,7 @@ class Member(Base):
     study_plans: Mapped[list[StudyPlan]] = relationship(back_populates="member")
     drill_sessions: Mapped[list[DrillSession]] = relationship(back_populates="member")
     point_ledger: Mapped[list[PointLedger]] = relationship(back_populates="member")
+    album_entries: Mapped[list[AlbumEntry]] = relationship(back_populates="member")
 
 
 class StudyPlan(Base):
@@ -118,3 +119,18 @@ class PointLedger(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime)
 
     member: Mapped[Member] = relationship(back_populates="point_ledger")
+
+
+class AlbumEntry(Base):
+    __tablename__ = "album_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    kind: Mapped[str] = mapped_column(String(16))
+    title: Mapped[str] = mapped_column(String(80))
+    body: Mapped[str] = mapped_column(String(200), default="")
+    stamp: Mapped[str] = mapped_column(String(8))
+    related_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+
+    member: Mapped[Member] = relationship(back_populates="album_entries")
