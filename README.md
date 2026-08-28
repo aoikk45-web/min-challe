@@ -1,44 +1,73 @@
 # みんチャレ
 
-小学生が楽しく自ら学ぶ家庭学習アプリ（FastAPI + React）。  
+小学生が、保護者に言われる前に自分から机に向かえる家庭学習アプリです。  
+FastAPI + React。ログインなしで、デモの **さくら家** をすぐ触れます。
+
+- 子ども: **みんすけ**（小学3年生）
+- 保護者: **おかあさん**
+- 画面上で「こども」と「おうちの人」を切り替えます
+
 仕様の正本は [docs/spec.md](docs/spec.md)。開発はループごとに人間承認（[docs/loop.md](docs/loop.md)）。
 
-デモ家庭: **さくら家** / 子ども **みんすけ（小学3年生）** / 保護者 **おかあさん**
+## できること（4本柱）
 
-## いま動くもの（L4 ブランチ）
+下の4つの入口と、ホームから全部つながります。計画やドリルをやりきるとポイントが付き、アルバムに残ります。
 
-- アプリ起動、家庭の表示、こども / おうちの人の切替
-- 学習計画: 今週の一覧、保護者の追加・直す・消す、子どもの「できた」（完了でポイント）
-- 計算ドリル: 10問の出題・その場採点・結果と履歴（完了でポイント）
-- ポイント: 家庭ルール、スタンプ、残高、ごほうび交換
-- アルバムの入口は空状態のまま
+| 柱 | 子ども | おうちの人 |
+| --- | --- | --- |
+| けいかく | 今日と今週を見て「できた」 | 追加・直す・消す |
+| ドリル | たしざんなど 10問 | 履歴を見る |
+| ポイント | 残高・交換 | ルール・ごほうび・ほめる（テスト100点など） |
+| アルバム | できた記録 | 短い思い出メモ |
 
-アルバム記録はあとのループです。
+## 必要なもの
+
+- Python **3.12**（3.14 では動きません）
+- Node.js 22
+
+Windows の `python` がストアの案内になるときは、`py -3.12` を使います。
 
 ## 起動
 
-必要: Python 3.12、Node.js 22
+ブラウザは **フロント** を開きます。`http://127.0.0.1:48221`  
+`/api` は API（`http://127.0.0.1:48222`）へプロキシされます。`--reload` は使わないでください（コードを変えたら API を再起動します）。
 
-```bash
-# API  http://127.0.0.1:48222
+### Windows（PowerShell）
+
+```powershell
+# API
 cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 48222
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 48222
 
-# UI  http://127.0.0.1:48221
+# 別のターミナルで UI
 cd frontend
 npm install
 npm run dev
 ```
 
-ブラウザはフロントのポートを開く（`/api` は API へプロキシされます）。
+### macOS / Linux
+
+```bash
+# API
+cd backend
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m uvicorn app.main:app --host 127.0.0.1 --port 48222
+
+# 別のターミナルで UI
+cd frontend
+npm install
+npm run dev
+```
 
 ## テスト
 
-```bash
+```powershell
 cd backend
-source .venv/bin/activate
-pytest
+.\.venv\Scripts\python.exe -m pytest
 ```
+
+macOS / Linux では venv を有効にしてから `pytest` でも同じです。

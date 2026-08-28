@@ -71,9 +71,13 @@ function TodayPlans({ role }: { role: Role }) {
         </Link>
       </div>
       {loading && <p className="mt-2 text-sm text-ink/60">よみこみちゅう…</p>}
-      {error && <p className="mt-2 text-sm text-coral">つながらなかったよ。</p>}
+      {error && <p className="mt-2 text-sm text-coral">つながらなかったよ。もういちど開いてみてね。</p>}
       {!loading && !error && todayPlans.length === 0 && (
-        <p className="mt-2 text-sm text-ink/70">きょうの よては まだないよ。おうちの人につくってもらおう。</p>
+        <p className="mt-2 text-sm text-ink/70">
+          {role === 'child'
+            ? 'きょうの よては まだないよ。おうちの人につくってもらおう。'
+            : 'きょうの よては まだないよ。けいかくから追加できるよ。'}
+        </p>
       )}
       {!loading && todayPlans.length > 0 && (
         <ul className="mt-3 space-y-2">
@@ -91,15 +95,21 @@ function TodayPlans({ role }: { role: Role }) {
 function HomeBalance({ role }: { role: Role }) {
   const [summary, setSummary] = useState<PointSummary | null>(null)
   const [error, setError] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
+    setLoading(true)
+    setError(false)
     fetchPointSummary(role)
       .then((data) => {
         if (!cancelled) setSummary(data)
       })
       .catch(() => {
         if (!cancelled) setError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
@@ -114,7 +124,8 @@ function HomeBalance({ role }: { role: Role }) {
           くわしく
         </Link>
       </div>
-      {error && <p className="mt-2 text-sm text-coral">つながらなかったよ。</p>}
+      {loading && <p className="mt-2 text-sm text-ink/60">よみこみちゅう…</p>}
+      {error && <p className="mt-2 text-sm text-coral">つながらなかったよ。もういちど開いてみてね。</p>}
       {summary && (
         <p className="mt-2 text-3xl font-black">{summary.balance}点</p>
       )}
