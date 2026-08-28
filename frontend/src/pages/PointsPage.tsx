@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   createReward,
   deleteReward,
@@ -104,10 +104,16 @@ export default function PointsPage({ role }: { role: Role }) {
       {role === 'parent' && (
         <>
           <StampForm
-            onGive={async (note) => {
-              const next = await giveStamp(note)
-              setSummary(next)
-              await reload()
+            rules={rules}
+            onGive={async (note, eventKey) => {
+              try {
+                setMessage('')
+                const next = await giveStamp(note, eventKey)
+                setSummary(next)
+                await reload()
+              } catch (err) {
+                setMessage(err instanceof Error ? err.message : 'うまくいかなかったよ')
+              }
             }}
           />
           <RuleEditor
@@ -234,26 +240,71 @@ function LedgerList({ ledger }: { ledger: LedgerEntry[] }) {
   )
 }
 
-function StampForm({ onGive }: { onGive: (note: string) => Promise<void> }) {
+function isCustomRule(rule: PointRule) {
+  return rule.event_key.startsWith('custom_') || rule.id <= 0
+}
+
+function StampForm({
+  rules,
+  onGive,
+}: {
+  rules: PointRule[]
+  onGive: (note: string, eventKey: string) => Promise<void>
+}) {
+  const awardable = useMemo(
+    () =>
+      rules.filter(
+        (rule) => rule.enabled && (rule.event_key === 'stamp' || rule.event_key.startsWith('custom_')),
+      ),
+    [rules],
+  )
   const [note, setNote] = useState('')
+  const [eventKey, setEventKey] = useState(awardable[0]?.event_key ?? 'stamp')
+
+  useEffect(() => {
+    if (!awardable.some((rule) => rule.event_key === eventKey)) {
+      setEventKey(awardable[0]?.event_key ?? 'stamp')
+    }
+  }, [awardable, eventKey])
+
+  if (awardable.length === 0) {
+    return (
+      <section className="rounded-3xl bg-white p-5 shadow-sm">
+        <h2 className="font-black">できたことをほめる</h2>
+        <p className="mt-2 text-sm text-ink/60">わたせるルールがオフです。</p>
+      </section>
+    )
+  }
+
   return (
     <form
       className="rounded-3xl bg-white p-5 shadow-sm"
       onSubmit={(event) => {
         event.preventDefault()
-        onGive(note).then(() => setNote(''))
+        onGive(note, eventKey).then(() => setNote(''))
       }}
     >
-      <h2 className="font-black">できたねスタンプ</h2>
+      <h2 className="font-black">できたことをほめる</h2>
+      <select
+        value={eventKey}
+        onChange={(e) => setEventKey(e.target.value)}
+        className="mt-2 w-full rounded-2xl bg-cream px-3 py-2"
+      >
+        {awardable.map((rule) => (
+          <option key={rule.event_key} value={rule.event_key}>
+            {rule.label} ・ {rule.points}点
+          </option>
+        ))}
+      </select>
       <input
         value={note}
         onChange={(e) => setNote(e.target.value)}
         maxLength={80}
-        placeholder="片付け、音読…"
+        placeholder="さんすうのテスト、片付け…"
         className="mt-2 w-full rounded-2xl bg-cream px-3 py-2"
       />
       <button type="submit" className="mt-3 rounded-full bg-sky px-5 py-2 text-sm font-black text-white">
-        スタンプをおす
+        ポイントをわたす
       </button>
     </form>
   )
@@ -277,7 +328,7 @@ function RuleEditor({ rules, onSave }: { rules: PointRule[]; onSave: (rules: Poi
       <h2 className="font-black">付与ルール</h2>
       <ul className="mt-3 space-y-3">
         {draft.map((rule) => (
-          <li key={rule.id} className="rounded-2xl bg-cream p-3">
+          <li key={`${rule.id}-${rule.event_key}`} className="rounded-2xl bg-cream p-3">
             <p className="text-sm font-bold">{rule.label}</p>
             <div className="mt-2 flex items-center gap-2">
               <input
@@ -298,6 +349,15 @@ function RuleEditor({ rules, onSave }: { rules: PointRule[]; onSave: (rules: Poi
                 />
                 オン
               </label>
+              {isCustomRule(rule) && (
+                <button
+                  type="button"
+                  onClick={() => setDraft((rows) => rows.filter((row) => row.id !== rule.id))}
+                  className="rounded-full bg-white px-3 py-1 text-xs font-bold text-coral"
+                >
+                  けす
+                </button>
+              )}
             </div>
           </li>
         ))}
@@ -323,7 +383,7 @@ function RuleEditor({ rules, onSave }: { rules: PointRule[]; onSave: (rules: Poi
           onClick={() => {
             if (!label.trim()) return
             const custom = {
-              id: 0,
+              id: -Date.now(),
               event_key: '',
               label: label.trim(),
               points: Number(points) || 0,

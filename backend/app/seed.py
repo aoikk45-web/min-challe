@@ -13,6 +13,7 @@ DEFAULT_RULES = [
     ("drill_perfect", "全問正解ボーナス", 5),
     ("plan_complete", "計画を1つ完了", 8),
     ("stamp", "できたねスタンプ", 3),
+    ("custom_test100", "テスト100点", 20),
 ]
 
 
@@ -29,6 +30,21 @@ def seed_if_empty() -> None:
             _seed_plans(db, child.id)
         if db.query(PointRule).filter(PointRule.household_id == HOUSEHOLD_ID).count() == 0:
             _seed_points(db, HOUSEHOLD_ID, child.id if child else None)
+        elif (
+            db.query(PointRule)
+            .filter(PointRule.household_id == HOUSEHOLD_ID, PointRule.event_key == "custom_test100")
+            .count()
+            == 0
+        ):
+            db.add(
+                PointRule(
+                    household_id=HOUSEHOLD_ID,
+                    event_key="custom_test100",
+                    label="テスト100点",
+                    points=20,
+                    enabled=True,
+                )
+            )
         if child is not None and db.query(AlbumEntry).filter(AlbumEntry.member_id == child.id).count() == 0:
             _seed_album(db, child.id)
         db.commit()
