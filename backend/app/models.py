@@ -76,8 +76,10 @@ class DrillQuestion(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     session_id: Mapped[int] = mapped_column(ForeignKey("drill_sessions.id"))
     seq: Mapped[int] = mapped_column(Integer)
-    prompt: Mapped[str] = mapped_column(String(200))
+    prompt: Mapped[str] = mapped_column(String(400))
     correct: Mapped[str] = mapped_column(String(40))
+    choices_json: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    image_url: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
     child_answer: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
     is_correct: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
 

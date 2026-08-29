@@ -6,7 +6,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from .database import Base, engine
+from .database import Base, engine, migrate_schema
 from .deps import demo_family, parse_role
 from .models import Household, Member
 from .album import router as album_router
@@ -36,6 +36,7 @@ class HouseholdOut(BaseModel):
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    migrate_schema()
     seed_if_empty()
     yield
 

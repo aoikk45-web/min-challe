@@ -13,6 +13,13 @@ import {
 import type { Role } from '../role'
 import { Empty } from './PlanPage'
 
+function drillImageSrc(url: string): string {
+  if (url.startsWith('/shakai/symbols/')) {
+    return url.replace(/\.svg$/, '.png')
+  }
+  return url
+}
+
 const MATH_KINDS: { kind: DrillKind; emoji: string }[] = [
   { kind: 'たしざん', emoji: '➕' },
   { kind: 'ひきざん', emoji: '➖' },
@@ -25,8 +32,19 @@ const KOKUGO_KINDS: { kind: DrillKind; emoji: string }[] = [
   { kind: 'じゅくごのよみ', emoji: '語' },
 ]
 
+const SHAKAI_KINDS: { kind: DrillKind; emoji: string }[] = [
+  { kind: 'とどうふけん', emoji: '🗾' },
+  { kind: 'にほんのちり', emoji: '🏔️' },
+  { kind: 'ちずきごう', emoji: '📍' },
+  { kind: 'けんのかたち', emoji: '🗺️' },
+]
+
 function isKokugo(kind: string) {
   return kind === 'かんじのよみ' || kind === 'じゅくごのよみ'
+}
+
+function isShakai(kind: string) {
+  return SHAKAI_KINDS.some((item) => item.kind === kind)
 }
 
 function progressFor(progress: DrillProgress[], kind: string) {
@@ -35,13 +53,14 @@ function progressFor(progress: DrillProgress[], kind: string) {
 
 const CHICKEN_STAGES = ['🐣', '🐤', '🐥', '🐔', '🐓'] as const
 
-function chickenGrowth(step: number) {
-  const level = Math.min(Math.max(step, 1), 100)
+function chickenGrowth(step: number, maxStep = 100) {
+  const level = Math.min(Math.max(step, 1), maxStep)
+  const span = Math.max(maxStep - 1, 1)
   const stageIdx = Math.min(
     CHICKEN_STAGES.length - 1,
-    Math.floor(((level - 1) / 99) * (CHICKEN_STAGES.length - 1)),
+    Math.floor(((level - 1) / span) * (CHICKEN_STAGES.length - 1)),
   )
-  const scale = 0.8 + ((level - 1) / 99) * 0.55
+  const scale = 0.8 + ((level - 1) / span) * 0.55
   return { level, icon: CHICKEN_STAGES[stageIdx], scale }
 }
 
@@ -50,15 +69,21 @@ function LevelBadge({
   streak = 0,
   needed = 5,
   compact = false,
+  maxStep = 100,
+  stage = false,
 }: {
   step: number
   streak?: number
   needed?: number
   compact?: boolean
+  maxStep?: number
+  stage?: boolean
 }) {
-  const { level, icon, scale } = chickenGrowth(step)
+  const { level, icon, scale } = chickenGrowth(step, maxStep)
   const filled = Math.min(Math.max(streak, 0), needed)
   const empty = Math.max(0, needed - filled)
+  const stepText = stage ? `ステージ${level}` : `レベル${level}`
+  const goalText = stage ? 'ステージアップまで' : 'レベルアップまで'
   return (
     <div className={`${compact ? 'mt-1' : 'mt-2'} flex flex-col items-center gap-0.5`}>
       <p className={`flex items-center gap-1 font-black ${compact ? 'text-xs' : 'text-sm'}`}>
@@ -68,9 +93,9 @@ function LevelBadge({
         >
           {icon}
         </span>
-        <span>レベル{level}</span>
+        <span>{stepText}</span>
       </p>
-      <p className={`${compact ? 'text-xs' : 'text-sm'} tracking-tight text-sun`} aria-label={`レベルアップまで ${filled}/${needed}`}>
+      <p className={`${compact ? 'text-xs' : 'text-sm'} tracking-tight text-sun`} aria-label={`${goalText} ${filled}/${needed}`}>
         {'★'.repeat(filled)}
         {'☆'.repeat(empty)}
       </p>
@@ -127,8 +152,12 @@ export default function DrillPage({ role }: { role: Role }) {
   }
 
   async function begin(kind: DrillKind) {
-    const next = await startDrill(kind)
-    setSession(next)
+    try {
+      const next = await startDrill(kind)
+      setSession(next)
+    } catch {
+      setError(true)
+    }
   }
 
   async function onAnswered(next: DrillSession) {
@@ -199,6 +228,16 @@ export default function DrillPage({ role }: { role: Role }) {
                   ))}
                 </ul>
               </div>
+              <div>
+                <p className="text-sm font-bold text-sky">しゃかい</p>
+                <ul className="mt-2 grid grid-cols-2 gap-3">
+                  {SHAKAI_KINDS.map((item) => (
+                    <li key={item.kind}>
+                      <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
         </section>
@@ -211,7 +250,14 @@ export default function DrillPage({ role }: { role: Role }) {
             {progress.map((row) => (
               <li key={row.kind} className="rounded-2xl bg-cream px-4 py-3">
                 <p>{row.kind}</p>
-                <LevelBadge step={row.step} streak={row.perfect_streak} needed={row.perfect_needed} compact />
+                <LevelBadge
+                  step={row.step}
+                  streak={row.perfect_streak}
+                  needed={row.perfect_needed}
+                  maxStep={row.max_step}
+                  stage={isShakai(row.kind)}
+                  compact
+                />
               </li>
             ))}
           </ul>
@@ -239,6 +285,8 @@ function KindButton({
   const step = prog?.step ?? 1
   const streak = prog?.perfect_streak ?? 0
   const needed = prog?.perfect_needed ?? 5
+  const stage = isShakai(item.kind)
+  const maxStep = prog?.max_step ?? (stage ? 6 : 100)
   return (
     <button
       type="button"
@@ -247,7 +295,7 @@ function KindButton({
     >
       <span className="text-2xl">{item.emoji}</span>
       <span className="mt-1">{item.kind}</span>
-      <LevelBadge step={step} streak={streak} needed={needed} compact />
+      <LevelBadge step={step} streak={streak} needed={needed} maxStep={maxStep} stage={stage} compact />
     </button>
   )
 }
@@ -300,17 +348,24 @@ function PlayView({
   const [busy, setBusy] = useState(false)
   const [feedback, setFeedback] = useState<DrillSession['questions'][0] | null>(null)
   const [pending, setPending] = useState<DrillSession | null>(null)
+  const shakai = isShakai(session.kind)
 
-  async function submit() {
-    if (!current || draft.trim() === '') return
+  async function submit(answer?: string) {
+    if (!current) return
+    const value = answer ?? draft
+    if (value.trim() === '') return
     const kokugo = isKokugo(session.kind)
-    if (!kokugo) {
-      const value = Number(draft)
-      if (Number.isNaN(value)) return
+    if (!kokugo && !shakai) {
+      const num = Number(value)
+      if (Number.isNaN(num)) return
     }
     setBusy(true)
     try {
-      const next = await answerDrill(session.id, current.id, kokugo ? draft.trim() : String(Number(draft)))
+      const next = await answerDrill(
+        session.id,
+        current.id,
+        kokugo || shakai ? value.trim() : String(Number(value)),
+      )
       const answered = next.questions.find((q) => q.id === current.id) ?? null
       setFeedback(answered)
       setPending(next)
@@ -329,6 +384,8 @@ function PlayView({
   const shown = feedback ?? current
   if (!shown) return null
 
+  const promptLines = shown.prompt.split('\n')
+
   return (
     <section className="rounded-3xl bg-white p-5 shadow-sm">
       <p className="text-sm font-bold text-sky">
@@ -338,10 +395,28 @@ function PlayView({
         step={session.step ?? 1}
         streak={session.perfect_streak ?? 0}
         needed={session.perfect_needed}
+        maxStep={session.max_step ?? (shakai ? 6 : 100)}
+        stage={shakai}
       />
-      <p className={`mt-6 text-center font-black ${shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'}`}>
-        {shown.prompt}
-      </p>
+      {shown.image_url && (
+        <div className="mt-4 flex justify-center">
+          <img
+            key={shown.image_url}
+            src={drillImageSrc(shown.image_url)}
+            alt=""
+            className={`w-full max-w-md rounded-2xl border-2 border-sky/20 bg-white p-3 object-contain ${
+              shown.image_url.startsWith('/shakai/maps/') ? 'max-h-72' : 'max-h-48'
+            }`}
+          />
+        </div>
+      )}
+      <div className={`mt-6 text-center font-black ${shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'}`}>
+        {promptLines.map((line, idx) => (
+          <p key={idx} className={idx > 0 ? 'mt-2' : ''}>
+            {line}
+          </p>
+        ))}
+      </div>
       {feedback ? (
         <div className="mt-6 text-center">
           <p className={`text-2xl font-black ${feedback.is_correct ? 'text-mint' : 'text-coral'}`}>
@@ -351,6 +426,20 @@ function PlayView({
           <button type="button" onClick={goNext} className="mt-4 rounded-full bg-sun px-6 py-2 font-black">
             {pending?.status === 'finished' ? 'けっかをみる' : 'つぎ'}
           </button>
+        </div>
+      ) : shakai && shown.choices ? (
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          {shown.choices.map((choice) => (
+            <button
+              key={choice}
+              type="button"
+              disabled={busy}
+              onClick={() => submit(choice)}
+              className="rounded-2xl bg-cream px-3 py-4 text-base font-black disabled:opacity-50"
+            >
+              {choice}
+            </button>
+          ))}
         </div>
       ) : (
         <form
@@ -393,12 +482,14 @@ function ResultView({
   onAgain: () => void
 }) {
   const perfect = session.correct_count === 10
+  const stage = isShakai(session.kind)
+  const maxStep = session.max_step ?? (stage ? 6 : 100)
   return (
     <section className="space-y-4">
       <div className="rounded-3xl bg-white p-6 text-center shadow-sm">
         <p className="text-5xl">{session.step_up ? '🚀' : perfect ? '🎉' : '✨'}</p>
         <h2 className="mt-3 text-2xl font-black">
-          {session.step_up ? 'レベルアップ！' : perfect ? 'やったね！ぜんぶせいかい' : 'おつかれさま'}
+          {session.step_up ? (stage ? 'ステージアップ！' : 'レベルアップ！') : perfect ? 'やったね！ぜんぶせいかい' : 'おつかれさま'}
         </h2>
         {session.step != null && (
           <div className="mt-3 flex justify-center">
@@ -406,6 +497,8 @@ function ResultView({
               step={session.step_up ? session.step + 1 : session.step}
               streak={session.step_up ? 0 : (session.perfect_streak ?? 0)}
               needed={session.perfect_needed}
+              maxStep={maxStep}
+              stage={stage}
             />
           </div>
         )}

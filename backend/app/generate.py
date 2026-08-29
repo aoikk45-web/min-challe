@@ -3,14 +3,17 @@ from __future__ import annotations
 import random
 import unicodedata
 
-from .kokugo import pick_ten
+from .kokugo import pick_ten as kokugo_pick_ten
+from .shakai import GeneratedQuestion, pick_ten as shakai_pick_ten
 
 MATH_KINDS = ("たしざん", "ひきざん", "かけざん", "わりざん")
 KOKUGO_KINDS = ("かんじのよみ", "じゅくごのよみ")
-KINDS = MATH_KINDS + KOKUGO_KINDS
+SHAKAI_KINDS = ("とどうふけん", "にほんのちり", "ちずきごう", "けんのかたち")
+KINDS = MATH_KINDS + KOKUGO_KINDS + SHAKAI_KINDS
 PROGRESS_KINDS = KINDS
 
 MAX_STEP = 100
+SHAKAI_MAX_STEP = 6
 WORD_STEP_FROM = 40
 
 _WORD: dict[str, tuple[str, ...]] = {
@@ -57,14 +60,16 @@ def _step_band(step: int) -> tuple[int, float]:
     return grade, t
 
 
-def generate_ten(kind: str, step: int = 1) -> list[tuple[str, str]]:
+def generate_ten(kind: str, step: int = 1) -> list[GeneratedQuestion]:
     if kind not in KINDS:
         raise ValueError(f"unknown kind: {kind}")
     if kind in KOKUGO_KINDS:
-        return pick_ten(kind, step)
+        return [GeneratedQuestion(prompt, correct) for prompt, correct in kokugo_pick_ten(kind, step)]
+    if kind in SHAKAI_KINDS:
+        return shakai_pick_ten(kind, step)
     step = min(max(step, 1), MAX_STEP)
     seen: set[str] = set()
-    out: list[tuple[str, str]] = []
+    out: list[GeneratedQuestion] = []
     use_words = step >= WORD_STEP_FROM
     if use_words:
         _fill(out, seen, kind, step, 8, word=False)
@@ -75,7 +80,7 @@ def generate_ten(kind: str, step: int = 1) -> list[tuple[str, str]]:
 
 
 def _fill(
-    out: list[tuple[str, str]],
+    out: list[GeneratedQuestion],
     seen: set[str],
     kind: str,
     step: int,
@@ -90,10 +95,10 @@ def _fill(
         if prompt in seen:
             continue
         seen.add(prompt)
-        out.append((prompt, str(answer)))
+        out.append(GeneratedQuestion(prompt, str(answer)))
     while len(out) < target:
         prompt, answer = _one(kind, step, word=word)
-        out.append((prompt, str(answer)))
+        out.append(GeneratedQuestion(prompt, str(answer)))
 
 
 def _one(kind: str, step: int, *, word: bool = False) -> tuple[str, int]:
