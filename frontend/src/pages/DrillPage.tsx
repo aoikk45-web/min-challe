@@ -3,9 +3,11 @@ import {
   answerDrill,
   fetchDrill,
   fetchDrillHistory,
+  fetchDrillProgress,
   startDrill,
   type DrillHistoryItem,
   type DrillKind,
+  type DrillProgress,
   type DrillSession,
 } from '../api'
 import type { Role } from '../role'
@@ -27,8 +29,58 @@ function isKokugo(kind: string) {
   return kind === 'かんじのよみ' || kind === 'じゅくごのよみ'
 }
 
+function progressFor(progress: DrillProgress[], kind: string) {
+  return progress.find((row) => row.kind === kind)
+}
+
+const CHICKEN_STAGES = ['🐣', '🐤', '🐥', '🐔', '🐓'] as const
+
+function chickenGrowth(step: number) {
+  const level = Math.min(Math.max(step, 1), 100)
+  const stageIdx = Math.min(
+    CHICKEN_STAGES.length - 1,
+    Math.floor(((level - 1) / 99) * (CHICKEN_STAGES.length - 1)),
+  )
+  const scale = 0.8 + ((level - 1) / 99) * 0.55
+  return { level, icon: CHICKEN_STAGES[stageIdx], scale }
+}
+
+function LevelBadge({
+  step,
+  streak = 0,
+  needed = 5,
+  compact = false,
+}: {
+  step: number
+  streak?: number
+  needed?: number
+  compact?: boolean
+}) {
+  const { level, icon, scale } = chickenGrowth(step)
+  const filled = Math.min(Math.max(streak, 0), needed)
+  const empty = Math.max(0, needed - filled)
+  return (
+    <div className={`${compact ? 'mt-1' : 'mt-2'} flex flex-col items-center gap-0.5`}>
+      <p className={`flex items-center gap-1 font-black ${compact ? 'text-xs' : 'text-sm'}`}>
+        <span
+          className={`inline-block leading-none ${compact ? 'text-base' : 'text-xl'}`}
+          style={{ transform: `scale(${scale})` }}
+        >
+          {icon}
+        </span>
+        <span>レベル{level}</span>
+      </p>
+      <p className={`${compact ? 'text-xs' : 'text-sm'} tracking-tight text-sun`} aria-label={`レベルアップまで ${filled}/${needed}`}>
+        {'★'.repeat(filled)}
+        {'☆'.repeat(empty)}
+      </p>
+    </div>
+  )
+}
+
 export default function DrillPage({ role }: { role: Role }) {
   const [history, setHistory] = useState<DrillHistoryItem[]>([])
+  const [progress, setProgress] = useState<DrillProgress[]>([])
   const [session, setSession] = useState<DrillSession | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -39,16 +91,27 @@ export default function DrillPage({ role }: { role: Role }) {
     return rows
   }
 
+  async function reloadProgress() {
+    const rows = await fetchDrillProgress(role)
+    setProgress(rows)
+    return rows
+  }
+
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setError(false)
-    fetchDrillHistory(role)
-      .then((rows) => {
-        if (!cancelled) setHistory(rows)
-      })
-      .catch(() => {
-        if (!cancelled) setError(true)
+    Promise.allSettled([fetchDrillHistory(role), fetchDrillProgress(role)])
+      .then(([historyResult, progressResult]) => {
+        if (cancelled) return
+        if (historyResult.status === 'fulfilled') {
+          setHistory(historyResult.value)
+        } else {
+          setError(true)
+        }
+        if (progressResult.status === 'fulfilled') {
+          setProgress(progressResult.value)
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -72,12 +135,15 @@ export default function DrillPage({ role }: { role: Role }) {
     setSession(next)
     if (next.status === 'finished') {
       await reloadHistory()
+      if (!isKokugo(next.kind)) {
+        await reloadProgress()
+      }
     }
   }
 
   function backToMenu() {
     setSession(null)
-    reloadHistory().catch(() => setError(true))
+    Promise.all([reloadHistory(), reloadProgress()]).catch(() => setError(true))
   }
 
   if (loading) {
@@ -120,7 +186,7 @@ export default function DrillPage({ role }: { role: Role }) {
                 <ul className="mt-2 grid grid-cols-2 gap-3">
                   {MATH_KINDS.map((item) => (
                     <li key={item.kind}>
-                      <KindButton item={item} onBegin={begin} />
+                      <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
                     </li>
                   ))}
                 </ul>
@@ -140,6 +206,20 @@ export default function DrillPage({ role }: { role: Role }) {
         </section>
       )}
 
+      {role === 'parent' && progress.length > 0 && (
+        <section className="rounded-3xl bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-black">さんすうのレベル</h2>
+          <ul className="mt-3 space-y-2 text-sm font-bold">
+            {progress.map((row) => (
+              <li key={row.kind} className="rounded-2xl bg-cream px-4 py-3">
+                <p>{row.kind}</p>
+                <LevelBadge step={row.step} streak={row.perfect_streak} needed={row.perfect_needed} compact />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <HistoryList
         history={history.filter((row) => row.status === 'finished')}
         empty={role === 'child' ? 'まだ 1かいも やってないよ。' : 'まだ履歴がないよ。'}
@@ -151,19 +231,22 @@ export default function DrillPage({ role }: { role: Role }) {
 
 function KindButton({
   item,
+  prog,
   onBegin,
 }: {
   item: { kind: DrillKind; emoji: string }
+  prog?: DrillProgress
   onBegin: (kind: DrillKind) => void
 }) {
   return (
     <button
       type="button"
       onClick={() => onBegin(item.kind)}
-      className="flex h-full w-full flex-col items-center rounded-3xl bg-cream py-4 font-black"
+      className="flex h-full w-full flex-col items-center rounded-3xl bg-cream px-2 py-4 font-black"
     >
       <span className="text-2xl">{item.emoji}</span>
       <span className="mt-1">{item.kind}</span>
+      {prog && <LevelBadge step={prog.step} streak={prog.perfect_streak} needed={prog.perfect_needed} compact />}
     </button>
   )
 }
@@ -193,6 +276,7 @@ function HistoryList({
             >
               <p className="font-black">{row.kind}</p>
               <p className="text-xs text-ink/60">
+                {row.step != null ? `レベル${row.step} ・ ` : ''}
                 {row.correct_count ?? 0}/10もん ・ {row.duration_sec ?? 0}びょう
               </p>
             </button>
@@ -249,6 +333,13 @@ function PlayView({
       <p className="text-sm font-bold text-sky">
         {session.kind} {shown.seq}/10
       </p>
+      {session.step != null && (
+        <LevelBadge
+          step={session.step}
+          streak={session.perfect_streak ?? 0}
+          needed={session.perfect_needed}
+        />
+      )}
       <p className={`mt-6 text-center font-black ${shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'}`}>
         {shown.prompt}
       </p>
@@ -306,8 +397,19 @@ function ResultView({
   return (
     <section className="space-y-4">
       <div className="rounded-3xl bg-white p-6 text-center shadow-sm">
-        <p className="text-5xl">{perfect ? '🎉' : '✨'}</p>
-        <h2 className="mt-3 text-2xl font-black">{perfect ? 'やったね！ぜんぶせいかい' : 'おつかれさま'}</h2>
+        <p className="text-5xl">{session.step_up ? '🚀' : perfect ? '🎉' : '✨'}</p>
+        <h2 className="mt-3 text-2xl font-black">
+          {session.step_up ? 'レベルアップ！' : perfect ? 'やったね！ぜんぶせいかい' : 'おつかれさま'}
+        </h2>
+        {session.step != null && (
+          <div className="mt-3 flex justify-center">
+            <LevelBadge
+              step={session.step_up ? session.step + 1 : session.step}
+              streak={session.step_up ? 0 : (session.perfect_streak ?? 0)}
+              needed={session.perfect_needed}
+            />
+          </div>
+        )}
         <p className="mt-2 font-black">
           {session.correct_count ?? 0}/10もん ・ {session.duration_sec ?? 0}びょう
         </p>

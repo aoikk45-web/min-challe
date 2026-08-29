@@ -2,8 +2,10 @@ import re
 
 from fastapi.testclient import TestClient
 
-from app.generate import generate_ten
+from app.drill_progress import PERFECT_NEEDED, apply_perfect_streak
+from app.generate import WORD_STEP_FROM, generate_ten
 from app.main import app
+from app.models import DrillProgress
 from app.seed import reset_and_seed
 
 
@@ -43,9 +45,25 @@ def _assert_word_matches_kind(kind: str, prompt: str, answer: str) -> None:
         assert answer == str(a // b)
 
 
-def test_grade3_warizan_divides_evenly():
+def test_step1_tashi_is_small():
+    for prompt, answer in generate_ten("たしざん", 1):
+        assert "？" not in prompt
+        left, right = prompt.split(" + ")
+        a, b = int(left), int(right)
+        assert 1 <= a <= 5
+        assert 1 <= b <= 5
+        assert answer == str(a + b)
+
+
+def test_step_below_40_has_no_word_problems():
+    items = generate_ten("たしざん", WORD_STEP_FROM - 1)
+    assert all("？" not in p for p, _ in items)
+
+
+def test_grade3_band_warizan_divides_evenly():
+    step = 45
     for _ in range(5):
-        items = generate_ten("わりざん", 3)
+        items = generate_ten("わりざん", step)
         assert len(items) == 10
         for prompt, answer in items[:8]:
             _assert_grade3_equation("わりざん", prompt, answer)
@@ -53,8 +71,9 @@ def test_grade3_warizan_divides_evenly():
             _assert_word_matches_kind("わりざん", prompt, answer)
 
 
-def test_grade3_kakezan_is_2digit_times_1digit():
-    items = generate_ten("かけざん", 3)
+def test_grade3_band_kakezan_is_2digit_times_1digit():
+    step = 45
+    items = generate_ten("かけざん", step)
     assert len(items) == 10
     for prompt, answer in items[:8]:
         _assert_grade3_equation("かけざん", prompt, answer)
@@ -62,14 +81,43 @@ def test_grade3_kakezan_is_2digit_times_1digit():
         _assert_word_matches_kind("かけざん", prompt, answer)
 
 
-def test_math_last_two_are_word_problems():
+def test_math_last_two_are_word_problems_from_step40():
+    step = 50
     for kind in ("たしざん", "ひきざん", "かけざん", "わりざん"):
-        items = generate_ten(kind, 3)
+        items = generate_ten(kind, step)
         assert len(items) == 10
         for prompt, _answer in items[:8]:
             assert "？" not in prompt
         for prompt, answer in items[8:]:
             _assert_word_matches_kind(kind, prompt, answer)
+
+
+def test_apply_perfect_streak_needs_five():
+    row = DrillProgress(member_id=1, kind="たしざん", step=1, perfect_streak=0)
+    for _ in range(PERFECT_NEEDED - 1):
+        assert apply_perfect_streak(row, 10) is False
+        assert row.step == 1
+    assert apply_perfect_streak(row, 10) is True
+    assert row.step == 2
+    assert row.perfect_streak == 0
+
+
+def test_apply_perfect_streak_resets_on_miss():
+    row = DrillProgress(member_id=1, kind="たしざん", step=1, perfect_streak=3)
+    assert apply_perfect_streak(row, 9) is False
+    assert row.perfect_streak == 0
+    assert row.step == 1
+
+
+def test_progress_api_lists_math_kinds():
+    client = TestClient(app)
+    rows = client.get("/api/drills/progress", params={"role": "child"}).json()
+    kinds = {row["kind"] for row in rows}
+    assert kinds == {"たしざん", "ひきざん", "かけざん", "わりざん"}
+    tashi = next(row for row in rows if row["kind"] == "たしざん")
+    assert tashi["step"] == 1
+    assert tashi["perfect_streak"] == 0
+    assert tashi["max_step"] == 100
 
 
 def test_parent_cannot_start():
@@ -82,6 +130,7 @@ def test_start_hides_unanswered_correct():
     client = TestClient(app)
     data = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "たしざん"}).json()
     assert data["grade"] == 3
+    assert data["step"] == 1
     assert data["status"] == "in_progress"
     assert len(data["questions"]) == 10
     assert all(q["correct"] is None and q["child_answer"] is None for q in data["questions"])
@@ -134,6 +183,7 @@ def test_history_lists_finished():
     assert history[0]["id"] == session["id"]
     assert history[0]["status"] == "finished"
     assert history[0]["kind"] == "わりざん"
+    assert history[0]["step"] == 1
 
 
 def test_start_kokugo_jukugo():
@@ -141,6 +191,7 @@ def test_start_kokugo_jukugo():
     data = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "じゅくごのよみ"}).json()
     assert data["kind"] == "じゅくごのよみ"
     assert data["grade"] == 3
+    assert data["step"] is None
     assert len(data["questions"]) == 10
     assert all(q["correct"] is None for q in data["questions"])
 
@@ -148,8 +199,8 @@ def test_start_kokugo_jukugo():
 def test_kokugo_kanji_and_jukugo_banks():
     from app.kokugo import JUKUGO_YOMI, KANJI_YOMI
 
-    kanji = generate_ten("かんじのよみ", 3)
-    jukugo = generate_ten("じゅくごのよみ", 3)
+    kanji = generate_ten("かんじのよみ", 1)
+    jukugo = generate_ten("じゅくごのよみ", 1)
     assert len(kanji) == 10
     assert len(jukugo) == 10
     assert len({p for p, _ in kanji}) == 10

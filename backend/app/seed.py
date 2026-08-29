@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from .database import SessionLocal
-from .models import AlbumEntry, Household, Member, PointLedger, PointRule, Reward, StudyPlan
+from .drill_progress import ensure_all_math
+from .models import AlbumEntry, DrillProgress, Household, Member, PointLedger, PointRule, Reward, StudyPlan
 from .timeutil import today_jst
 
 HOUSEHOLD_ID = 1
@@ -47,6 +48,8 @@ def seed_if_empty() -> None:
             )
         if child is not None and db.query(AlbumEntry).filter(AlbumEntry.member_id == child.id).count() == 0:
             _seed_album(db, child.id)
+        if child is not None and db.query(DrillProgress).filter(DrillProgress.member_id == child.id).count() == 0:
+            ensure_all_math(db, child.id)
         db.commit()
     finally:
         db.close()
@@ -87,6 +90,7 @@ def _seed(db: Session) -> None:
     _seed_plans(db, child.id)
     _seed_points(db, hh.id, child.id)
     _seed_album(db, child.id)
+    ensure_all_math(db, child.id)
 
 
 def _seed_plans(db: Session, child_id: int) -> None:
