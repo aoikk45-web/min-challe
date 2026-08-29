@@ -74,7 +74,7 @@ class DrillQuestion(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     session_id: Mapped[int] = mapped_column(ForeignKey("drill_sessions.id"))
     seq: Mapped[int] = mapped_column(Integer)
-    prompt: Mapped[str] = mapped_column(String(40))
+    prompt: Mapped[str] = mapped_column(String(200))
     correct: Mapped[str] = mapped_column(String(40))
     child_answer: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
     is_correct: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)

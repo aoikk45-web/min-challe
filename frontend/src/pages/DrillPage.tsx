@@ -249,7 +249,9 @@ function PlayView({
       <p className="text-sm font-bold text-sky">
         {session.kind} {shown.seq}/10
       </p>
-      <p className="mt-6 text-center text-4xl font-black">{shown.prompt}</p>
+      <p className={`mt-6 text-center font-black ${shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'}`}>
+        {shown.prompt}
+      </p>
       {feedback ? (
         <div className="mt-6 text-center">
           <p className={`text-2xl font-black ${feedback.is_correct ? 'text-mint' : 'text-coral'}`}>
@@ -322,11 +324,11 @@ function ResultView({
       </div>
       <ul className="space-y-2 rounded-3xl bg-white p-5 shadow-sm">
         {session.questions.map((q) => (
-          <li key={q.id} className="flex justify-between text-sm font-bold">
-            <span>
+          <li key={q.id} className="flex items-start justify-between gap-3 text-sm font-bold">
+            <span className="min-w-0 break-words">
               {q.seq}. {q.prompt}
             </span>
-            <span className={q.is_correct ? 'text-mint' : 'text-coral'}>
+            <span className={`shrink-0 ${q.is_correct ? 'text-mint' : 'text-coral'}`}>
               {q.is_correct ? '○' : `× ${q.correct}`}
             </span>
           </li>
