@@ -6,7 +6,12 @@
 
 ---
 
-## 2026-08-29 L10 実装完了（ゲートB 待ち）
+## 2026-08-29 L10 ゲートB 承認（PR 待ち）
+
+- 人間が L10 を承認。表示はレベル1〜100・ひよこ→鶏アイコン・★のみ（バーと「ぜんぶ正解」テキストは削除）。
+- pytest 43、build OK。PR 作成。
+
+---
 
 - 人間が L10 を承認。ブランチ `loop/l10-drill-steps`。
 - **バックエンド**: `drill_progress` テーブル、`drill_sessions.step`、`drill_progress.py`（ストリーク・ステップアップ）、`generate.py` をステップ1〜100対応に書き換え。`GET /api/drills/progress` 追加。

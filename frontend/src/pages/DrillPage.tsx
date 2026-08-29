@@ -33,6 +33,51 @@ function progressFor(progress: DrillProgress[], kind: string) {
   return progress.find((row) => row.kind === kind)
 }
 
+const CHICKEN_STAGES = ['🐣', '🐤', '🐥', '🐔', '🐓'] as const
+
+function chickenGrowth(step: number) {
+  const level = Math.min(Math.max(step, 1), 100)
+  const stageIdx = Math.min(
+    CHICKEN_STAGES.length - 1,
+    Math.floor(((level - 1) / 99) * (CHICKEN_STAGES.length - 1)),
+  )
+  const scale = 0.8 + ((level - 1) / 99) * 0.55
+  return { level, icon: CHICKEN_STAGES[stageIdx], scale }
+}
+
+function LevelBadge({
+  step,
+  streak = 0,
+  needed = 5,
+  compact = false,
+}: {
+  step: number
+  streak?: number
+  needed?: number
+  compact?: boolean
+}) {
+  const { level, icon, scale } = chickenGrowth(step)
+  const filled = Math.min(Math.max(streak, 0), needed)
+  const empty = Math.max(0, needed - filled)
+  return (
+    <div className={`${compact ? 'mt-1' : 'mt-2'} flex flex-col items-center gap-0.5`}>
+      <p className={`flex items-center gap-1 font-black ${compact ? 'text-xs' : 'text-sm'}`}>
+        <span
+          className={`inline-block leading-none ${compact ? 'text-base' : 'text-xl'}`}
+          style={{ transform: `scale(${scale})` }}
+        >
+          {icon}
+        </span>
+        <span>レベル{level}</span>
+      </p>
+      <p className={`${compact ? 'text-xs' : 'text-sm'} tracking-tight text-sun`} aria-label={`レベルアップまで ${filled}/${needed}`}>
+        {'★'.repeat(filled)}
+        {'☆'.repeat(empty)}
+      </p>
+    </div>
+  )
+}
+
 export default function DrillPage({ role }: { role: Role }) {
   const [history, setHistory] = useState<DrillHistoryItem[]>([])
   const [progress, setProgress] = useState<DrillProgress[]>([])
@@ -163,18 +208,12 @@ export default function DrillPage({ role }: { role: Role }) {
 
       {role === 'parent' && progress.length > 0 && (
         <section className="rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-black">さんすうのステップ</h2>
+          <h2 className="text-lg font-black">さんすうのレベル</h2>
           <ul className="mt-3 space-y-2 text-sm font-bold">
             {progress.map((row) => (
               <li key={row.kind} className="rounded-2xl bg-cream px-4 py-3">
                 <p>{row.kind}</p>
-                <StepMeter
-                  step={row.step}
-                  maxStep={row.max_step}
-                  label={row.step_label}
-                  streak={row.perfect_streak}
-                  needed={row.perfect_needed}
-                />
+                <LevelBadge step={row.step} streak={row.perfect_streak} needed={row.perfect_needed} compact />
               </li>
             ))}
           </ul>
@@ -186,37 +225,6 @@ export default function DrillPage({ role }: { role: Role }) {
         empty={role === 'child' ? 'まだ 1かいも やってないよ。' : 'まだ履歴がないよ。'}
         onOpen={(id) => openSession(id)}
       />
-    </div>
-  )
-}
-
-function StepMeter({
-  step,
-  maxStep,
-  label,
-  streak,
-  needed,
-}: {
-  step: number
-  maxStep: number
-  label: string
-  streak?: number
-  needed?: number
-}) {
-  const pct = Math.min(100, Math.round((step / maxStep) * 100))
-  return (
-    <div className="mt-1 text-xs text-ink/70">
-      <p>
-        ステップ {step}/{maxStep} ・ {label}
-      </p>
-      <div className="mt-1 h-2 overflow-hidden rounded-full bg-white">
-        <div className="h-2 rounded-full bg-mint" style={{ width: `${pct}%` }} />
-      </div>
-      {streak != null && needed != null && (
-        <p className="mt-1">
-          ぜんぶ正解 {streak}/{needed}回
-        </p>
-      )}
     </div>
   )
 }
@@ -238,15 +246,7 @@ function KindButton({
     >
       <span className="text-2xl">{item.emoji}</span>
       <span className="mt-1">{item.kind}</span>
-      {prog && (
-        <StepMeter
-          step={prog.step}
-          maxStep={prog.max_step}
-          label={prog.step_label}
-          streak={prog.perfect_streak}
-          needed={prog.perfect_needed}
-        />
-      )}
+      {prog && <LevelBadge step={prog.step} streak={prog.perfect_streak} needed={prog.perfect_needed} compact />}
     </button>
   )
 }
@@ -276,7 +276,7 @@ function HistoryList({
             >
               <p className="font-black">{row.kind}</p>
               <p className="text-xs text-ink/60">
-                {row.step != null ? `ステップ ${row.step} ・ ` : ''}
+                {row.step != null ? `レベル${row.step} ・ ` : ''}
                 {row.correct_count ?? 0}/10もん ・ {row.duration_sec ?? 0}びょう
               </p>
             </button>
@@ -334,15 +334,11 @@ function PlayView({
         {session.kind} {shown.seq}/10
       </p>
       {session.step != null && (
-        <div className="mt-2">
-          <StepMeter
-            step={session.step}
-            maxStep={session.max_step}
-            label={session.step_label ?? ''}
-            streak={session.perfect_streak ?? undefined}
-            needed={session.perfect_needed}
-          />
-        </div>
+        <LevelBadge
+          step={session.step}
+          streak={session.perfect_streak ?? 0}
+          needed={session.perfect_needed}
+        />
       )}
       <p className={`mt-6 text-center font-black ${shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'}`}>
         {shown.prompt}
@@ -403,19 +399,17 @@ function ResultView({
       <div className="rounded-3xl bg-white p-6 text-center shadow-sm">
         <p className="text-5xl">{session.step_up ? '🚀' : perfect ? '🎉' : '✨'}</p>
         <h2 className="mt-3 text-2xl font-black">
-          {session.step_up ? 'ステップアップ！' : perfect ? 'やったね！ぜんぶせいかい' : 'おつかれさま'}
+          {session.step_up ? 'レベルアップ！' : perfect ? 'やったね！ぜんぶせいかい' : 'おつかれさま'}
         </h2>
         {session.step != null && (
-          <p className="mt-2 text-sm font-bold text-ink/70">
-            ステップ {session.step}/{session.max_step}
-            {session.step_label ? ` ・ ${session.step_label}` : ''}
-          </p>
+          <div className="mt-3 flex justify-center">
+            <LevelBadge
+              step={session.step_up ? session.step + 1 : session.step}
+              streak={session.step_up ? 0 : (session.perfect_streak ?? 0)}
+              needed={session.perfect_needed}
+            />
+          </div>
         )}
-        {session.step_up ? null : perfect && session.perfect_streak != null ? (
-          <p className="mt-1 text-sm font-bold text-mint">
-            ぜんぶ正解 {session.perfect_streak}/{session.perfect_needed}回
-          </p>
-        ) : null}
         <p className="mt-2 font-black">
           {session.correct_count ?? 0}/10もん ・ {session.duration_sec ?? 0}びょう
         </p>
