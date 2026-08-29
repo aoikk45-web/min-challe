@@ -52,6 +52,16 @@ def normalize_reading(value: str) -> str:
     return "".join(chars)
 
 
+def kokugo_reading_matches(given: str, correct: str) -> bool:
+    from .kokugo_natural import JUKUGO_READING_ALTERNATES
+
+    g = normalize_reading(given)
+    c = normalize_reading(correct)
+    if g == c:
+        return True
+    return g in JUKUGO_READING_ALTERNATES.get(c, set())
+
+
 def _step_band(step: int) -> tuple[int, float]:
     s = min(max(step, 1), MAX_STEP) - 1
     grade = min(6, s // 17 + 1)

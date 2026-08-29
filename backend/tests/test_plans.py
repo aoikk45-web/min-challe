@@ -5,22 +5,21 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.seed import reset_and_seed
 from app.timeutil import today_jst, week_bounds
+from tests.conftest import create_plan
 
 
 def setup_function():
     reset_and_seed()
 
 
-def test_lists_this_week_with_past_completed():
+def test_lists_empty_until_parent_adds():
     client = TestClient(app)
+    assert client.get("/api/plans").json() == []
+    create_plan(client, title="かけ算")
     data = client.get("/api/plans").json()
-    assert len(data) >= 1
-    today = today_jst().isoformat()
-    for row in data:
-        if row["plan_date"] < today:
-            assert row["completed_at"] is not None
-        else:
-            assert row["completed_at"] is None
+    assert len(data) == 1
+    assert data[0]["title"] == "かけ算"
+    assert data[0]["completed_at"] is None
 
 
 def test_week_bounds_are_monday_to_sunday():
@@ -70,21 +69,21 @@ def test_parent_creates_updates_deletes():
 
 def test_complete_once_then_conflict():
     client = TestClient(app)
-    open_plan = next(row for row in client.get("/api/plans").json() if row["completed_at"] is None)
-    first = client.post(f"/api/plans/{open_plan['id']}/complete", params={"role": "child"})
+    plan = create_plan(client)
+    first = client.post(f"/api/plans/{plan['id']}/complete", params={"role": "child"})
     assert first.status_code == 200
     assert first.json()["completed_at"] is not None
-    second = client.post(f"/api/plans/{open_plan['id']}/complete", params={"role": "parent"})
+    second = client.post(f"/api/plans/{plan['id']}/complete", params={"role": "parent"})
     assert second.status_code == 409
 
 
-def test_from_and_to_must_be_together():
+def test_invalid_date_range():
     client = TestClient(app)
     assert client.get("/api/plans", params={"from": today_jst().isoformat()}).status_code == 400
 
 
-def test_empty_range_is_empty_list():
+def test_empty_week_range():
     client = TestClient(app)
-    far = today_jst() + timedelta(days=30)
+    far = today_jst() + timedelta(days=365)
     data = client.get("/api/plans", params={"from": far.isoformat(), "to": far.isoformat()}).json()
     assert data == []

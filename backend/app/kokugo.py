@@ -5,6 +5,8 @@ import random
 import re
 from pathlib import Path
 
+from .kokugo_natural import is_natural_example
+
 MAX_STEP = 100
 WORD_STEP_FROM = 40
 
@@ -58,28 +60,13 @@ def _plain_sentence(sentence: str) -> str:
 
 
 def _is_valid_example(target: str, sentence: str) -> bool:
-    plain = _plain_sentence(sentence)
-    if plain.count(target) != 1:
-        return False
-    if f"**{target}**" not in sentence:
-        return False
-    forbidden = (
-        "について 学びました",
-        "について 調べました",
-        "について 話し合いました",
-        "について 話しました",
-        "の 名前を 覚えました",
-        "を おぼえました",
-    )
-    return not any(phrase in plain for phrase in forbidden)
+    return is_natural_example(target, sentence)
 
 
 def _pick_example(entry: dict) -> tuple[str, str]:
     examples = entry.get("examples") or []
     target = _target(entry)
     valid = [ex for ex in examples if _is_valid_example(target, ex["sentence"])]
-    if not valid:
-        valid = examples
     if valid:
         picked = random.choice(valid)
         return picked["sentence"], picked["reading"]

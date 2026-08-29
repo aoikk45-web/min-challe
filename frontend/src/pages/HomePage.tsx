@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   fetchPointSummary,
   formatPlanDay,
@@ -10,6 +10,7 @@ import {
   type StudyPlan,
 } from '../api'
 import type { Role } from '../role'
+import { usePointsRefresh } from '../pointsRefresh'
 
 const pillars = [
   { to: '/plan', emoji: '📒', title: 'けいかく', child: 'きょう なにを する？', parent: '今週の予定を置く' },
@@ -97,24 +98,16 @@ function HomeBalance({ role }: { role: Role }) {
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    let cancelled = false
+  const reload = useCallback(() => {
     setLoading(true)
     setError(false)
     fetchPointSummary(role)
-      .then((data) => {
-        if (!cancelled) setSummary(data)
-      })
-      .catch(() => {
-        if (!cancelled) setError(true)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
+      .then((data) => setSummary(data))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
   }, [role])
+
+  usePointsRefresh(reload)
 
   return (
     <section className="rounded-3xl bg-white p-5 shadow-sm">

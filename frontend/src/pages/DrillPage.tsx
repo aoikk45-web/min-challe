@@ -11,6 +11,7 @@ import {
   type DrillSession,
 } from '../api'
 import type { Role } from '../role'
+import { notifyPointsUpdated } from '../pointsRefresh'
 import { Empty } from './PlanPage'
 
 function drillImageSrc(url: string): string {
@@ -165,6 +166,7 @@ export default function DrillPage({ role }: { role: Role }) {
     if (next.status === 'finished') {
       await reloadHistory()
       await reloadProgress()
+      notifyPointsUpdated()
     }
   }
 
@@ -505,6 +507,12 @@ function ResultView({
         <p className="mt-2 font-black">
           {session.correct_count ?? 0}/10もん ・ {session.duration_sec ?? 0}びょう
         </p>
+        {role === 'child' && session.points_earned != null && session.points_earned > 0 && (
+          <p className="mt-3 text-lg font-black text-sun">+{session.points_earned}点 もらえた！</p>
+        )}
+        {role === 'child' && session.points_earned === 0 && (
+          <p className="mt-3 text-sm text-ink/60">ポイントは つかなかったよ（おうちの人のルールを確認してね）</p>
+        )}
         {role === 'child' && (
           <button type="button" onClick={onAgain} className="mt-5 rounded-full bg-sun px-6 py-3 font-black">
             もういっかい

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   createReward,
   deleteReward,
@@ -16,6 +16,7 @@ import {
   type Reward,
 } from '../api'
 import type { Role } from '../role'
+import { usePointsRefresh } from '../pointsRefresh'
 
 export default function PointsPage({ role }: { role: Role }) {
   const [summary, setSummary] = useState<PointSummary | null>(null)
@@ -39,28 +40,19 @@ export default function PointsPage({ role }: { role: Role }) {
     setRewards(rw)
   }
 
-  useEffect(() => {
-    let cancelled = false
+  const load = useCallback(() => {
     setLoading(true)
     setError(false)
-    Promise.all([fetchPointSummary(role), fetchLedger(role), fetchRules(role), fetchRewards(role)])
-      .then(([s, l, ru, rw]) => {
-        if (cancelled) return
-        setSummary(s)
-        setLedger(l)
-        setRules(ru)
-        setRewards(rw)
-      })
-      .catch(() => {
-        if (!cancelled) setError(true)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
+    reload()
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
   }, [role])
+
+  const silentReload = useCallback(() => {
+    reload().catch(() => setError(true))
+  }, [role])
+
+  usePointsRefresh(load, silentReload)
 
   if (loading) {
     return <p className="rounded-2xl bg-white p-6 text-center shadow-sm">ちょっとまってね…</p>
@@ -76,7 +68,11 @@ export default function PointsPage({ role }: { role: Role }) {
   return (
     <div className="space-y-4">
       <BalanceCard summary={summary} />
-      {message && <p className="text-center text-sm font-bold text-coral">{message}</p>}
+      {message && (
+        <p className={`text-center text-sm font-bold ${message.includes('ついかした') ? 'text-mint' : 'text-coral'}`}>
+          {message}
+        </p>
+      )}
       <RewardList
         rewards={rewards.filter((r) => r.enabled || role === 'parent')}
         role={role}
@@ -92,14 +88,40 @@ export default function PointsPage({ role }: { role: Role }) {
           }
         }}
         onToggle={async (reward, enabled) => {
-          await updateReward(reward.id, { enabled })
-          await reload()
+          try {
+            setMessage('')
+            await updateReward(reward.id, { enabled })
+            await reload()
+          } catch {
+            setMessage('うまくいかなかったよ')
+          }
         }}
         onDelete={async (id) => {
           if (!window.confirm('このごほうびを消しますか？')) return
-          await deleteReward(id)
-          await reload()
+          try {
+            setMessage('')
+            await deleteReward(id)
+            await reload()
+          } catch {
+            setMessage('うまくいかなかったよ')
+          }
         }}
+        addForm={
+          role === 'parent' ? (
+            <RewardForm
+              onCreate={async (name, cost) => {
+                try {
+                  setMessage('')
+                  await createReward({ name, cost })
+                  await reload()
+                  setMessage(`「${name}」を ついかしたよ`)
+                } catch {
+                  setMessage('ごほうびを ついかせなかったよ。おうちの人モードか 確認してね')
+                }
+              }}
+            />
+          ) : undefined
+        }
       />
       {role === 'parent' && (
         <>
@@ -120,12 +142,6 @@ export default function PointsPage({ role }: { role: Role }) {
             rules={rules}
             onSave={async (next) => {
               setRules(await saveRules(next))
-            }}
-          />
-          <RewardForm
-            onCreate={async (name, cost) => {
-              await createReward({ name, cost })
-              await reload()
             }}
           />
         </>
@@ -163,6 +179,7 @@ function RewardList({
   onRedeem,
   onToggle,
   onDelete,
+  addForm,
 }: {
   rewards: Reward[]
   role: Role
@@ -170,11 +187,13 @@ function RewardList({
   onRedeem: (id: number) => void
   onToggle: (reward: Reward, enabled: boolean) => void
   onDelete: (id: number) => void
+  addForm?: ReactNode
 }) {
   return (
     <section className="rounded-3xl bg-white p-5 shadow-sm">
       <h2 className="text-lg font-black">ごほうび</h2>
       {rewards.length === 0 && <p className="mt-2 text-sm text-ink/60">まだごほうびがないよ。</p>}
+      {addForm && <div className="mt-4">{addForm}</div>}
       <ul className="mt-3 space-y-2">
         {rewards.map((reward) => {
           const lack = Math.max(0, reward.cost - balance)
@@ -411,34 +430,49 @@ function RuleEditor({ rules, onSave }: { rules: PointRule[]; onSave: (rules: Poi
 function RewardForm({ onCreate }: { onCreate: (name: string, cost: number) => Promise<void> }) {
   const [name, setName] = useState('')
   const [cost, setCost] = useState('20')
+  const [busy, setBusy] = useState(false)
   return (
     <form
-      className="rounded-3xl bg-white p-5 shadow-sm"
+      className="rounded-2xl bg-cream p-3"
       onSubmit={(event) => {
         event.preventDefault()
-        if (!name.trim()) return
-        onCreate(name.trim(), Number(cost) || 1).then(() => {
-          setName('')
-          setCost('20')
-        })
+        const trimmed = name.trim()
+        const points = Math.max(1, Math.min(9999, Number(cost) || 1))
+        if (!trimmed || busy) return
+        setBusy(true)
+        onCreate(trimmed, points)
+          .then(() => {
+            setName('')
+            setCost('20')
+          })
+          .finally(() => setBusy(false))
       }}
     >
-      <h2 className="font-black">ごほうびを追加</h2>
+      <p className="text-sm font-black">ごほうびを追加</p>
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="ゲーム 15ふん"
-        className="mt-2 w-full rounded-2xl bg-cream px-3 py-2"
+        maxLength={80}
+        required
+        className="mt-2 w-full rounded-2xl bg-white px-3 py-2"
       />
+      <label className="mt-2 block text-xs font-bold text-ink/60">必要なポイント</label>
       <input
         type="number"
         min={1}
+        max={9999}
         value={cost}
         onChange={(e) => setCost(e.target.value)}
-        className="mt-2 w-full rounded-2xl bg-cream px-3 py-2"
+        required
+        className="mt-1 w-full rounded-2xl bg-white px-3 py-2"
       />
-      <button type="submit" className="mt-3 rounded-full bg-sky px-5 py-2 text-sm font-black text-white">
-        ついか
+      <button
+        type="submit"
+        disabled={busy || !name.trim()}
+        className="mt-3 rounded-full bg-sky px-5 py-2 text-sm font-black text-white disabled:bg-ink/20"
+      >
+        {busy ? 'ちょっとまって…' : 'ついか'}
       </button>
     </form>
   )
