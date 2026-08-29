@@ -313,3 +313,47 @@ def test_shakai_context_from_stage5():
     assert len(items) == 10
     assert all("\n" not in q.prompt for q in items[:8])
     assert all("\n" in q.prompt for q in items[8:])
+
+
+def test_kokugo_bank_examples_are_natural():
+    import json
+    from pathlib import Path
+
+    from app.kokugo_natural import is_natural_example, plain_sentence
+
+    data_dir = Path(__file__).resolve().parents[1] / "data" / "kokugo"
+    for name in ("kanji.json", "jukugo.json"):
+        for row in json.loads((data_dir / name).read_text(encoding="utf-8")):
+            target = row.get("char") or row["word"]
+            for example in row.get("examples", []):
+                assert is_natural_example(target, example["sentence"]), (name, target, example["sentence"])
+    kanji = json.loads((data_dir / "kanji.json").read_text(encoding="utf-8"))
+    hi = next(row for row in kanji if row["char"] == "日")
+    for example in hi["examples"]:
+        plain = plain_sentence(example["sentence"])
+        assert "日本" not in plain, example
+
+
+def test_nihon_accepts_both_readings():
+    from app.generate import kokugo_reading_matches
+
+    assert kokugo_reading_matches("にほん", "にほん")
+    assert kokugo_reading_matches("にっぽん", "にほん")
+    assert not kokugo_reading_matches("にち", "にほん")
+
+
+def test_drill_finish_awards_points():
+    client = TestClient(app)
+    before = client.get("/api/points/summary", params={"role": "child"}).json()["balance"]
+    session = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "たしざん"}).json()
+    last = session
+    for question in session["questions"]:
+        last = client.post(
+            f"/api/drills/{session['id']}/answer",
+            params={"role": "child"},
+            json={"question_id": question["id"], "answer": 0},
+        ).json()
+    assert last["status"] == "finished"
+    assert last["points_earned"] == 10
+    after = client.get("/api/points/summary", params={"role": "child"}).json()["balance"]
+    assert after - before == 10

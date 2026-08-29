@@ -8,5 +8,7 @@
 2. [docs/loop.md](docs/loop.md)
 3. [docs/backlog.md](docs/backlog.md)
 
+ドリル問題文・例文を書く・直すときは [docs/drill-prompt-rules.md](docs/drill-prompt-rules.md) も読む。
+
 人間が今のゲートを承認したときだけ、その 1 ループを実装する。  
 終わったら `docs/gate.md` を次の待ち状態にして停止する。

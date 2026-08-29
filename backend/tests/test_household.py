@@ -13,13 +13,13 @@ def test_health():
     assert client.get("/api/health").json() == {"ok": True}
 
 
-def test_household_is_sakura_grade_3():
+def test_household_is_oono_family():
     client = TestClient(app)
     data = client.get("/api/household").json()
-    assert data["name"] == "さくら家"
-    assert data["child"]["display_name"] == "みんすけ"
+    assert data["name"] == "おおの家"
+    assert data["child"]["display_name"] == "ゆうき"
     assert data["child"]["grade"] == 3
-    assert data["parent"]["display_name"] == "おかあさん"
+    assert data["parent"]["display_name"] == "おうちの人"
 
 
 def test_role_query_rejects_unknown():

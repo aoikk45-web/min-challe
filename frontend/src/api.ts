@@ -145,6 +145,7 @@ export type DrillSession = {
   step_up: boolean
   max_step: number
   perfect_needed: number
+  points_earned?: number | null
 }
 
 export type DrillHistoryItem = Omit<DrillSession, 'questions' | 'step_up' | 'perfect_streak' | 'step_label' | 'max_step' | 'perfect_needed'> & {

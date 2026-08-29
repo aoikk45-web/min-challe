@@ -6,7 +6,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from .database import get_db
@@ -27,11 +27,12 @@ from .generate import (
     PROGRESS_KINDS,
     SHAKAI_KINDS,
     generate_ten,
+    kokugo_reading_matches,
     normalize_reading,
 )
 from .album import record_album
 from .ledger import award
-from .models import DrillQuestion, DrillSession, Household, Member
+from .models import DrillQuestion, DrillSession, Household, Member, PointLedger
 
 Kind = Literal[
     "たしざん",
@@ -94,6 +95,7 @@ class SessionOut(BaseModel):
     step_up: bool = False
     max_step: int = MAX_STEP
     perfect_needed: int = PERFECT_NEEDED
+    points_earned: int | None = None
 
 
 class HistoryItem(BaseModel):
@@ -203,11 +205,25 @@ def _close_stale_session(session: DrillSession) -> None:
     session.duration_sec = max(0, int(elapsed))
 
 
+def _points_earned_for_session(db: Session, member_id: int, session: DrillSession) -> int | None:
+    if session.status != "finished":
+        return None
+    total = db.scalar(
+        select(func.coalesce(func.sum(PointLedger.delta), 0)).where(
+            PointLedger.member_id == member_id,
+            PointLedger.related_id == session.id,
+            PointLedger.event_key.in_(("drill_complete", "drill_perfect")),
+        )
+    )
+    return int(total or 0)
+
+
 def _serialize(
     session: DrillSession,
     *,
     step_up: bool = False,
     perfect_streak: int | None = None,
+    points_earned: int | None = None,
 ) -> SessionOut:
     questions = sorted(session.questions, key=lambda q: q.seq)
     finished = session.status == "finished"
@@ -240,6 +256,7 @@ def _serialize(
         step_label=label,
         step_up=step_up,
         max_step=max_step_for_kind(kind),
+        points_earned=points_earned,
     )
 
 
@@ -360,7 +377,8 @@ def get_drill(
     streak = None
     if session.kind in PROGRESS_KINDS:
         streak = ensure_progress(db, child.id, session.kind).perfect_streak
-    return _serialize(session, perfect_streak=streak)
+    points = _points_earned_for_session(db, child.id, session)
+    return _serialize(session, perfect_streak=streak, points_earned=points)
 
 
 @router.post("/{session_id}/answer", response_model=SessionOut)
@@ -383,12 +401,16 @@ def answer_drill(
     given = str(body.answer)
     question.child_answer = given
     if session.kind in KOKUGO_KINDS or session.kind in SHAKAI_KINDS:
-        question.is_correct = normalize_reading(given) == normalize_reading(question.correct)
+        if session.kind in KOKUGO_KINDS:
+            question.is_correct = kokugo_reading_matches(given, question.correct)
+        else:
+            question.is_correct = normalize_reading(given) == normalize_reading(question.correct)
     else:
         question.is_correct = given.strip() == str(question.correct).strip()
 
     step_up = False
     streak: int | None = None
+    points_earned: int | None = None
     if all(q.child_answer is not None for q in session.questions):
         now = _now()
         session.status = "finished"
@@ -396,7 +418,7 @@ def answer_drill(
         session.correct_count = sum(1 for q in session.questions if q.is_correct)
         elapsed = (now - session.started_at).total_seconds()
         session.duration_sec = max(0, int(elapsed))
-        award(
+        points_earned = award(
             db,
             household_id=family[0].id,
             member_id=session.member_id,
@@ -405,7 +427,7 @@ def answer_drill(
             related_id=session.id,
         )
         if session.correct_count == 10:
-            award(
+            points_earned += award(
                 db,
                 household_id=family[0].id,
                 member_id=session.member_id,
@@ -430,4 +452,11 @@ def answer_drill(
 
     db.commit()
     db.refresh(session)
-    return _serialize(_get_session(db, session.id, child.id), step_up=step_up, perfect_streak=streak)
+    if points_earned is None and session.status == "finished":
+        points_earned = _points_earned_for_session(db, child.id, session)
+    return _serialize(
+        _get_session(db, session.id, child.id),
+        step_up=step_up,
+        perfect_streak=streak,
+        points_earned=points_earned,
+    )

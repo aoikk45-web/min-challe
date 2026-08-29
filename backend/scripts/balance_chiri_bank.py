@@ -9,7 +9,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "backend" / "data" / "shakai" / "chiri.json"
 MIN_PER_GRADE = 10
-REMOVE_PROMPTS = frozenset({"にほんは どの ほうを むいていますか？"})
+REMOVE_PROMPTS = frozenset({
+    "にほんは どの ほうを むいていますか？",
+    "うみに まわられた くには？",
+})
 
 ADDITIONS: list[dict] = [
     # grade 1
@@ -22,7 +25,7 @@ ADDITIONS: list[dict] = [
     {"prompt": "にほんには おおきな しまが 4つ あります。ひとつは？", "correct": "ほんしゅう", "choices": ["ほんしゅう", "ちゅうごく", "かんこく", "たいわん"], "grade": 1},
     {"prompt": "やまで ゆうめいな のは？", "correct": "ふじさん", "choices": ["ふじさん", "びわこ", "とうきょう", "おおさか"], "grade": 1},
     {"prompt": "とうきょうは なにですか？", "correct": "とし", "choices": ["とし", "やま", "うみ", "くに"], "grade": 1},
-    {"prompt": "うみに まわられた くには？", "correct": "にほん", "choices": ["にほん", "ちゅうごく", "かんこく", "アメリカ"], "grade": 1},
+    {"prompt": "うみに かこまれた くには？", "correct": "にほん", "choices": ["にほん", "ちゅうごく", "かんこく", "アメリカ"], "grade": 1},
     # grade 2
     {"prompt": "にほんの まちで いちばん にんが おおいのは？", "correct": "とうきょう", "choices": ["とうきょう", "おおさか", "よこはま", "なごや"], "grade": 2},
     {"prompt": "おおさかは どの へんに ありますか？", "correct": "きんき", "choices": ["きんき", "かんとう", "とうほく", "きゅうしゅう"], "grade": 2},

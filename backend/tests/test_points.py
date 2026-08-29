@@ -2,44 +2,45 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.seed import reset_and_seed
+from tests.conftest import add_custom_rule, create_plan, create_reward
 
 
 def setup_function():
     reset_and_seed()
 
 
-def test_seed_has_balance_and_rules():
+def test_seed_starts_empty_with_builtin_rules():
     client = TestClient(app)
     summary = client.get("/api/points/summary").json()
-    assert summary["balance"] >= 13
+    assert summary["balance"] == 0
     rules = client.get("/api/points/rules").json()
     keys = {r["event_key"] for r in rules}
-    assert {"drill_complete", "drill_perfect", "plan_complete", "stamp", "custom_test100"} <= keys
-    assert next(r for r in rules if r["event_key"] == "custom_test100")["label"] == "テスト100点"
+    assert keys == {"drill_complete", "drill_perfect", "plan_complete", "stamp"}
+    assert client.get("/api/points/rewards").json() == []
 
 
 def test_plan_complete_awards_points():
     client = TestClient(app)
+    plan = create_plan(client)
     before = client.get("/api/points/summary").json()["balance"]
-    open_plan = next(p for p in client.get("/api/plans").json() if p["completed_at"] is None)
-    client.post(f"/api/plans/{open_plan['id']}/complete", params={"role": "child"})
+    client.post(f"/api/plans/{plan['id']}/complete", params={"role": "child"})
     after = client.get("/api/points/summary").json()["balance"]
     assert after == before + 8
-    again = client.post(f"/api/plans/{open_plan['id']}/complete", params={"role": "child"})
+    again = client.post(f"/api/plans/{plan['id']}/complete", params={"role": "child"})
     assert again.status_code == 409
     assert client.get("/api/points/summary").json()["balance"] == after
 
 
 def test_disabled_rule_awards_nothing():
     client = TestClient(app)
+    plan = create_plan(client)
     rules = client.get("/api/points/rules", params={"role": "parent"}).json()
     for rule in rules:
         if rule["event_key"] == "plan_complete":
             rule["enabled"] = False
     client.put("/api/points/rules", params={"role": "parent"}, json=rules)
     before = client.get("/api/points/summary").json()["balance"]
-    open_plan = next(p for p in client.get("/api/plans").json() if p["completed_at"] is None)
-    client.post(f"/api/plans/{open_plan['id']}/complete", params={"role": "child"})
+    client.post(f"/api/plans/{plan['id']}/complete", params={"role": "child"})
     assert client.get("/api/points/summary").json()["balance"] == before
 
 
@@ -51,6 +52,7 @@ def test_child_cannot_edit_rules():
 
 def test_stamp_and_redeem():
     client = TestClient(app)
+    create_reward(client)
     before = client.get("/api/points/summary").json()["balance"]
     stamped = client.post("/api/points/stamp", params={"role": "parent"}, json={"note": "おてつだい"})
     assert stamped.status_code == 200
@@ -61,8 +63,7 @@ def test_stamp_and_redeem():
         redeemed = client.post(f"/api/points/rewards/{game['id']}/redeem", params={"role": "child"})
         assert redeemed.status_code == 200
         assert redeemed.json()["balance"] == stamped.json()["balance"] - 30
-    expensive = next(r for r in rewards if r["cost"] == 50)
-    # drain by redeeming game if still enough, then try expensive
+    expensive = create_reward(client, name="すきなおやつ", cost=50)
     bal = client.get("/api/points/summary").json()["balance"]
     if bal < 50:
         res = client.post(f"/api/points/rewards/{expensive['id']}/redeem", params={"role": "child"})
@@ -72,12 +73,13 @@ def test_stamp_and_redeem():
 
 def test_parent_cannot_redeem():
     client = TestClient(app)
-    reward = client.get("/api/points/rewards").json()[0]
+    reward = create_reward(client)
     assert client.post(f"/api/points/rewards/{reward['id']}/redeem", params={"role": "parent"}).status_code == 403
 
 
 def test_delete_custom_rule_keeps_builtins():
     client = TestClient(app)
+    add_custom_rule(client, event_key="custom_test100", label="テスト100点", points=20)
     rules = client.get("/api/points/rules", params={"role": "parent"}).json()
     kept = [r for r in rules if r["event_key"] != "custom_test100"]
     res = client.put("/api/points/rules", params={"role": "parent"}, json=kept)
@@ -99,6 +101,7 @@ def test_cannot_delete_builtin_by_omitting():
 
 def test_stamp_custom_school_rule():
     client = TestClient(app)
+    add_custom_rule(client, event_key="custom_test100", label="テスト100点", points=20)
     before = client.get("/api/points/summary").json()["balance"]
     res = client.post(
         "/api/points/stamp",
