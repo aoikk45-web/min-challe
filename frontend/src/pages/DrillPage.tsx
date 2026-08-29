@@ -56,15 +56,17 @@ export default function DrillPage({ role }: { role: Role }) {
     let cancelled = false
     setLoading(true)
     setError(false)
-    Promise.all([fetchDrillHistory(role), fetchDrillProgress(role)])
-      .then(([rows, prog]) => {
-        if (!cancelled) {
-          setHistory(rows)
-          setProgress(prog)
+    Promise.allSettled([fetchDrillHistory(role), fetchDrillProgress(role)])
+      .then(([historyResult, progressResult]) => {
+        if (cancelled) return
+        if (historyResult.status === 'fulfilled') {
+          setHistory(historyResult.value)
+        } else {
+          setError(true)
         }
-      })
-      .catch(() => {
-        if (!cancelled) setError(true)
+        if (progressResult.status === 'fulfilled') {
+          setProgress(progressResult.value)
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
