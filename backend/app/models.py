@@ -33,6 +33,7 @@ class Member(Base):
     household: Mapped[Household] = relationship(back_populates="members")
     study_plans: Mapped[list[StudyPlan]] = relationship(back_populates="member")
     drill_sessions: Mapped[list[DrillSession]] = relationship(back_populates="member")
+    drill_progress: Mapped[list["DrillProgress"]] = relationship(back_populates="member")
     point_ledger: Mapped[list[PointLedger]] = relationship(back_populates="member")
     album_entries: Mapped[list[AlbumEntry]] = relationship(back_populates="member")
 
@@ -58,6 +59,7 @@ class DrillSession(Base):
     member_id: Mapped[int] = mapped_column(ForeignKey("members.id"))
     kind: Mapped[str] = mapped_column(String(16))
     grade: Mapped[int] = mapped_column(Integer)
+    step: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     status: Mapped[str] = mapped_column(String(16), default="in_progress")
     correct_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     duration_sec: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
@@ -80,6 +82,18 @@ class DrillQuestion(Base):
     is_correct: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
 
     session: Mapped[DrillSession] = relationship(back_populates="questions")
+
+
+class DrillProgress(Base):
+    __tablename__ = "drill_progress"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    kind: Mapped[str] = mapped_column(String(16))
+    step: Mapped[int] = mapped_column(Integer, default=1)
+    perfect_streak: Mapped[int] = mapped_column(Integer, default=0)
+
+    member: Mapped[Member] = relationship(back_populates="drill_progress")
 
 
 class PointRule(Base):

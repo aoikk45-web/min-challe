@@ -10,7 +10,15 @@ from sqlalchemy.orm import Session, selectinload
 
 from .database import get_db
 from .deps import demo_family, parse_role, require_child
-from .generate import KINDS, KOKUGO_KINDS, generate_ten, normalize_reading
+from .drill_progress import (
+    MAX_STEP,
+    PERFECT_NEEDED,
+    apply_perfect_streak,
+    ensure_all_math,
+    ensure_progress,
+    step_label,
+)
+from .generate import KINDS, KOKUGO_KINDS, MATH_KINDS, generate_ten, normalize_reading
 from .album import record_album
 from .ledger import award
 from .models import DrillQuestion, DrillSession, Household, Member
@@ -29,6 +37,15 @@ class AnswerIn(BaseModel):
     answer: int | str
 
 
+class ProgressOut(BaseModel):
+    kind: str
+    step: int
+    perfect_streak: int
+    step_label: str
+    max_step: int = MAX_STEP
+    perfect_needed: int = PERFECT_NEEDED
+
+
 class QuestionOut(BaseModel):
     id: int
     seq: int
@@ -42,18 +59,25 @@ class SessionOut(BaseModel):
     id: int
     kind: str
     grade: int
+    step: int | None = None
     status: str
     correct_count: int | None
     duration_sec: int | None
     started_at: datetime
     finished_at: datetime | None
     questions: list[QuestionOut]
+    perfect_streak: int | None = None
+    step_label: str | None = None
+    step_up: bool = False
+    max_step: int = MAX_STEP
+    perfect_needed: int = PERFECT_NEEDED
 
 
 class HistoryItem(BaseModel):
     id: int
     kind: str
     grade: int
+    step: int | None = None
     status: str
     correct_count: int | None
     duration_sec: int | None
@@ -71,13 +95,20 @@ def _child(family: tuple[Household, Member, Member]) -> Member:
     return family[1]
 
 
-def _serialize(session: DrillSession) -> SessionOut:
+def _serialize(
+    session: DrillSession,
+    *,
+    step_up: bool = False,
+    perfect_streak: int | None = None,
+) -> SessionOut:
     questions = sorted(session.questions, key=lambda q: q.seq)
     finished = session.status == "finished"
+    label = step_label(session.step) if session.step is not None else None
     return SessionOut(
         id=session.id,
         kind=session.kind,
         grade=session.grade,
+        step=session.step,
         status=session.status,
         correct_count=session.correct_count,
         duration_sec=session.duration_sec,
@@ -94,6 +125,9 @@ def _serialize(session: DrillSession) -> SessionOut:
             )
             for q in questions
         ],
+        perfect_streak=perfect_streak,
+        step_label=label,
+        step_up=step_up,
     )
 
 
@@ -106,6 +140,25 @@ def _get_session(db: Session, session_id: int, child_id: int) -> DrillSession:
     if session is None:
         raise HTTPException(404, "drill not found")
     return session
+
+
+@router.get("/progress", response_model=list[ProgressOut])
+def drill_progress_list(
+    _role: str = Depends(parse_role),
+    family: tuple[Household, Member, Member] = Depends(demo_family),
+    db: Session = Depends(get_db),
+):
+    child = _child(family)
+    rows = ensure_all_math(db, child.id)
+    return [
+        ProgressOut(
+            kind=row.kind,
+            step=row.step,
+            perfect_streak=row.perfect_streak,
+            step_label=step_label(row.step),
+        )
+        for row in rows
+    ]
 
 
 @router.post("/start", response_model=SessionOut)
@@ -123,20 +176,31 @@ def start_drill(
         .order_by(DrillSession.id.desc())
     ).first()
     if existing is not None:
-        return _serialize(existing)
+        streak = None
+        if existing.kind in MATH_KINDS:
+            streak = ensure_progress(db, child.id, existing.kind).perfect_streak
+        return _serialize(existing, perfect_streak=streak)
 
-    grade = child.grade or 3
+    school_grade = child.grade or 3
     kind = body.kind if body.kind in KINDS else "たしざん"
+    drill_step: int | None = None
+    streak: int | None = None
+    if kind in MATH_KINDS:
+        progress = ensure_progress(db, child.id, kind)
+        drill_step = progress.step
+        streak = progress.perfect_streak
     session = DrillSession(
         member_id=child.id,
         kind=kind,
-        grade=grade,
+        grade=school_grade,
+        step=drill_step,
         status="in_progress",
         started_at=_now(),
     )
     db.add(session)
     db.flush()
-    for seq, (prompt, correct) in enumerate(generate_ten(kind, grade), start=1):
+    gen_step = drill_step if drill_step is not None else school_grade
+    for seq, (prompt, correct) in enumerate(generate_ten(kind, gen_step), start=1):
         db.add(
             DrillQuestion(
                 session_id=session.id,
@@ -146,7 +210,7 @@ def start_drill(
             )
         )
     db.commit()
-    return _serialize(_get_session(db, session.id, child.id))
+    return _serialize(_get_session(db, session.id, child.id), perfect_streak=streak)
 
 
 @router.get("/history", response_model=list[HistoryItem])
@@ -171,7 +235,12 @@ def get_drill(
     family: tuple[Household, Member, Member] = Depends(demo_family),
     db: Session = Depends(get_db),
 ):
-    return _serialize(_get_session(db, session_id, _child(family).id))
+    child = _child(family)
+    session = _get_session(db, session_id, child.id)
+    streak = None
+    if session.kind in MATH_KINDS:
+        streak = ensure_progress(db, child.id, session.kind).perfect_streak
+    return _serialize(session, perfect_streak=streak)
 
 
 @router.post("/{session_id}/answer", response_model=SessionOut)
@@ -182,7 +251,8 @@ def answer_drill(
     family: tuple[Household, Member, Member] = Depends(demo_family),
     db: Session = Depends(get_db),
 ):
-    session = _get_session(db, session_id, _child(family).id)
+    child = _child(family)
+    session = _get_session(db, session_id, child.id)
     if session.status != "in_progress":
         raise HTTPException(409, "already finished")
     question = next((q for q in session.questions if q.id == body.question_id), None)
@@ -196,6 +266,9 @@ def answer_drill(
         question.is_correct = normalize_reading(given) == normalize_reading(question.correct)
     else:
         question.is_correct = given.strip() == str(question.correct).strip()
+
+    step_up = False
+    streak: int | None = None
     if all(q.child_answer is not None for q in session.questions):
         now = _now()
         session.status = "finished"
@@ -220,6 +293,10 @@ def answer_drill(
                 reason="全問正解ボーナス",
                 related_id=session.id,
             )
+        if session.kind in MATH_KINDS:
+            progress = ensure_progress(db, child.id, session.kind)
+            step_up = apply_perfect_streak(progress, session.correct_count or 0)
+            streak = progress.perfect_streak
         record_album(
             db,
             member_id=session.member_id,
@@ -228,6 +305,9 @@ def answer_drill(
             body=f"{session.kind} {session.correct_count}/10",
             related_id=session.id,
         )
+    elif session.kind in MATH_KINDS:
+        streak = ensure_progress(db, child.id, session.kind).perfect_streak
+
     db.commit()
     db.refresh(session)
-    return _serialize(_get_session(db, session.id, _child(family).id))
+    return _serialize(_get_session(db, session.id, child.id), step_up=step_up, perfect_streak=streak)

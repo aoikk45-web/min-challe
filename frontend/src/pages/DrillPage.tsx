@@ -3,9 +3,11 @@ import {
   answerDrill,
   fetchDrill,
   fetchDrillHistory,
+  fetchDrillProgress,
   startDrill,
   type DrillHistoryItem,
   type DrillKind,
+  type DrillProgress,
   type DrillSession,
 } from '../api'
 import type { Role } from '../role'
@@ -27,8 +29,13 @@ function isKokugo(kind: string) {
   return kind === 'かんじのよみ' || kind === 'じゅくごのよみ'
 }
 
+function progressFor(progress: DrillProgress[], kind: string) {
+  return progress.find((row) => row.kind === kind)
+}
+
 export default function DrillPage({ role }: { role: Role }) {
   const [history, setHistory] = useState<DrillHistoryItem[]>([])
+  const [progress, setProgress] = useState<DrillProgress[]>([])
   const [session, setSession] = useState<DrillSession | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -39,13 +46,22 @@ export default function DrillPage({ role }: { role: Role }) {
     return rows
   }
 
+  async function reloadProgress() {
+    const rows = await fetchDrillProgress(role)
+    setProgress(rows)
+    return rows
+  }
+
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setError(false)
-    fetchDrillHistory(role)
-      .then((rows) => {
-        if (!cancelled) setHistory(rows)
+    Promise.all([fetchDrillHistory(role), fetchDrillProgress(role)])
+      .then(([rows, prog]) => {
+        if (!cancelled) {
+          setHistory(rows)
+          setProgress(prog)
+        }
       })
       .catch(() => {
         if (!cancelled) setError(true)
@@ -72,12 +88,15 @@ export default function DrillPage({ role }: { role: Role }) {
     setSession(next)
     if (next.status === 'finished') {
       await reloadHistory()
+      if (!isKokugo(next.kind)) {
+        await reloadProgress()
+      }
     }
   }
 
   function backToMenu() {
     setSession(null)
-    reloadHistory().catch(() => setError(true))
+    Promise.all([reloadHistory(), reloadProgress()]).catch(() => setError(true))
   }
 
   if (loading) {
@@ -120,7 +139,7 @@ export default function DrillPage({ role }: { role: Role }) {
                 <ul className="mt-2 grid grid-cols-2 gap-3">
                   {MATH_KINDS.map((item) => (
                     <li key={item.kind}>
-                      <KindButton item={item} onBegin={begin} />
+                      <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
                     </li>
                   ))}
                 </ul>
@@ -140,6 +159,26 @@ export default function DrillPage({ role }: { role: Role }) {
         </section>
       )}
 
+      {role === 'parent' && progress.length > 0 && (
+        <section className="rounded-3xl bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-black">さんすうのステップ</h2>
+          <ul className="mt-3 space-y-2 text-sm font-bold">
+            {progress.map((row) => (
+              <li key={row.kind} className="rounded-2xl bg-cream px-4 py-3">
+                <p>{row.kind}</p>
+                <StepMeter
+                  step={row.step}
+                  maxStep={row.max_step}
+                  label={row.step_label}
+                  streak={row.perfect_streak}
+                  needed={row.perfect_needed}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <HistoryList
         history={history.filter((row) => row.status === 'finished')}
         empty={role === 'child' ? 'まだ 1かいも やってないよ。' : 'まだ履歴がないよ。'}
@@ -149,21 +188,63 @@ export default function DrillPage({ role }: { role: Role }) {
   )
 }
 
+function StepMeter({
+  step,
+  maxStep,
+  label,
+  streak,
+  needed,
+}: {
+  step: number
+  maxStep: number
+  label: string
+  streak?: number
+  needed?: number
+}) {
+  const pct = Math.min(100, Math.round((step / maxStep) * 100))
+  return (
+    <div className="mt-1 text-xs text-ink/70">
+      <p>
+        ステップ {step}/{maxStep} ・ {label}
+      </p>
+      <div className="mt-1 h-2 overflow-hidden rounded-full bg-white">
+        <div className="h-2 rounded-full bg-mint" style={{ width: `${pct}%` }} />
+      </div>
+      {streak != null && needed != null && (
+        <p className="mt-1">
+          ぜんぶ正解 {streak}/{needed}回
+        </p>
+      )}
+    </div>
+  )
+}
+
 function KindButton({
   item,
+  prog,
   onBegin,
 }: {
   item: { kind: DrillKind; emoji: string }
+  prog?: DrillProgress
   onBegin: (kind: DrillKind) => void
 }) {
   return (
     <button
       type="button"
       onClick={() => onBegin(item.kind)}
-      className="flex h-full w-full flex-col items-center rounded-3xl bg-cream py-4 font-black"
+      className="flex h-full w-full flex-col items-center rounded-3xl bg-cream px-2 py-4 font-black"
     >
       <span className="text-2xl">{item.emoji}</span>
       <span className="mt-1">{item.kind}</span>
+      {prog && (
+        <StepMeter
+          step={prog.step}
+          maxStep={prog.max_step}
+          label={prog.step_label}
+          streak={prog.perfect_streak}
+          needed={prog.perfect_needed}
+        />
+      )}
     </button>
   )
 }
@@ -193,6 +274,7 @@ function HistoryList({
             >
               <p className="font-black">{row.kind}</p>
               <p className="text-xs text-ink/60">
+                {row.step != null ? `ステップ ${row.step} ・ ` : ''}
                 {row.correct_count ?? 0}/10もん ・ {row.duration_sec ?? 0}びょう
               </p>
             </button>
@@ -249,6 +331,17 @@ function PlayView({
       <p className="text-sm font-bold text-sky">
         {session.kind} {shown.seq}/10
       </p>
+      {session.step != null && (
+        <div className="mt-2">
+          <StepMeter
+            step={session.step}
+            maxStep={session.max_step}
+            label={session.step_label ?? ''}
+            streak={session.perfect_streak ?? undefined}
+            needed={session.perfect_needed}
+          />
+        </div>
+      )}
       <p className={`mt-6 text-center font-black ${shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'}`}>
         {shown.prompt}
       </p>
@@ -306,8 +399,21 @@ function ResultView({
   return (
     <section className="space-y-4">
       <div className="rounded-3xl bg-white p-6 text-center shadow-sm">
-        <p className="text-5xl">{perfect ? '🎉' : '✨'}</p>
-        <h2 className="mt-3 text-2xl font-black">{perfect ? 'やったね！ぜんぶせいかい' : 'おつかれさま'}</h2>
+        <p className="text-5xl">{session.step_up ? '🚀' : perfect ? '🎉' : '✨'}</p>
+        <h2 className="mt-3 text-2xl font-black">
+          {session.step_up ? 'ステップアップ！' : perfect ? 'やったね！ぜんぶせいかい' : 'おつかれさま'}
+        </h2>
+        {session.step != null && (
+          <p className="mt-2 text-sm font-bold text-ink/70">
+            ステップ {session.step}/{session.max_step}
+            {session.step_label ? ` ・ ${session.step_label}` : ''}
+          </p>
+        )}
+        {session.step_up ? null : perfect && session.perfect_streak != null ? (
+          <p className="mt-1 text-sm font-bold text-mint">
+            ぜんぶ正解 {session.perfect_streak}/{session.perfect_needed}回
+          </p>
+        ) : null}
         <p className="mt-2 font-black">
           {session.correct_count ?? 0}/10もん ・ {session.duration_sec ?? 0}びょう
         </p>

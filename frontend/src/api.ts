@@ -127,15 +127,36 @@ export type DrillSession = {
   id: number
   kind: string
   grade: number
+  step: number | null
   status: 'in_progress' | 'finished'
   correct_count: number | null
   duration_sec: number | null
   started_at: string
   finished_at: string | null
   questions: DrillQuestion[]
+  perfect_streak: number | null
+  step_label: string | null
+  step_up: boolean
+  max_step: number
+  perfect_needed: number
 }
 
-export type DrillHistoryItem = Omit<DrillSession, 'questions'>
+export type DrillHistoryItem = Omit<DrillSession, 'questions' | 'step_up' | 'perfect_streak' | 'step_label' | 'max_step' | 'perfect_needed'> & {
+  step?: number | null
+}
+
+export type DrillProgress = {
+  kind: string
+  step: number
+  perfect_streak: number
+  step_label: string
+  max_step: number
+  perfect_needed: number
+}
+
+export function fetchDrillProgress(role: Role) {
+  return fetch(`/api/drills/progress?role=${role}`).then((res) => readJson<DrillProgress[]>(res))
+}
 
 export function startDrill(kind: DrillKind) {
   return fetch('/api/drills/start?role=child', {
