@@ -236,6 +236,9 @@ function KindButton({
   prog?: DrillProgress
   onBegin: (kind: DrillKind) => void
 }) {
+  const step = prog?.step ?? 1
+  const streak = prog?.perfect_streak ?? 0
+  const needed = prog?.perfect_needed ?? 5
   return (
     <button
       type="button"
@@ -244,7 +247,7 @@ function KindButton({
     >
       <span className="text-2xl">{item.emoji}</span>
       <span className="mt-1">{item.kind}</span>
-      {prog && <LevelBadge step={prog.step} streak={prog.perfect_streak} needed={prog.perfect_needed} compact />}
+      <LevelBadge step={step} streak={streak} needed={needed} compact />
     </button>
   )
 }
@@ -331,13 +334,11 @@ function PlayView({
       <p className="text-sm font-bold text-sky">
         {session.kind} {shown.seq}/10
       </p>
-      {session.step != null && (
-        <LevelBadge
-          step={session.step}
-          streak={session.perfect_streak ?? 0}
-          needed={session.perfect_needed}
-        />
-      )}
+      <LevelBadge
+        step={session.step ?? 1}
+        streak={session.perfect_streak ?? 0}
+        needed={session.perfect_needed}
+      />
       <p className={`mt-6 text-center font-black ${shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'}`}>
         {shown.prompt}
       </p>

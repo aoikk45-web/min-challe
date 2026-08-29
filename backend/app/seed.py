@@ -48,7 +48,7 @@ def seed_if_empty() -> None:
             )
         if child is not None and db.query(AlbumEntry).filter(AlbumEntry.member_id == child.id).count() == 0:
             _seed_album(db, child.id)
-        if child is not None and db.query(DrillProgress).filter(DrillProgress.member_id == child.id).count() == 0:
+        if child is not None:
             ensure_all_progress(db, child.id)
         db.commit()
     finally:
