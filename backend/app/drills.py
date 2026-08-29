@@ -10,12 +10,12 @@ from sqlalchemy.orm import Session, selectinload
 
 from .database import get_db
 from .deps import demo_family, parse_role, require_child
-from .generate import KINDS, generate_ten
+from .generate import KINDS, KOKUGO_KINDS, generate_ten, normalize_reading
 from .album import record_album
 from .ledger import award
 from .models import DrillQuestion, DrillSession, Household, Member
 
-Kind = Literal["たしざん", "ひきざん", "かけざん", "わりざん"]
+Kind = Literal["たしざん", "ひきざん", "かけざん", "わりざん", "かんじのよみ", "じゅくごのよみ"]
 
 router = APIRouter(prefix="/api/drills", tags=["drills"])
 
@@ -26,16 +26,16 @@ class StartIn(BaseModel):
 
 class AnswerIn(BaseModel):
     question_id: int
-    answer: int
+    answer: int | str
 
 
 class QuestionOut(BaseModel):
     id: int
     seq: int
     prompt: str
-    child_answer: int | None
+    child_answer: str | None
     is_correct: bool | None
-    correct: int | None
+    correct: str | None
 
 
 class SessionOut(BaseModel):
@@ -190,8 +190,12 @@ def answer_drill(
         raise HTTPException(404, "question not found")
     if question.child_answer is not None:
         raise HTTPException(409, "already answered")
-    question.child_answer = body.answer
-    question.is_correct = body.answer == question.correct
+    given = str(body.answer)
+    question.child_answer = given
+    if session.kind in KOKUGO_KINDS:
+        question.is_correct = normalize_reading(given) == normalize_reading(question.correct)
+    else:
+        question.is_correct = given.strip() == str(question.correct).strip()
     if all(q.child_answer is not None for q in session.questions):
         now = _now()
         session.status = "finished"

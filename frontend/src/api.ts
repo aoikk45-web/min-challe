@@ -106,15 +106,21 @@ export function completePlan(role: Role, id: number) {
   )
 }
 
-export type DrillKind = 'たしざん' | 'ひきざん' | 'かけざん' | 'わりざん'
+export type DrillKind =
+  | 'たしざん'
+  | 'ひきざん'
+  | 'かけざん'
+  | 'わりざん'
+  | 'かんじのよみ'
+  | 'じゅくごのよみ'
 
 export type DrillQuestion = {
   id: number
   seq: number
   prompt: string
-  child_answer: number | null
+  child_answer: string | null
   is_correct: boolean | null
-  correct: number | null
+  correct: string | null
 }
 
 export type DrillSession = {
@@ -143,7 +149,7 @@ export function fetchDrill(role: Role, id: number) {
   return fetch(`/api/drills/${id}?role=${role}`).then((res) => readJson<DrillSession>(res))
 }
 
-export function answerDrill(sessionId: number, questionId: number, answer: number) {
+export function answerDrill(sessionId: number, questionId: number, answer: string) {
   return fetch(`/api/drills/${sessionId}/answer?role=child`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

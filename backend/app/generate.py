@@ -1,16 +1,35 @@
 from __future__ import annotations
 
 import random
+import unicodedata
 
-KINDS = ("たしざん", "ひきざん", "かけざん", "わりざん")
+from .kokugo import pick_ten
+
+MATH_KINDS = ("たしざん", "ひきざん", "かけざん", "わりざん")
+KOKUGO_KINDS = ("かんじのよみ", "じゅくごのよみ")
+KINDS = MATH_KINDS + KOKUGO_KINDS
 
 
-def generate_ten(kind: str, grade: int) -> list[tuple[str, int]]:
+def normalize_reading(value: str) -> str:
+    text = unicodedata.normalize("NFKC", value).strip().replace(" ", "").replace("　", "")
+    chars: list[str] = []
+    for ch in text:
+        code = ord(ch)
+        if 0x30A1 <= code <= 0x30F6:
+            chars.append(chr(code - 0x60))
+        else:
+            chars.append(ch)
+    return "".join(chars)
+
+
+def generate_ten(kind: str, grade: int) -> list[tuple[str, str]]:
     if kind not in KINDS:
         raise ValueError(f"unknown kind: {kind}")
     grade = min(max(grade, 1), 6)
+    if kind in KOKUGO_KINDS:
+        return pick_ten(kind)
     seen: set[str] = set()
-    out: list[tuple[str, int]] = []
+    out: list[tuple[str, str]] = []
     for _ in range(80):
         if len(out) >= 10:
             break
@@ -18,9 +37,10 @@ def generate_ten(kind: str, grade: int) -> list[tuple[str, int]]:
         if prompt in seen:
             continue
         seen.add(prompt)
-        out.append((prompt, answer))
+        out.append((prompt, str(answer)))
     while len(out) < 10:
-        out.append(_one(kind, grade))
+        prompt, answer = _one(kind, grade)
+        out.append((prompt, str(answer)))
     return out
 
 
