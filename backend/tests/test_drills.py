@@ -1,3 +1,5 @@
+import re
+
 from fastapi.testclient import TestClient
 
 from app.generate import generate_ten
@@ -9,24 +11,65 @@ def setup_function():
     reset_and_seed()
 
 
-def test_grade3_warizan_divides_evenly():
-    for _ in range(5):
-        for prompt, answer in generate_ten("わりざん", 3):
-            left, right = prompt.split(" ÷ ")
-            a, b = int(left), int(right)
-            assert 10 <= a <= 99
-            assert 2 <= b <= 9
-            assert a % b == 0
-            assert answer == str(a // b)
-
-
-def test_grade3_kakezan_is_2digit_times_1digit():
-    for prompt, answer in generate_ten("かけざん", 3):
-        left, right = prompt.split(" × ")
+def _assert_grade3_equation(kind: str, prompt: str, answer: str) -> None:
+    if kind == "わりざん":
+        left, right = prompt.split(" ÷ ")
         a, b = int(left), int(right)
         assert 10 <= a <= 99
         assert 2 <= b <= 9
+        assert a % b == 0
+        assert answer == str(a // b)
+        return
+    left, right = prompt.split(" × ")
+    a, b = int(left), int(right)
+    assert 10 <= a <= 99
+    assert 2 <= b <= 9
+    assert answer == str(a * b)
+
+
+def _assert_word_matches_kind(kind: str, prompt: str, answer: str) -> None:
+    assert "？" in prompt
+    nums = [int(n) for n in re.findall(r"\d+", prompt)]
+    assert len(nums) >= 2
+    a, b = nums[0], nums[1]
+    if kind == "たしざん":
+        assert answer == str(a + b)
+    elif kind == "ひきざん":
+        assert answer == str(a - b)
+    elif kind == "かけざん":
         assert answer == str(a * b)
+    else:
+        assert b != 0 and a % b == 0
+        assert answer == str(a // b)
+
+
+def test_grade3_warizan_divides_evenly():
+    for _ in range(5):
+        items = generate_ten("わりざん", 3)
+        assert len(items) == 10
+        for prompt, answer in items[:8]:
+            _assert_grade3_equation("わりざん", prompt, answer)
+        for prompt, answer in items[8:]:
+            _assert_word_matches_kind("わりざん", prompt, answer)
+
+
+def test_grade3_kakezan_is_2digit_times_1digit():
+    items = generate_ten("かけざん", 3)
+    assert len(items) == 10
+    for prompt, answer in items[:8]:
+        _assert_grade3_equation("かけざん", prompt, answer)
+    for prompt, answer in items[8:]:
+        _assert_word_matches_kind("かけざん", prompt, answer)
+
+
+def test_math_last_two_are_word_problems():
+    for kind in ("たしざん", "ひきざん", "かけざん", "わりざん"):
+        items = generate_ten(kind, 3)
+        assert len(items) == 10
+        for prompt, _answer in items[:8]:
+            assert "？" not in prompt
+        for prompt, answer in items[8:]:
+            _assert_word_matches_kind(kind, prompt, answer)
 
 
 def test_parent_cannot_start():
