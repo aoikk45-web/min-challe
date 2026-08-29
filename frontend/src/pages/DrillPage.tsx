@@ -11,12 +11,21 @@ import {
 import type { Role } from '../role'
 import { Empty } from './PlanPage'
 
-const KINDS: { kind: DrillKind; emoji: string }[] = [
+const MATH_KINDS: { kind: DrillKind; emoji: string }[] = [
   { kind: 'たしざん', emoji: '➕' },
   { kind: 'ひきざん', emoji: '➖' },
   { kind: 'かけざん', emoji: '✖️' },
   { kind: 'わりざん', emoji: '➗' },
 ]
+
+const KOKUGO_KINDS: { kind: DrillKind; emoji: string }[] = [
+  { kind: 'かんじのよみ', emoji: 'あ' },
+  { kind: 'じゅくごのよみ', emoji: '語' },
+]
+
+function isKokugo(kind: string) {
+  return kind === 'かんじのよみ' || kind === 'じゅくごのよみ'
+}
 
 export default function DrillPage({ role }: { role: Role }) {
   const [history, setHistory] = useState<DrillHistoryItem[]>([])
@@ -105,20 +114,28 @@ export default function DrillPage({ role }: { role: Role }) {
               つづける（{inProgress.kind}）
             </button>
           ) : (
-            <ul className="mt-4 grid grid-cols-2 gap-3">
-              {KINDS.map((item) => (
-                <li key={item.kind}>
-                  <button
-                    type="button"
-                    onClick={() => begin(item.kind)}
-                    className="flex h-full w-full flex-col items-center rounded-3xl bg-cream py-4 font-black"
-                  >
-                    <span className="text-2xl">{item.emoji}</span>
-                    <span className="mt-1">{item.kind}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4 space-y-4">
+              <div>
+                <p className="text-sm font-bold text-sky">さんすう</p>
+                <ul className="mt-2 grid grid-cols-2 gap-3">
+                  {MATH_KINDS.map((item) => (
+                    <li key={item.kind}>
+                      <KindButton item={item} onBegin={begin} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-sky">こくご</p>
+                <ul className="mt-2 grid grid-cols-2 gap-3">
+                  {KOKUGO_KINDS.map((item) => (
+                    <li key={item.kind}>
+                      <KindButton item={item} onBegin={begin} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           )}
         </section>
       )}
@@ -132,6 +149,25 @@ export default function DrillPage({ role }: { role: Role }) {
   )
 }
 
+function KindButton({
+  item,
+  onBegin,
+}: {
+  item: { kind: DrillKind; emoji: string }
+  onBegin: (kind: DrillKind) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onBegin(item.kind)}
+      className="flex h-full w-full flex-col items-center rounded-3xl bg-cream py-4 font-black"
+    >
+      <span className="text-2xl">{item.emoji}</span>
+      <span className="mt-1">{item.kind}</span>
+    </button>
+  )
+}
+
 function HistoryList({
   history,
   empty,
@@ -142,7 +178,7 @@ function HistoryList({
   onOpen: (id: number) => void
 }) {
   if (history.length === 0) {
-    return <Empty emoji="✨" title="けいさんドリル" body={empty} />
+    return <Empty emoji="✨" title="ドリル" body={empty} />
   }
   return (
     <section className="rounded-3xl bg-white p-5 shadow-sm">
@@ -182,11 +218,14 @@ function PlayView({
 
   async function submit() {
     if (!current || draft.trim() === '') return
-    const value = Number(draft)
-    if (Number.isNaN(value)) return
+    const kokugo = isKokugo(session.kind)
+    if (!kokugo) {
+      const value = Number(draft)
+      if (Number.isNaN(value)) return
+    }
     setBusy(true)
     try {
-      const next = await answerDrill(session.id, current.id, value)
+      const next = await answerDrill(session.id, current.id, kokugo ? draft.trim() : String(Number(draft)))
       const answered = next.questions.find((q) => q.id === current.id) ?? null
       setFeedback(answered)
       setPending(next)
@@ -230,12 +269,14 @@ function PlayView({
           }}
         >
           <input
-            inputMode="numeric"
+            inputMode={isKokugo(session.kind) ? 'text' : 'numeric'}
+            lang="ja"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             className="w-full rounded-2xl bg-cream px-4 py-3 text-center text-3xl font-black"
             aria-label="こたえ"
             autoFocus
+            placeholder={isKokugo(session.kind) ? 'ひらがな' : ''}
           />
           <button
             type="submit"

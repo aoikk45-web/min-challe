@@ -17,7 +17,7 @@ def test_grade3_warizan_divides_evenly():
             assert 10 <= a <= 99
             assert 2 <= b <= 9
             assert a % b == 0
-            assert answer == a // b
+            assert answer == str(a // b)
 
 
 def test_grade3_kakezan_is_2digit_times_1digit():
@@ -26,7 +26,7 @@ def test_grade3_kakezan_is_2digit_times_1digit():
         a, b = int(left), int(right)
         assert 10 <= a <= 99
         assert 2 <= b <= 9
-        assert answer == a * b
+        assert answer == str(a * b)
 
 
 def test_parent_cannot_start():
@@ -65,7 +65,7 @@ def test_answer_and_finish():
         body = res.json()
         answered = next(q for q in body["questions"] if q["id"] == question["id"])
         assert answered["correct"] is not None
-        assert answered["is_correct"] == (0 == answered["correct"])
+        assert answered["is_correct"] == (str(0) == str(answered["correct"]))
     finished = res.json()
     assert finished["status"] == "finished"
     assert finished["correct_count"] is not None
@@ -91,3 +91,47 @@ def test_history_lists_finished():
     assert history[0]["id"] == session["id"]
     assert history[0]["status"] == "finished"
     assert history[0]["kind"] == "わりざん"
+
+
+def test_start_kokugo_jukugo():
+    client = TestClient(app)
+    data = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "じゅくごのよみ"}).json()
+    assert data["kind"] == "じゅくごのよみ"
+    assert data["grade"] == 3
+    assert len(data["questions"]) == 10
+    assert all(q["correct"] is None for q in data["questions"])
+
+
+def test_kokugo_kanji_and_jukugo_banks():
+    from app.kokugo import JUKUGO_YOMI, KANJI_YOMI
+
+    kanji = generate_ten("かんじのよみ", 3)
+    jukugo = generate_ten("じゅくごのよみ", 3)
+    assert len(kanji) == 10
+    assert len(jukugo) == 10
+    assert len({p for p, _ in kanji}) == 10
+    kanji_map = dict(KANJI_YOMI)
+    jukugo_map = dict(JUKUGO_YOMI)
+    for prompt, reading in kanji:
+        assert kanji_map[prompt] == reading
+    for prompt, reading in jukugo:
+        assert jukugo_map[prompt] == reading
+
+
+def test_kokugo_grades_katakana_as_hiragana():
+    client = TestClient(app)
+    session = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "かんじのよみ"}).json()
+    first = session["questions"][0]
+    from app.kokugo import KANJI_YOMI
+
+    reading = dict(KANJI_YOMI)[first["prompt"]]
+    katakana = "".join(chr(ord(ch) + 0x60) for ch in reading)
+    res = client.post(
+        f"/api/drills/{session['id']}/answer",
+        params={"role": "child"},
+        json={"question_id": first["id"], "answer": katakana},
+    )
+    assert res.status_code == 200
+    answered = next(q for q in res.json()["questions"] if q["id"] == first["id"])
+    assert answered["is_correct"] is True
+    assert answered["correct"] is not None

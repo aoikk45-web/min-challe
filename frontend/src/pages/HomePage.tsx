@@ -13,7 +13,7 @@ import type { Role } from '../role'
 
 const pillars = [
   { to: '/plan', emoji: '📒', title: 'けいかく', child: 'きょう なにを する？', parent: '今週の予定を置く' },
-  { to: '/drill', emoji: '✨', title: 'ドリル', child: 'さんすう 10もん', parent: '計算のれんしゅう' },
+  { to: '/drill', emoji: '✨', title: 'ドリル', child: 'さんすう・こくご 10もん', parent: '計算とこくごのれんしゅう' },
   { to: '/points', emoji: '🏅', title: 'ポイント', child: 'がんばりが みえるよ', parent: 'ルールをごほうび' },
   { to: '/album', emoji: '📔', title: 'アルバム', child: 'できた きろく', parent: '成長の記録' },
 ]
