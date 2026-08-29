@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import random
-from functools import lru_cache
+import re
 from pathlib import Path
 
 MAX_STEP = 100
@@ -10,15 +10,32 @@ WORD_STEP_FROM = 40
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "kokugo"
 
+_kanji_cache: list[dict] | None = None
+_kanji_mtime: float = 0.0
+_jukugo_cache: list[dict] | None = None
+_jukugo_mtime: float = 0.0
 
-@lru_cache(maxsize=1)
+
+def _load_bank(path: Path, cache_attr: str, mtime_attr: str) -> list[dict]:
+    global _kanji_cache, _kanji_mtime, _jukugo_cache, _jukugo_mtime
+    mtime = path.stat().st_mtime
+    if path.name == "kanji.json":
+        if _kanji_cache is None or mtime != _kanji_mtime:
+            _kanji_cache = json.loads(path.read_text(encoding="utf-8"))
+            _kanji_mtime = mtime
+        return _kanji_cache
+    if _jukugo_cache is None or mtime != _jukugo_mtime:
+        _jukugo_cache = json.loads(path.read_text(encoding="utf-8"))
+        _jukugo_mtime = mtime
+    return _jukugo_cache
+
+
 def _kanji_bank() -> list[dict]:
-    return json.loads((DATA_DIR / "kanji.json").read_text(encoding="utf-8"))
+    return _load_bank(DATA_DIR / "kanji.json", "kanji", "kanji_mtime")
 
 
-@lru_cache(maxsize=1)
 def _jukugo_bank() -> list[dict]:
-    return json.loads((DATA_DIR / "jukugo.json").read_text(encoding="utf-8"))
+    return _load_bank(DATA_DIR / "jukugo.json", "jukugo", "jukugo_mtime")
 
 
 def _max_grade_for_step(step: int) -> int:
@@ -32,60 +49,75 @@ def _pool(kind: str, step: int) -> list[dict]:
     return [row for row in bank if row["grade"] <= max_grade]
 
 
-def _reading_for(entry: dict) -> str:
-    if "readings" in entry:
-        return entry["readings"][0]
-    return entry["reading"]
-
-
 def _target(entry: dict) -> str:
     return entry.get("char") or entry["word"]
 
 
-def _prompt_direct(entry: dict) -> tuple[str, str]:
-    return _target(entry), _reading_for(entry)
+def _plain_sentence(sentence: str) -> str:
+    return re.sub(r"\*\*([^*]+)\*\*", r"\1", sentence)
 
 
-def _prompt_sentence(entry: dict) -> tuple[str, str]:
+def _is_valid_example(target: str, sentence: str) -> bool:
+    plain = _plain_sentence(sentence)
+    if plain.count(target) != 1:
+        return False
+    if f"**{target}**" not in sentence:
+        return False
+    forbidden = (
+        "について 学びました",
+        "について 調べました",
+        "について 話し合いました",
+        "について 話しました",
+        "の 名前を 覚えました",
+        "を おぼえました",
+    )
+    return not any(phrase in plain for phrase in forbidden)
+
+
+def _pick_example(entry: dict) -> tuple[str, str]:
+    examples = entry.get("examples") or []
     target = _target(entry)
-    reading = _reading_for(entry)
-    sentence = random.choice(entry["sentences"])
+    valid = [ex for ex in examples if _is_valid_example(target, ex["sentence"])]
+    if not valid:
+        valid = examples
+    if valid:
+        picked = random.choice(valid)
+        return picked["sentence"], picked["reading"]
+    reading = entry["readings"][0] if "readings" in entry else entry["reading"]
+    sentence = random.choice(entry.get("sentences") or [f"**{_target(entry)}**"])
+    return sentence, reading
+
+
+def _prompt_context(entry: dict) -> tuple[str, str]:
+    target = _target(entry)
+    sentence, reading = _pick_example(entry)
     display = sentence.replace(f"**{target}**", target)
-    return f"{display}\n{target}の よみは？", reading
+    return f"{display}\n「{target}」の よみは？", reading
 
 
-def _one(kind: str, step: int, *, sentence: bool) -> tuple[str, str]:
+def _one(kind: str, step: int) -> tuple[str, str]:
     pool = _pool(kind, step)
     if not pool:
         pool = _kanji_bank() if kind == "かんじのよみ" else _jukugo_bank()
-    entry = random.choice(pool)
-    if sentence and entry.get("sentences"):
-        return _prompt_sentence(entry)
-    return _prompt_direct(entry)
+    return _prompt_context(random.choice(pool))
 
 
 def pick_ten(kind: str, step: int = 1) -> list[tuple[str, str]]:
     step = min(max(step, 1), MAX_STEP)
     seen: set[str] = set()
     out: list[tuple[str, str]] = []
-    use_sentences = step >= WORD_STEP_FROM
 
-    def fill(target: int, sentence: bool) -> None:
-        for _ in range(200):
-            if len(out) >= target:
-                return
-            prompt, answer = _one(kind, step, sentence=sentence)
-            if prompt in seen:
-                continue
-            seen.add(prompt)
-            out.append((prompt, answer))
-        while len(out) < target:
-            prompt, answer = _one(kind, step, sentence=sentence)
-            out.append((prompt, answer))
+    for _ in range(300):
+        if len(out) >= 10:
+            break
+        prompt, answer = _one(kind, step)
+        if prompt in seen:
+            continue
+        seen.add(prompt)
+        out.append((prompt, answer))
 
-    if use_sentences:
-        fill(8, sentence=False)
-        fill(10, sentence=True)
-    else:
-        fill(10, sentence=False)
+    while len(out) < 10:
+        prompt, answer = _one(kind, step)
+        out.append((prompt, answer))
+
     return out

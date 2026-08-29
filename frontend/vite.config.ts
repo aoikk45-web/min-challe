@@ -7,6 +7,10 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 48221,
+    watch: {
+      // Static GSI assets; watching many PNGs can trigger EBUSY on Windows.
+      ignored: ['**/public/shakai/**'],
+    },
     proxy: {
       '/api': 'http://127.0.0.1:48222',
     },

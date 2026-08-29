@@ -113,6 +113,10 @@ export type DrillKind =
   | 'わりざん'
   | 'かんじのよみ'
   | 'じゅくごのよみ'
+  | 'とどうふけん'
+  | 'にほんのちり'
+  | 'ちずきごう'
+  | 'けんのかたち'
 
 export type DrillQuestion = {
   id: number
@@ -121,6 +125,8 @@ export type DrillQuestion = {
   child_answer: string | null
   is_correct: boolean | null
   correct: string | null
+  choices?: string[] | null
+  image_url?: string | null
 }
 
 export type DrillSession = {

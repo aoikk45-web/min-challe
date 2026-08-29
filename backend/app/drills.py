@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from typing import Literal
 
@@ -16,14 +17,34 @@ from .drill_progress import (
     apply_perfect_streak,
     ensure_all_progress,
     ensure_progress,
+    max_step_for_kind,
     step_label,
 )
-from .generate import KINDS, KOKUGO_KINDS, MATH_KINDS, PROGRESS_KINDS, generate_ten, normalize_reading
+from .generate import (
+    KINDS,
+    KOKUGO_KINDS,
+    MATH_KINDS,
+    PROGRESS_KINDS,
+    SHAKAI_KINDS,
+    generate_ten,
+    normalize_reading,
+)
 from .album import record_album
 from .ledger import award
 from .models import DrillQuestion, DrillSession, Household, Member
 
-Kind = Literal["たしざん", "ひきざん", "かけざん", "わりざん", "かんじのよみ", "じゅくごのよみ"]
+Kind = Literal[
+    "たしざん",
+    "ひきざん",
+    "かけざん",
+    "わりざん",
+    "かんじのよみ",
+    "じゅくごのよみ",
+    "とどうふけん",
+    "にほんのちり",
+    "ちずきごう",
+    "けんのかたち",
+]
 
 router = APIRouter(prefix="/api/drills", tags=["drills"])
 
@@ -53,6 +74,8 @@ class QuestionOut(BaseModel):
     child_answer: str | None
     is_correct: bool | None
     correct: str | None
+    choices: list[str] | None = None
+    image_url: str | None = None
 
 
 class SessionOut(BaseModel):
@@ -95,6 +118,91 @@ def _child(family: tuple[Household, Member, Member]) -> Member:
     return family[1]
 
 
+_LEGACY_SYMBOL_FILES = {
+    "camp.svg": "shoubousho.png",
+    "park.svg": "kannkousho.png",
+    "school.png": "shouchuugakkou.png",
+    "school.svg": "shouchuugakkou.png",
+    "post.png": "yuubinkyoku.png",
+    "post.svg": "yuubinkyoku.png",
+    "hospital.png": "byouin.png",
+    "hospital.svg": "byouin.png",
+    "police.png": "keisatusho.png",
+    "police.svg": "keisatusho.png",
+    "shrine.png": "jinjya.png",
+    "shrine.svg": "jinjya.png",
+    "temple.png": "jiin.png",
+    "temple.svg": "jiin.png",
+    "fire_station.png": "shoubousho.png",
+    "fire_station.svg": "shoubousho.png",
+    "sightseeing.png": "kannkousho.png",
+    "sightseeing.svg": "kannkousho.png",
+    "station.png": "ekijrsen.png",
+    "station.svg": "ekijrsen.png",
+    "library.png": "toshokan.png",
+    "library.svg": "toshokan.png",
+    "city_hall.png": "siyakusho.png",
+    "city_hall.svg": "siyakusho.png",
+    "port.png": "kouwan.png",
+    "port.svg": "kouwan.png",
+}
+
+_LEGACY_SYMBOL_BASENAMES = frozenset(
+    {
+        "school",
+        "post",
+        "hospital",
+        "police",
+        "shrine",
+        "temple",
+        "fire_station",
+        "sightseeing",
+        "station",
+        "library",
+        "city_hall",
+        "port",
+        "camp",
+        "park",
+    }
+)
+
+
+def _is_legacy_symbol_url(url: str | None) -> bool:
+    if not url or not url.startswith("/shakai/symbols/"):
+        return False
+    name = url.rsplit("/", 1)[-1]
+    if name in _LEGACY_SYMBOL_FILES:
+        return True
+    base = name.rsplit(".", 1)[0]
+    return base in _LEGACY_SYMBOL_BASENAMES or name.endswith(".svg")
+
+
+def _normalize_image_url(url: str | None) -> str | None:
+    if not url or not url.startswith("/shakai/symbols/"):
+        return url
+    name = url.rsplit("/", 1)[-1]
+    if name in _LEGACY_SYMBOL_FILES:
+        return f"/shakai/symbols/{_LEGACY_SYMBOL_FILES[name]}"
+    if name.endswith(".svg"):
+        return f"/shakai/symbols/{name[:-4]}.png"
+    return url
+
+
+def _session_uses_legacy_symbols(session: DrillSession) -> bool:
+    if session.kind != "ちずきごう":
+        return False
+    return any(_is_legacy_symbol_url(q.image_url) for q in session.questions)
+
+
+def _close_stale_session(session: DrillSession) -> None:
+    now = _now()
+    session.status = "finished"
+    session.finished_at = now
+    session.correct_count = sum(1 for q in session.questions if q.is_correct)
+    elapsed = (now - session.started_at).total_seconds()
+    session.duration_sec = max(0, int(elapsed))
+
+
 def _serialize(
     session: DrillSession,
     *,
@@ -103,7 +211,8 @@ def _serialize(
 ) -> SessionOut:
     questions = sorted(session.questions, key=lambda q: q.seq)
     finished = session.status == "finished"
-    label = step_label(session.step) if session.step is not None else None
+    kind = session.kind
+    label = step_label(session.step, kind) if session.step is not None else None
     return SessionOut(
         id=session.id,
         kind=session.kind,
@@ -122,12 +231,15 @@ def _serialize(
                 child_answer=q.child_answer,
                 is_correct=q.is_correct,
                 correct=q.correct if finished or q.child_answer is not None else None,
+                choices=json.loads(q.choices_json) if q.choices_json else None,
+                image_url=_normalize_image_url(q.image_url),
             )
             for q in questions
         ],
         perfect_streak=perfect_streak,
         step_label=label,
         step_up=step_up,
+        max_step=max_step_for_kind(kind),
     )
 
 
@@ -155,7 +267,8 @@ def drill_progress_list(
             kind=row.kind,
             step=row.step,
             perfect_streak=row.perfect_streak,
-            step_label=step_label(row.step),
+            step_label=step_label(row.step, row.kind),
+            max_step=max_step_for_kind(row.kind),
         )
         for row in rows
     ]
@@ -176,10 +289,15 @@ def start_drill(
         .order_by(DrillSession.id.desc())
     ).first()
     if existing is not None:
-        streak = None
-        if existing.kind in PROGRESS_KINDS:
-            streak = ensure_progress(db, child.id, existing.kind).perfect_streak
-        return _serialize(existing, perfect_streak=streak)
+        if _session_uses_legacy_symbols(existing):
+            _close_stale_session(existing)
+            db.flush()
+            existing = None
+        else:
+            streak = None
+            if existing.kind in PROGRESS_KINDS:
+                streak = ensure_progress(db, child.id, existing.kind).perfect_streak
+            return _serialize(existing, perfect_streak=streak)
 
     school_grade = child.grade or 3
     kind = body.kind if body.kind in KINDS else "たしざん"
@@ -200,13 +318,15 @@ def start_drill(
     db.add(session)
     db.flush()
     gen_step = drill_step if drill_step is not None else 1
-    for seq, (prompt, correct) in enumerate(generate_ten(kind, gen_step), start=1):
+    for seq, question in enumerate(generate_ten(kind, gen_step), start=1):
         db.add(
             DrillQuestion(
                 session_id=session.id,
                 seq=seq,
-                prompt=prompt,
-                correct=correct,
+                prompt=question.prompt,
+                correct=question.correct,
+                choices_json=json.dumps(question.choices, ensure_ascii=False) if question.choices else None,
+                image_url=question.image_url,
             )
         )
     db.commit()
@@ -262,7 +382,7 @@ def answer_drill(
         raise HTTPException(409, "already answered")
     given = str(body.answer)
     question.child_answer = given
-    if session.kind in KOKUGO_KINDS:
+    if session.kind in KOKUGO_KINDS or session.kind in SHAKAI_KINDS:
         question.is_correct = normalize_reading(given) == normalize_reading(question.correct)
     else:
         question.is_correct = given.strip() == str(question.correct).strip()

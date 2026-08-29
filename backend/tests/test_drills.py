@@ -113,7 +113,18 @@ def test_progress_api_lists_all_drill_kinds():
     client = TestClient(app)
     rows = client.get("/api/drills/progress", params={"role": "child"}).json()
     kinds = {row["kind"] for row in rows}
-    assert kinds == {"たしざん", "ひきざん", "かけざん", "わりざん", "かんじのよみ", "じゅくごのよみ"}
+    assert kinds == {
+        "たしざん",
+        "ひきざん",
+        "かけざん",
+        "わりざん",
+        "かんじのよみ",
+        "じゅくごのよみ",
+        "とどうふけん",
+        "にほんのちり",
+        "ちずきごう",
+        "けんのかたち",
+    }
     tashi = next(row for row in rows if row["kind"] == "たしざん")
     assert tashi["step"] == 1
     assert tashi["perfect_streak"] == 0
@@ -205,15 +216,25 @@ def test_kokugo_step1_uses_grade1_pool():
 
     allowed = {row["char"] for row in _kanji_bank() if row["grade"] <= _max_grade_for_step(1)}
     for prompt, _ in items:
-        assert "？" not in prompt
-        assert prompt in allowed
+        assert "？" in prompt
+        assert "\n" in prompt
+        assert any(char in prompt for char in allowed)
+
+
+def test_kokugo_always_uses_context():
+    for kind in ("かんじのよみ", "じゅくごのよみ"):
+        items = generate_ten(kind, 1)
+        assert len(items) == 10
+        for prompt, _ in items:
+            assert "？" in prompt
+            assert "\n" in prompt
+            assert "「" in prompt and "」の よみは？" in prompt
 
 
 def test_kokugo_sentence_from_step40():
     items = generate_ten("じゅくごのよみ", 50)
     assert len(items) == 10
-    assert all("？" not in p for p, _ in items[:8])
-    assert all("？" in p for p, _ in items[8:])
+    assert all("？" in p and "\n" in p for p, _ in items)
 
 
 def test_kokugo_grades_katakana_as_hiragana():
@@ -238,3 +259,57 @@ def test_kokugo_grades_katakana_as_hiragana():
     answered = next(q for q in res.json()["questions"] if q["id"] == first["id"])
     assert answered["is_correct"] is True
     assert answered["correct"] is not None
+
+
+def test_start_shakai_has_choices():
+    client = TestClient(app)
+    data = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "とどうふけん"}).json()
+    assert data["kind"] == "とどうふけん"
+    assert len(data["questions"]) == 10
+    first = data["questions"][0]
+    assert first["choices"] is not None
+    assert len(first["choices"]) == 4
+
+
+def test_shakai_pick_ten_has_four_choices():
+    items = generate_ten("ちずきごう", 1)
+    assert len(items) == 10
+    for question in items:
+        assert question.choices is not None
+        assert len(question.choices) == 4
+        assert question.image_url is not None
+
+
+def test_chizukigo_step1_uses_distinct_symbols():
+    from app.shakai import _symbol_choice_pool
+
+    items = generate_ten("ちずきごう", 1)
+    assert len(items) == 10
+    urls = [q.image_url for q in items]
+    assert len(set(urls)) == 10
+    pool = set(_symbol_choice_pool(1))
+    for question in items:
+        assert all(choice in pool for choice in question.choices or [])
+
+
+def test_chizukigo_high_step_uses_more_symbols():
+    from app.shakai import _symbol_pool
+
+    low = len(_symbol_pool(1))
+    high = len(_symbol_pool(6))
+    assert high > low
+
+
+def test_shakai_progress_max_step():
+    client = TestClient(app)
+    rows = client.get("/api/drills/progress", params={"role": "child"}).json()
+    shakai = next(row for row in rows if row["kind"] == "ちずきごう")
+    assert shakai["max_step"] == 6
+    assert shakai["step_label"].startswith("ステージ")
+
+
+def test_shakai_context_from_stage5():
+    items = generate_ten("とどうふけん", 5)
+    assert len(items) == 10
+    assert all("\n" not in q.prompt for q in items[:8])
+    assert all("\n" in q.prompt for q in items[8:])
