@@ -8,6 +8,7 @@ from .kokugo import pick_ten
 MATH_KINDS = ("たしざん", "ひきざん", "かけざん", "わりざん")
 KOKUGO_KINDS = ("かんじのよみ", "じゅくごのよみ")
 KINDS = MATH_KINDS + KOKUGO_KINDS
+PROGRESS_KINDS = KINDS
 
 MAX_STEP = 100
 WORD_STEP_FROM = 40
@@ -60,7 +61,7 @@ def generate_ten(kind: str, step: int = 1) -> list[tuple[str, str]]:
     if kind not in KINDS:
         raise ValueError(f"unknown kind: {kind}")
     if kind in KOKUGO_KINDS:
-        return pick_ten(kind)
+        return pick_ten(kind, step)
     step = min(max(step, 1), MAX_STEP)
     seen: set[str] = set()
     out: list[tuple[str, str]] = []

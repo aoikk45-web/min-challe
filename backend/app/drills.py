@@ -14,11 +14,11 @@ from .drill_progress import (
     MAX_STEP,
     PERFECT_NEEDED,
     apply_perfect_streak,
-    ensure_all_math,
+    ensure_all_progress,
     ensure_progress,
     step_label,
 )
-from .generate import KINDS, KOKUGO_KINDS, MATH_KINDS, generate_ten, normalize_reading
+from .generate import KINDS, KOKUGO_KINDS, MATH_KINDS, PROGRESS_KINDS, generate_ten, normalize_reading
 from .album import record_album
 from .ledger import award
 from .models import DrillQuestion, DrillSession, Household, Member
@@ -149,7 +149,7 @@ def drill_progress_list(
     db: Session = Depends(get_db),
 ):
     child = _child(family)
-    rows = ensure_all_math(db, child.id)
+    rows = ensure_all_progress(db, child.id)
     return [
         ProgressOut(
             kind=row.kind,
@@ -177,7 +177,7 @@ def start_drill(
     ).first()
     if existing is not None:
         streak = None
-        if existing.kind in MATH_KINDS:
+        if existing.kind in PROGRESS_KINDS:
             streak = ensure_progress(db, child.id, existing.kind).perfect_streak
         return _serialize(existing, perfect_streak=streak)
 
@@ -185,7 +185,7 @@ def start_drill(
     kind = body.kind if body.kind in KINDS else "たしざん"
     drill_step: int | None = None
     streak: int | None = None
-    if kind in MATH_KINDS:
+    if kind in PROGRESS_KINDS:
         progress = ensure_progress(db, child.id, kind)
         drill_step = progress.step
         streak = progress.perfect_streak
@@ -199,7 +199,7 @@ def start_drill(
     )
     db.add(session)
     db.flush()
-    gen_step = drill_step if drill_step is not None else school_grade
+    gen_step = drill_step if drill_step is not None else 1
     for seq, (prompt, correct) in enumerate(generate_ten(kind, gen_step), start=1):
         db.add(
             DrillQuestion(
@@ -238,7 +238,7 @@ def get_drill(
     child = _child(family)
     session = _get_session(db, session_id, child.id)
     streak = None
-    if session.kind in MATH_KINDS:
+    if session.kind in PROGRESS_KINDS:
         streak = ensure_progress(db, child.id, session.kind).perfect_streak
     return _serialize(session, perfect_streak=streak)
 
@@ -293,7 +293,7 @@ def answer_drill(
                 reason="全問正解ボーナス",
                 related_id=session.id,
             )
-        if session.kind in MATH_KINDS:
+        if session.kind in PROGRESS_KINDS:
             progress = ensure_progress(db, child.id, session.kind)
             step_up = apply_perfect_streak(progress, session.correct_count or 0)
             streak = progress.perfect_streak
@@ -305,7 +305,7 @@ def answer_drill(
             body=f"{session.kind} {session.correct_count}/10",
             related_id=session.id,
         )
-    elif session.kind in MATH_KINDS:
+    elif session.kind in PROGRESS_KINDS:
         streak = ensure_progress(db, child.id, session.kind).perfect_streak
 
     db.commit()

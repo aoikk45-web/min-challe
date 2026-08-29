@@ -135,9 +135,7 @@ export default function DrillPage({ role }: { role: Role }) {
     setSession(next)
     if (next.status === 'finished') {
       await reloadHistory()
-      if (!isKokugo(next.kind)) {
-        await reloadProgress()
-      }
+      await reloadProgress()
     }
   }
 
@@ -196,7 +194,7 @@ export default function DrillPage({ role }: { role: Role }) {
                 <ul className="mt-2 grid grid-cols-2 gap-3">
                   {KOKUGO_KINDS.map((item) => (
                     <li key={item.kind}>
-                      <KindButton item={item} onBegin={begin} />
+                      <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
                     </li>
                   ))}
                 </ul>
@@ -208,7 +206,7 @@ export default function DrillPage({ role }: { role: Role }) {
 
       {role === 'parent' && progress.length > 0 && (
         <section className="rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-black">さんすうのレベル</h2>
+          <h2 className="text-lg font-black">ドリルのレベル</h2>
           <ul className="mt-3 space-y-2 text-sm font-bold">
             {progress.map((row) => (
               <li key={row.kind} className="rounded-2xl bg-cream px-4 py-3">

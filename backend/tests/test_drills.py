@@ -109,15 +109,17 @@ def test_apply_perfect_streak_resets_on_miss():
     assert row.step == 1
 
 
-def test_progress_api_lists_math_kinds():
+def test_progress_api_lists_all_drill_kinds():
     client = TestClient(app)
     rows = client.get("/api/drills/progress", params={"role": "child"}).json()
     kinds = {row["kind"] for row in rows}
-    assert kinds == {"たしざん", "ひきざん", "かけざん", "わりざん"}
+    assert kinds == {"たしざん", "ひきざん", "かけざん", "わりざん", "かんじのよみ", "じゅくごのよみ"}
     tashi = next(row for row in rows if row["kind"] == "たしざん")
     assert tashi["step"] == 1
     assert tashi["perfect_streak"] == 0
     assert tashi["max_step"] == 100
+    kanji = next(row for row in rows if row["kind"] == "かんじのよみ")
+    assert kanji["step"] == 1
 
 
 def test_parent_cannot_start():
@@ -191,35 +193,42 @@ def test_start_kokugo_jukugo():
     data = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "じゅくごのよみ"}).json()
     assert data["kind"] == "じゅくごのよみ"
     assert data["grade"] == 3
-    assert data["step"] is None
+    assert data["step"] == 1
     assert len(data["questions"]) == 10
     assert all(q["correct"] is None for q in data["questions"])
 
 
-def test_kokugo_kanji_and_jukugo_banks():
-    from app.kokugo import JUKUGO_YOMI, KANJI_YOMI
+def test_kokugo_step1_uses_grade1_pool():
+    items = generate_ten("かんじのよみ", 1)
+    assert len(items) == 10
+    from app.kokugo import _kanji_bank, _max_grade_for_step
 
-    kanji = generate_ten("かんじのよみ", 1)
-    jukugo = generate_ten("じゅくごのよみ", 1)
-    assert len(kanji) == 10
-    assert len(jukugo) == 10
-    assert len({p for p, _ in kanji}) == 10
-    kanji_map = dict(KANJI_YOMI)
-    jukugo_map = dict(JUKUGO_YOMI)
-    for prompt, reading in kanji:
-        assert kanji_map[prompt] == reading
-    for prompt, reading in jukugo:
-        assert jukugo_map[prompt] == reading
+    allowed = {row["char"] for row in _kanji_bank() if row["grade"] <= _max_grade_for_step(1)}
+    for prompt, _ in items:
+        assert "？" not in prompt
+        assert prompt in allowed
+
+
+def test_kokugo_sentence_from_step40():
+    items = generate_ten("じゅくごのよみ", 50)
+    assert len(items) == 10
+    assert all("？" not in p for p, _ in items[:8])
+    assert all("？" in p for p, _ in items[8:])
 
 
 def test_kokugo_grades_katakana_as_hiragana():
     client = TestClient(app)
     session = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "かんじのよみ"}).json()
     first = session["questions"][0]
-    from app.kokugo import KANJI_YOMI
+    from sqlalchemy import select
+    from app.database import SessionLocal
+    from app.models import DrillQuestion
 
-    reading = dict(KANJI_YOMI)[first["prompt"]]
-    katakana = "".join(chr(ord(ch) + 0x60) for ch in reading)
+    db = SessionLocal()
+    q = db.get(DrillQuestion, first["id"])
+    reading = q.correct if q else ""
+    db.close()
+    katakana = "".join(chr(ord(ch) + 0x60) for ch in reading if "\u3040" <= ch <= "\u309f")
     res = client.post(
         f"/api/drills/{session['id']}/answer",
         params={"role": "child"},
