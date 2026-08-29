@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .generate import MATH_KINDS
+from .generate import PROGRESS_KINDS
 from .models import DrillProgress
 
 MAX_STEP = 100
@@ -41,7 +41,11 @@ def ensure_progress(db: Session, member_id: int, kind: str) -> DrillProgress:
 
 
 def ensure_all_math(db: Session, member_id: int) -> list[DrillProgress]:
-    return [ensure_progress(db, member_id, kind) for kind in MATH_KINDS]
+    return ensure_all_progress(db, member_id)
+
+
+def ensure_all_progress(db: Session, member_id: int) -> list[DrillProgress]:
+    return [ensure_progress(db, member_id, kind) for kind in PROGRESS_KINDS]
 
 
 def apply_perfect_streak(progress: DrillProgress, correct_count: int) -> bool:

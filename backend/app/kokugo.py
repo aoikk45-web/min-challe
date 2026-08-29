@@ -1,94 +1,91 @@
-"""小学3年向けの読みバンク。訓・音は授業でよく使う一通りだけ。"""
-
 from __future__ import annotations
 
+import json
 import random
+from functools import lru_cache
+from pathlib import Path
 
-KANJI_YOMI: tuple[tuple[str, str], ...] = (
-    ("横", "よこ"),
-    ("岸", "きし"),
-    ("球", "たま"),
-    ("橋", "はし"),
-    ("君", "きみ"),
-    ("血", "ち"),
-    ("湖", "みずうみ"),
-    ("港", "みなと"),
-    ("根", "ね"),
-    ("皿", "さら"),
-    ("歯", "は"),
-    ("次", "つぎ"),
-    ("指", "ゆび"),
-    ("酒", "さけ"),
-    ("氷", "こおり"),
-    ("昔", "むかし"),
-    ("息", "いき"),
-    ("他", "ほか"),
-    ("炭", "すみ"),
-    ("柱", "はしら"),
-    ("庭", "にわ"),
-    ("笛", "ふえ"),
-    ("豆", "まめ"),
-    ("島", "しま"),
-    ("湯", "ゆ"),
-    ("波", "なみ"),
-    ("箱", "はこ"),
-    ("畑", "はたけ"),
-    ("坂", "さか"),
-    ("板", "いた"),
-    ("皮", "かわ"),
-    ("鼻", "はな"),
-    ("筆", "ふで"),
-    ("薬", "くすり"),
-    ("羊", "ひつじ"),
-    ("葉", "は"),
-    ("緑", "みどり"),
-    ("旅", "たび"),
-    ("駅", "えき"),
-    ("銀", "ぎん"),
-    ("秒", "びょう"),
-    ("鉄", "てつ"),
-)
+MAX_STEP = 100
+WORD_STEP_FROM = 40
 
-JUKUGO_YOMI: tuple[tuple[str, str], ...] = (
-    ("練習", "れんしゅう"),
-    ("勉強", "べんきょう"),
-    ("宿題", "しゅくだい"),
-    ("漢字", "かんじ"),
-    ("意味", "いみ"),
-    ("質問", "しつもん"),
-    ("説明", "せつめい"),
-    ("研究", "けんきゅう"),
-    ("試合", "しあい"),
-    ("勝負", "しょうぶ"),
-    ("出発", "しゅっぱつ"),
-    ("返事", "へんじ"),
-    ("病気", "びょうき"),
-    ("病院", "びょういん"),
-    ("安全", "あんぜん"),
-    ("世界", "せかい"),
-    ("家族", "かぞく"),
-    ("問題", "もんだい"),
-    ("予定", "よてい"),
-    ("反対", "はんたい"),
-    ("全部", "ぜんぶ"),
-    ("物語", "ものがたり"),
-    ("道具", "どうぐ"),
-    ("運動", "うんどう"),
-    ("植物", "しょくぶつ"),
-    ("動物", "どうぶつ"),
-    ("農業", "のうぎょう"),
-    ("鉄道", "てつどう"),
-    ("旅行", "りょこう"),
-    ("列車", "れっしゃ"),
-    ("有名", "ゆうめい"),
-    ("予習", "よしゅう"),
-    ("図書館", "としょかん"),
-    ("自転車", "じてんしゃ"),
-)
+DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "kokugo"
 
 
-def pick_ten(kind: str) -> list[tuple[str, str]]:
-    bank = KANJI_YOMI if kind == "かんじのよみ" else JUKUGO_YOMI
-    if len(bank) <= 10:
-        return list(bank)
-    return random.sample(list(bank), 10)
+@lru_cache(maxsize=1)
+def _kanji_bank() -> list[dict]:
+    return json.loads((DATA_DIR / "kanji.json").read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def _jukugo_bank() -> list[dict]:
+    return json.loads((DATA_DIR / "jukugo.json").read_text(encoding="utf-8"))
+
+
+def _max_grade_for_step(step: int) -> int:
+    s = min(max(step, 1), MAX_STEP) - 1
+    return min(6, s // 17 + 1)
+
+
+def _pool(kind: str, step: int) -> list[dict]:
+    max_grade = _max_grade_for_step(step)
+    bank = _kanji_bank() if kind == "かんじのよみ" else _jukugo_bank()
+    return [row for row in bank if row["grade"] <= max_grade]
+
+
+def _reading_for(entry: dict) -> str:
+    if "readings" in entry:
+        return entry["readings"][0]
+    return entry["reading"]
+
+
+def _target(entry: dict) -> str:
+    return entry.get("char") or entry["word"]
+
+
+def _prompt_direct(entry: dict) -> tuple[str, str]:
+    return _target(entry), _reading_for(entry)
+
+
+def _prompt_sentence(entry: dict) -> tuple[str, str]:
+    target = _target(entry)
+    reading = _reading_for(entry)
+    sentence = random.choice(entry["sentences"])
+    display = sentence.replace(f"**{target}**", target)
+    return f"{display}\n{target}の よみは？", reading
+
+
+def _one(kind: str, step: int, *, sentence: bool) -> tuple[str, str]:
+    pool = _pool(kind, step)
+    if not pool:
+        pool = _kanji_bank() if kind == "かんじのよみ" else _jukugo_bank()
+    entry = random.choice(pool)
+    if sentence and entry.get("sentences"):
+        return _prompt_sentence(entry)
+    return _prompt_direct(entry)
+
+
+def pick_ten(kind: str, step: int = 1) -> list[tuple[str, str]]:
+    step = min(max(step, 1), MAX_STEP)
+    seen: set[str] = set()
+    out: list[tuple[str, str]] = []
+    use_sentences = step >= WORD_STEP_FROM
+
+    def fill(target: int, sentence: bool) -> None:
+        for _ in range(200):
+            if len(out) >= target:
+                return
+            prompt, answer = _one(kind, step, sentence=sentence)
+            if prompt in seen:
+                continue
+            seen.add(prompt)
+            out.append((prompt, answer))
+        while len(out) < target:
+            prompt, answer = _one(kind, step, sentence=sentence)
+            out.append((prompt, answer))
+
+    if use_sentences:
+        fill(8, sentence=False)
+        fill(10, sentence=True)
+    else:
+        fill(10, sentence=False)
+    return out

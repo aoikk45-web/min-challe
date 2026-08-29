@@ -135,9 +135,7 @@ export default function DrillPage({ role }: { role: Role }) {
     setSession(next)
     if (next.status === 'finished') {
       await reloadHistory()
-      if (!isKokugo(next.kind)) {
-        await reloadProgress()
-      }
+      await reloadProgress()
     }
   }
 
@@ -196,7 +194,7 @@ export default function DrillPage({ role }: { role: Role }) {
                 <ul className="mt-2 grid grid-cols-2 gap-3">
                   {KOKUGO_KINDS.map((item) => (
                     <li key={item.kind}>
-                      <KindButton item={item} onBegin={begin} />
+                      <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
                     </li>
                   ))}
                 </ul>
@@ -208,7 +206,7 @@ export default function DrillPage({ role }: { role: Role }) {
 
       {role === 'parent' && progress.length > 0 && (
         <section className="rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-black">さんすうのレベル</h2>
+          <h2 className="text-lg font-black">ドリルのレベル</h2>
           <ul className="mt-3 space-y-2 text-sm font-bold">
             {progress.map((row) => (
               <li key={row.kind} className="rounded-2xl bg-cream px-4 py-3">
@@ -238,6 +236,9 @@ function KindButton({
   prog?: DrillProgress
   onBegin: (kind: DrillKind) => void
 }) {
+  const step = prog?.step ?? 1
+  const streak = prog?.perfect_streak ?? 0
+  const needed = prog?.perfect_needed ?? 5
   return (
     <button
       type="button"
@@ -246,7 +247,7 @@ function KindButton({
     >
       <span className="text-2xl">{item.emoji}</span>
       <span className="mt-1">{item.kind}</span>
-      {prog && <LevelBadge step={prog.step} streak={prog.perfect_streak} needed={prog.perfect_needed} compact />}
+      <LevelBadge step={step} streak={streak} needed={needed} compact />
     </button>
   )
 }
@@ -333,13 +334,11 @@ function PlayView({
       <p className="text-sm font-bold text-sky">
         {session.kind} {shown.seq}/10
       </p>
-      {session.step != null && (
-        <LevelBadge
-          step={session.step}
-          streak={session.perfect_streak ?? 0}
-          needed={session.perfect_needed}
-        />
-      )}
+      <LevelBadge
+        step={session.step ?? 1}
+        streak={session.perfect_streak ?? 0}
+        needed={session.perfect_needed}
+      />
       <p className={`mt-6 text-center font-black ${shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'}`}>
         {shown.prompt}
       </p>
