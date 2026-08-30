@@ -28,6 +28,7 @@ from .generate import (
     MATH_KINDS,
     PROGRESS_KINDS,
     SHAKAI_KINDS,
+    RIKA_KINDS,
     generate_ten,
     kokugo_reading_matches,
     normalize_reading,
@@ -48,6 +49,11 @@ Kind = Literal[
     "にほんのちり",
     "ちずきごう",
     "けんのかたち",
+    "いきもののせいかつ",
+    "じしゃくとでんき",
+    "たいようとかげ",
+    "ひかりとおと",
+    "てんきとみず",
 ]
 
 router = APIRouter(prefix="/api/drills", tags=["drills"])
@@ -445,7 +451,7 @@ def answer_drill(
     question.child_answer = given
     if session.kind in KOKUGO_KINDS:
         question.is_correct = kokugo_reading_matches(given, question.correct)
-    elif session.kind in DOKKAI_KINDS or session.kind in SHAKAI_KINDS:
+    elif session.kind in DOKKAI_KINDS or session.kind in SHAKAI_KINDS or session.kind in RIKA_KINDS:
         question.is_correct = normalize_reading(given) == normalize_reading(question.correct)
     else:
         question.is_correct = given.strip() == str(question.correct).strip()

@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .generate import PROGRESS_KINDS, SHAKAI_KINDS, SHAKAI_MAX_STEP, DOKKAI_KINDS
+from .generate import PROGRESS_KINDS, SHAKAI_KINDS, SHAKAI_MAX_STEP, DOKKAI_KINDS, RIKA_KINDS
 from .models import DrillProgress
 
 MAX_STEP = 100
@@ -18,9 +18,18 @@ SHAKAI_STAGE_LABELS: tuple[str, ...] = (
     "ぜんぶ",
 )
 
+RIKA_STAGE_LABELS: tuple[str, ...] = (
+    "ゆうきのいま",
+    "3年生のふつう",
+    "4年生の範囲",
+    "5年生の範囲",
+    "6年生のふつう",
+    "6年生のチャレンジ",
+)
+
 
 def max_step_for_kind(kind: str) -> int:
-    if kind in SHAKAI_KINDS or kind in DOKKAI_KINDS:
+    if kind in SHAKAI_KINDS or kind in DOKKAI_KINDS or kind in RIKA_KINDS:
         return SHAKAI_MAX_STEP
     return MAX_STEP
 
@@ -32,6 +41,9 @@ def question_total_for_kind(kind: str) -> int:
 
 
 def step_label(step: int, kind: str | None = None) -> str:
+    if kind in RIKA_KINDS:
+        s = min(max(step, 1), SHAKAI_MAX_STEP)
+        return f"ステージ{s}（{RIKA_STAGE_LABELS[s - 1]}）"
     if kind in SHAKAI_KINDS or kind in DOKKAI_KINDS:
         s = min(max(step, 1), SHAKAI_MAX_STEP)
         return f"ステージ{s}（{SHAKAI_STAGE_LABELS[s - 1]}）"

@@ -41,6 +41,28 @@ const SHAKAI_KINDS: { kind: DrillKind; emoji: string }[] = [
   { kind: 'けんのかたち', emoji: '🗺️' },
 ]
 
+const RIKA_KINDS: { kind: DrillKind; emoji: string }[] = [
+  { kind: 'いきもののせいかつ', emoji: '🐛' },
+  { kind: 'じしゃくとでんき', emoji: '🔋' },
+  { kind: 'たいようとかげ', emoji: '☀️' },
+  { kind: 'ひかりとおと', emoji: '🔔' },
+  { kind: 'てんきとみず', emoji: '🌧️' },
+]
+
+type SubjectId = 'sansuu' | 'kokugo' | 'rika' | 'shakai'
+
+const SUBJECT_GROUPS: {
+  id: SubjectId
+  label: string
+  emoji: string
+  kinds: { kind: DrillKind; emoji: string }[]
+}[] = [
+  { id: 'sansuu', label: 'さんすう', emoji: '🔢', kinds: MATH_KINDS },
+  { id: 'kokugo', label: 'こくご', emoji: '📚', kinds: KOKUGO_KINDS },
+  { id: 'rika', label: 'りか', emoji: '🔬', kinds: RIKA_KINDS },
+  { id: 'shakai', label: 'しゃかい', emoji: '🗾', kinds: SHAKAI_KINDS },
+]
+
 function isKokugo(kind: string) {
   return kind === 'かんじのよみ' || kind === 'じゅくごのよみ'
 }
@@ -53,12 +75,16 @@ function isShakai(kind: string) {
   return SHAKAI_KINDS.some((item) => item.kind === kind)
 }
 
+function isRika(kind: string) {
+  return RIKA_KINDS.some((item) => item.kind === kind)
+}
+
 function isStageKind(kind: string) {
-  return isShakai(kind) || isDokkai(kind)
+  return isShakai(kind) || isDokkai(kind) || isRika(kind)
 }
 
 function isChoiceDrill(kind: string) {
-  return isShakai(kind) || isDokkai(kind)
+  return isShakai(kind) || isDokkai(kind) || isRika(kind)
 }
 
 function progressFor(progress: DrillProgress[], kind: string) {
@@ -96,7 +122,7 @@ function LevelBadge({
   const { level, icon, scale } = chickenGrowth(step, maxStep)
   const filled = Math.min(Math.max(streak, 0), needed)
   const empty = Math.max(0, needed - filled)
-  const stepText = stage ? `ステージ${level}` : `レベル${level}`
+  const stepText = stage ? `ステージ${level}/${maxStep}` : `レベル${level}/${maxStep}`
   const goalText = stage ? 'ステージアップまで' : 'レベルアップまで'
   return (
     <div className={`${compact ? 'mt-1' : 'mt-2'} flex flex-col items-center gap-0.5`}>
@@ -123,6 +149,7 @@ export default function DrillPage({ role }: { role: Role }) {
   const [session, setSession] = useState<DrillSession | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [openSubject, setOpenSubject] = useState<SubjectId | null>(null)
 
   async function reloadHistory() {
     const rows = await fetchDrillHistory(role)
@@ -167,6 +194,7 @@ export default function DrillPage({ role }: { role: Role }) {
 
   async function begin(kind: DrillKind) {
     try {
+      setOpenSubject(null)
       const next = await startDrill(kind)
       setSession(next)
     } catch {
@@ -212,48 +240,31 @@ export default function DrillPage({ role }: { role: Role }) {
     <div className="space-y-4">
       {role === 'child' && (
         <section className="rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-black">10もん やってみよう</h2>
           {inProgress ? (
             <button
               type="button"
               onClick={() => openSession(inProgress.id)}
-              className="mt-4 w-full rounded-full bg-sun py-3 text-base font-black"
+              className="w-full rounded-full bg-sun py-3 text-base font-black"
             >
               つづける（{inProgress.kind}）
             </button>
           ) : (
-            <div className="mt-4 space-y-4">
-              <div>
-                <p className="text-sm font-bold text-sky">さんすう</p>
-                <ul className="mt-2 grid grid-cols-2 gap-3">
-                  {MATH_KINDS.map((item) => (
-                    <li key={item.kind}>
-                      <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="text-sm font-bold text-sky">こくご</p>
-                <ul className="mt-2 grid grid-cols-2 gap-3">
-                  {KOKUGO_KINDS.map((item) => (
-                    <li key={item.kind}>
-                      <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="text-sm font-bold text-sky">しゃかい</p>
-                <ul className="mt-2 grid grid-cols-2 gap-3">
-                  {SHAKAI_KINDS.map((item) => (
-                    <li key={item.kind}>
-                      <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+            <ul className="grid grid-cols-2 gap-3">
+              {SUBJECT_GROUPS.map((subject) => (
+                <li key={subject.id}>
+                  <SubjectCard
+                    subject={subject}
+                    open={openSubject === subject.id}
+                    onToggle={() =>
+                      setOpenSubject((current) => (current === subject.id ? null : subject.id))
+                    }
+                    onClose={() => setOpenSubject(null)}
+                    progress={progress}
+                    onBegin={begin}
+                  />
+                </li>
+              ))}
+            </ul>
           )}
         </section>
       )}
@@ -288,14 +299,69 @@ export default function DrillPage({ role }: { role: Role }) {
   )
 }
 
+function SubjectCard({
+  subject,
+  open,
+  onToggle,
+  onClose,
+  progress,
+  onBegin,
+}: {
+  subject: (typeof SUBJECT_GROUPS)[number]
+  open: boolean
+  onToggle: () => void
+  onClose: () => void
+  progress: DrillProgress[]
+  onBegin: (kind: DrillKind) => void
+}) {
+  const panelVisible = open ? 'flex' : 'hidden'
+  return (
+    <div
+      className="group relative"
+      onMouseLeave={onClose}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className={`flex w-full flex-col items-center rounded-3xl px-2 py-5 font-black transition ${
+          open ? 'bg-sun/40 ring-2 ring-sun' : 'bg-cream hover:bg-sun/20'
+        }`}
+      >
+        <span className="text-3xl">{subject.emoji}</span>
+        <span className="mt-2 text-lg">{subject.label}</span>
+        <span className="mt-1 text-xs font-bold text-ink/50">
+          {open ? 'とじる' : 'タップで えらぶ'}
+        </span>
+      </button>
+      <ul
+        className={`absolute top-full right-0 left-0 z-20 max-h-72 flex-col gap-2 overflow-y-auto rounded-2xl bg-white p-2 pt-2 shadow-lg ${panelVisible} md:group-hover:flex md:group-focus-within:flex`}
+      >
+        {subject.kinds.map((item) => (
+          <li key={item.kind}>
+            <KindButton
+              item={item}
+              prog={progressFor(progress, item.kind)}
+              onBegin={onBegin}
+              compact
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function KindButton({
   item,
   prog,
   onBegin,
+  compact = false,
 }: {
   item: { kind: DrillKind; emoji: string }
   prog?: DrillProgress
   onBegin: (kind: DrillKind) => void
+  compact?: boolean
 }) {
   const step = prog?.step ?? 1
   const streak = prog?.perfect_streak ?? 0
@@ -306,10 +372,12 @@ function KindButton({
     <button
       type="button"
       onClick={() => onBegin(item.kind)}
-      className="flex h-full w-full flex-col items-center rounded-3xl bg-cream px-2 py-4 font-black"
+      className={`flex h-full w-full flex-col items-center rounded-2xl bg-cream font-black ${
+        compact ? 'px-2 py-3' : 'rounded-3xl px-2 py-4'
+      }`}
     >
-      <span className="text-2xl">{item.emoji}</span>
-      <span className="mt-1">{item.kind}</span>
+      <span className={compact ? 'text-xl' : 'text-2xl'}>{item.emoji}</span>
+      <span className={`mt-1 text-center leading-tight ${compact ? 'text-xs' : 'text-sm'}`}>{item.kind}</span>
       <LevelBadge step={step} streak={streak} needed={needed} maxStep={maxStep} stage={stage} compact />
     </button>
   )
