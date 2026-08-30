@@ -11,7 +11,7 @@ MIN_PER_GRADE = 15
 
 
 def test_rika_bank_has_enough_questions_per_grade():
-    for filename in ("ikimono.json", "denki.json"):
+    for filename in ("ikimono.json", "denki.json", "taiyo.json", "hikari.json", "tenki.json"):
         rows = json.loads((DATA_DIR / filename).read_text(encoding="utf-8"))
         counts = Counter(row["grade"] for row in rows)
         for grade in (3, 4, 5, 6):

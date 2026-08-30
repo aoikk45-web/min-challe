@@ -44,6 +44,9 @@ const SHAKAI_KINDS: { kind: DrillKind; emoji: string }[] = [
 const RIKA_KINDS: { kind: DrillKind; emoji: string }[] = [
   { kind: 'いきもののせいかつ', emoji: '🐛' },
   { kind: 'じしゃくとでんき', emoji: '🔋' },
+  { kind: 'たいようとかげ', emoji: '☀️' },
+  { kind: 'ひかりとおと', emoji: '🔔' },
+  { kind: 'てんきとみず', emoji: '🌧️' },
 ]
 
 function isKokugo(kind: string) {

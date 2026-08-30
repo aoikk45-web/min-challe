@@ -12,7 +12,14 @@ def test_rika_max_grade_for_step():
 
 
 def test_rika_pick_ten_has_four_choices():
-    for kind in ("いきもののせいかつ", "じしゃくとでんき"):
+    kinds = (
+        "いきもののせいかつ",
+        "じしゃくとでんき",
+        "たいようとかげ",
+        "ひかりとおと",
+        "てんきとみず",
+    )
+    for kind in kinds:
         items = pick_ten(kind, 1)
         assert len(items) == 10
         for question in items:

@@ -5,7 +5,13 @@ import random
 from dataclasses import dataclass
 from pathlib import Path
 
-RIKA_KINDS = ("いきもののせいかつ", "じしゃくとでんき")
+RIKA_KINDS = (
+    "いきもののせいかつ",
+    "じしゃくとでんき",
+    "たいようとかげ",
+    "ひかりとおと",
+    "てんきとみず",
+)
 RIKA_MAX_STEP = 6
 
 RIKA_STAGE_LABELS: tuple[str, ...] = (
@@ -22,6 +28,9 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "rika"
 _KIND_FILES: dict[str, str] = {
     "いきもののせいかつ": "ikimono.json",
     "じしゃくとでんき": "denki.json",
+    "たいようとかげ": "taiyo.json",
+    "ひかりとおと": "hikari.json",
+    "てんきとみず": "tenki.json",
 }
 
 _bank_cache: dict[str, list[dict]] = {}

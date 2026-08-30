@@ -4,14 +4,13 @@ import random
 import unicodedata
 
 from .kokugo import pick_ten as kokugo_pick_ten
-from .rika import pick_ten as rika_pick_ten
+from .rika import pick_ten as rika_pick_ten, RIKA_KINDS
 from .shakai import GeneratedQuestion, pick_ten as shakai_pick_ten
 
 MATH_KINDS = ("たしざん", "ひきざん", "かけざん", "わりざん")
 KOKUGO_KINDS = ("かんじのよみ", "じゅくごのよみ")
 DOKKAI_KINDS = ("おはなしのどくかい",)
 SHAKAI_KINDS = ("とどうふけん", "にほんのちり", "ちずきごう", "けんのかたち")
-RIKA_KINDS = ("いきもののせいかつ", "じしゃくとでんき")
 KINDS = MATH_KINDS + KOKUGO_KINDS + DOKKAI_KINDS + SHAKAI_KINDS + RIKA_KINDS
 PROGRESS_KINDS = KINDS
 

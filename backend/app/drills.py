@@ -51,6 +51,9 @@ Kind = Literal[
     "けんのかたち",
     "いきもののせいかつ",
     "じしゃくとでんき",
+    "たいようとかげ",
+    "ひかりとおと",
+    "てんきとみず",
 ]
 
 router = APIRouter(prefix="/api/drills", tags=["drills"])
