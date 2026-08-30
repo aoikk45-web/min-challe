@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import json
+import sys
 import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "backend"))
+
+from app.shakai_regions import PREF_CODE_TO_REGION, REGION_DISPLAY_BBOX, codes_for_kenkatachi  # noqa: E402
 OUT_MAPS = ROOT / "frontend" / "public" / "shakai" / "maps"
 DATA_DIR = ROOT / "backend" / "data" / "shakai"
 GEOJSON_CACHE = DATA_DIR / "prefectures.geojson"
@@ -78,6 +82,48 @@ def load_geojson() -> dict:
     return json.loads(GEOJSON_CACHE.read_text(encoding="utf-8"))
 
 
+def iter_polygons(geometry: dict):
+    gtype = geometry["type"]
+    if gtype == "Polygon":
+        yield geometry["coordinates"]
+    elif gtype == "MultiPolygon":
+        for polygon in geometry["coordinates"]:
+            yield polygon
+
+
+def _polygon_centroid(outer_ring: list[list[float]]) -> tuple[float, float]:
+    lon = sum(point[0] for point in outer_ring) / len(outer_ring)
+    lat = sum(point[1] for point in outer_ring) / len(outer_ring)
+    return lon, lat
+
+
+def _centroid_in_bbox(lon: float, lat: float, bbox: tuple[float, float, float, float]) -> bool:
+    min_lon, min_lat, max_lon, max_lat = bbox
+    return min_lon <= lon <= max_lon and min_lat <= lat <= max_lat
+
+
+def filter_geometry_for_region(geometry: dict, region: str) -> dict:
+    bbox = REGION_DISPLAY_BBOX.get(region)
+    if bbox is None:
+        return geometry
+    kept: list = []
+    for polygon in iter_polygons(geometry):
+        outer = polygon[0]
+        lon, lat = _polygon_centroid(outer)
+        if _centroid_in_bbox(lon, lat, bbox):
+            kept.append(polygon)
+    if not kept:
+        return geometry
+    if len(kept) == 1:
+        return {"type": "Polygon", "coordinates": kept[0]}
+    return {"type": "MultiPolygon", "coordinates": kept}
+
+
+def display_feature(feature: dict, region: str) -> dict:
+    geometry = filter_geometry_for_region(feature["geometry"], region)
+    return {**feature, "geometry": geometry}
+
+
 def iter_rings(geometry: dict):
     gtype = geometry["type"]
     if gtype == "Polygon":
@@ -136,13 +182,19 @@ def geometry_paths(geometry: dict, project) -> list[str]:
     return paths
 
 
-def map_svg(highlight_kanji: str, features_by_kanji: dict[str, dict], project) -> str:
+def map_svg(
+    highlight_kanji: str,
+    features_by_kanji: dict[str, dict],
+    project,
+    *,
+    visible_kanji: set[str],
+) -> str:
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {SVG_WIDTH} {SVG_HEIGHT}" role="img">',
         f'  <rect width="{SVG_WIDTH}" height="{SVG_HEIGHT}" fill="#ffffff"/>',
     ]
     for kanji, feature in features_by_kanji.items():
-        if kanji == highlight_kanji:
+        if kanji not in visible_kanji or kanji == highlight_kanji:
             continue
         for path in geometry_paths(feature["geometry"], project):
             lines.append(
@@ -165,14 +217,26 @@ def main() -> None:
     if missing:
         raise SystemExit(f"missing prefectures in geojson: {missing}")
 
-    project = make_projector(all_points(geojson["features"]))
     OUT_MAPS.mkdir(parents=True, exist_ok=True)
     for code, kanji in PREF_KANJI.items():
+        region = PREF_CODE_TO_REGION[code]
+        region_codes = codes_for_kenkatachi(code)
+        region_kanji = {PREF_KANJI[item] for item in region_codes}
+        region_features = [
+            display_feature(features_by_kanji[item], region) for item in region_kanji
+        ]
+        display_by_kanji = {item: display_feature(features_by_kanji[item], region) for item in region_kanji}
+        regional_project = make_projector(all_points(region_features))
         (OUT_MAPS / f"{code}.svg").write_text(
-            map_svg(kanji, features_by_kanji, project),
+            map_svg(
+                kanji,
+                display_by_kanji,
+                regional_project,
+                visible_kanji=region_kanji,
+            ),
             encoding="utf-8",
         )
-    print(f"maps: {len(PREF_KANJI)}")
+    print(f"maps: {len(PREF_KANJI)} (regional view)")
 
 
 if __name__ == "__main__":

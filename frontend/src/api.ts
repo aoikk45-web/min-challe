@@ -113,6 +113,7 @@ export type DrillKind =
   | 'わりざん'
   | 'かんじのよみ'
   | 'じゅくごのよみ'
+  | 'おはなしのどくかい'
   | 'とどうふけん'
   | 'にほんのちり'
   | 'ちずきごう'
@@ -127,6 +128,7 @@ export type DrillQuestion = {
   correct: string | null
   choices?: string[] | null
   image_url?: string | null
+  explanation?: string | null
 }
 
 export type DrillSession = {
@@ -146,6 +148,8 @@ export type DrillSession = {
   max_step: number
   perfect_needed: number
   points_earned?: number | null
+  passage_title?: string | null
+  passage?: string | null
 }
 
 export type DrillHistoryItem = Omit<DrillSession, 'questions' | 'step_up' | 'perfect_streak' | 'step_label' | 'max_step' | 'perfect_needed'> & {
