@@ -108,7 +108,7 @@ function LevelBadge({
   const { level, icon, scale } = chickenGrowth(step, maxStep)
   const filled = Math.min(Math.max(streak, 0), needed)
   const empty = Math.max(0, needed - filled)
-  const stepText = stage ? `ステージ${level}` : `レベル${level}`
+  const stepText = stage ? `ステージ${level}/${maxStep}` : `レベル${level}/${maxStep}`
   const goalText = stage ? 'ステージアップまで' : 'レベルアップまで'
   return (
     <div className={`${compact ? 'mt-1' : 'mt-2'} flex flex-col items-center gap-0.5`}>
@@ -224,17 +224,16 @@ export default function DrillPage({ role }: { role: Role }) {
     <div className="space-y-4">
       {role === 'child' && (
         <section className="rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-black">10もん やってみよう</h2>
           {inProgress ? (
             <button
               type="button"
               onClick={() => openSession(inProgress.id)}
-              className="mt-4 w-full rounded-full bg-sun py-3 text-base font-black"
+              className="w-full rounded-full bg-sun py-3 text-base font-black"
             >
               つづける（{inProgress.kind}）
             </button>
           ) : (
-            <div className="mt-4 space-y-4">
+            <div className="space-y-4">
               <div>
                 <p className="text-sm font-bold text-sky">さんすう</p>
                 <ul className="mt-2 grid grid-cols-2 gap-3">
