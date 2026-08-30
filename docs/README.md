@@ -14,8 +14,11 @@
 | 4 | [requirements.md](./requirements.md) | spec の箇条書き版 |
 | 5 | [design.md](./design.md) | 詳細設計草案（API・テーブル）。仕様承認後 |
 | 6 | [backlog.md](./backlog.md) | ループ単位のタスク |
-| 7 | [misutes.md](./misutes.md) | 議事録・判断・ミス |
-| 8 | [decisions.md](./decisions.md) | 採用/却下 |
+| 7 | [dokkai.md](./dokkai.md) | おはなしの読解（L13） |
+| 8 | [rika.md](./rika.md) | 理科ドリル（L14 草案） |
+| 9 | [drill-prompt-rules.md](./drill-prompt-rules.md) | ドリル問題文の作成ルール |
+| 10 | [misutes.md](./misutes.md) | 議事録・判断・ミス |
+| 11 | [decisions.md](./decisions.md) | 採用/却下 |
 
 ## 原則
 

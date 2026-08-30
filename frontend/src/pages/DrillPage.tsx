@@ -41,6 +41,11 @@ const SHAKAI_KINDS: { kind: DrillKind; emoji: string }[] = [
   { kind: 'けんのかたち', emoji: '🗺️' },
 ]
 
+const RIKA_KINDS: { kind: DrillKind; emoji: string }[] = [
+  { kind: 'いきもののせいかつ', emoji: '🐛' },
+  { kind: 'じしゃくとでんき', emoji: '🔋' },
+]
+
 function isKokugo(kind: string) {
   return kind === 'かんじのよみ' || kind === 'じゅくごのよみ'
 }
@@ -53,12 +58,16 @@ function isShakai(kind: string) {
   return SHAKAI_KINDS.some((item) => item.kind === kind)
 }
 
+function isRika(kind: string) {
+  return RIKA_KINDS.some((item) => item.kind === kind)
+}
+
 function isStageKind(kind: string) {
-  return isShakai(kind) || isDokkai(kind)
+  return isShakai(kind) || isDokkai(kind) || isRika(kind)
 }
 
 function isChoiceDrill(kind: string) {
-  return isShakai(kind) || isDokkai(kind)
+  return isShakai(kind) || isDokkai(kind) || isRika(kind)
 }
 
 function progressFor(progress: DrillProgress[], kind: string) {
@@ -237,6 +246,16 @@ export default function DrillPage({ role }: { role: Role }) {
                 <p className="text-sm font-bold text-sky">こくご</p>
                 <ul className="mt-2 grid grid-cols-2 gap-3">
                   {KOKUGO_KINDS.map((item) => (
+                    <li key={item.kind}>
+                      <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-sky">りか</p>
+                <ul className="mt-2 grid grid-cols-2 gap-3">
+                  {RIKA_KINDS.map((item) => (
                     <li key={item.kind}>
                       <KindButton item={item} prog={progressFor(progress, item.kind)} onBegin={begin} />
                     </li>

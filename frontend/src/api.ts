@@ -118,6 +118,8 @@ export type DrillKind =
   | 'にほんのちり'
   | 'ちずきごう'
   | 'けんのかたち'
+  | 'いきもののせいかつ'
+  | 'じしゃくとでんき'
 
 export type DrillQuestion = {
   id: number
