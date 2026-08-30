@@ -1,20 +1,23 @@
 import { Link } from 'react-router-dom'
 import { useCallback, useState } from 'react'
 import {
+  fetchDrillProgress,
   fetchPointSummary,
   formatPlanDay,
   todayJstISO,
   usePlans,
+  type DrillProgress,
   type Household,
   type PointSummary,
   type StudyPlan,
 } from '../api'
 import type { Role } from '../role'
+import { GrowthStar, starTierFromProgress } from '../GrowthStar'
 import { usePointsRefresh } from '../pointsRefresh'
 
 const pillars = [
   { to: '/plan', emoji: '📒', title: 'けいかく', child: 'きょう なにを する？', parent: '今週の予定を置く' },
-  { to: '/drill', emoji: '✨', title: 'ドリル', child: 'さんすう・こくご 10もん', parent: '計算とこくごのれんしゅう' },
+  { to: '/drill', emoji: '📝', title: 'ドリル', child: 'さんすう・こくご・りか・しゃかい', parent: 'さんすう・こくご・理科・社会' },
   { to: '/points', emoji: '🏅', title: 'ポイント', child: 'がんばりが みえるよ', parent: 'ルールをごほうび' },
   { to: '/album', emoji: '📔', title: 'アルバム', child: 'できた きろく', parent: '成長の記録' },
 ]
@@ -26,15 +29,11 @@ export default function HomePage({ household, role }: { household: Household; ro
   return (
     <div className="space-y-4">
       <section className="rounded-3xl bg-white p-5 shadow-sm">
-        <p className="text-4xl">{me.avatar}</p>
-        <h2 className="mt-2 text-2xl font-black">
-          {role === 'child' ? `こんにちは、${child.display_name}！` : `${household.name}のページ`}
-        </h2>
-        <p className="mt-1 text-sm leading-relaxed text-ink/70">
-          {role === 'child'
-            ? `小学${child.grade}年生。きょうも じぶんで やってみよう。`
-            : `${child.display_name}（小学${child.grade}年生）の学習を見守る画面です。`}
-        </p>
+        {role === 'child' ? (
+          <ChildGreeting name={child.display_name} grade={child.grade ?? 3} />
+        ) : (
+          <ParentGreeting household={household} avatar={me.avatar} />
+        )}
       </section>
 
       <TodayPlans role={role} />
@@ -55,6 +54,45 @@ export default function HomePage({ household, role }: { household: Household; ro
         ))}
       </ul>
     </div>
+  )
+}
+
+function ChildGreeting({ name, grade }: { name: string; grade: number }) {
+  const [progress, setProgress] = useState<DrillProgress[]>([])
+
+  const reloadProgress = useCallback(() => {
+    fetchDrillProgress('child')
+      .then(setProgress)
+      .catch(() => setProgress([]))
+  }, [])
+
+  usePointsRefresh(reloadProgress)
+
+  const tier = starTierFromProgress(progress)
+
+  return (
+    <>
+      <GrowthStar tier={tier} />
+      <h2 className="mt-2 text-2xl font-black">こんにちは、{name}！</h2>
+      <p className="mt-1 text-sm leading-relaxed text-ink/70">
+        小学{grade}年生。きょうも じぶんで やってみよう。
+      </p>
+      {tier > 1 && (
+        <p className="mt-1 text-xs font-bold text-sun">ほしが だんだん つよくなってる！</p>
+      )}
+    </>
+  )
+}
+
+function ParentGreeting({ household, avatar }: { household: Household; avatar: string }) {
+  return (
+    <>
+      <p className="text-4xl">{avatar}</p>
+      <h2 className="mt-2 text-2xl font-black">{household.name}のページ</h2>
+      <p className="mt-1 text-sm leading-relaxed text-ink/70">
+        {household.child.display_name}（小学{household.child.grade}年生）の学習を見守る画面です。
+      </p>
+    </>
   )
 }
 

@@ -19,6 +19,11 @@ def migrate_schema() -> None:
             conn.execute(text("ALTER TABLE drill_questions ADD COLUMN choices_json VARCHAR(200)"))
         if cols and "image_url" not in cols:
             conn.execute(text("ALTER TABLE drill_questions ADD COLUMN image_url VARCHAR(120)"))
+        session_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(drill_sessions)"))}
+        if session_cols and "passage_title" not in session_cols:
+            conn.execute(text("ALTER TABLE drill_sessions ADD COLUMN passage_title VARCHAR(80)"))
+        if session_cols and "passage" not in session_cols:
+            conn.execute(text("ALTER TABLE drill_sessions ADD COLUMN passage VARCHAR(900)"))
 
 
 def get_db():

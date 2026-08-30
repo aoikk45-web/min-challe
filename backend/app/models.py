@@ -65,6 +65,8 @@ class DrillSession(Base):
     duration_sec: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     started_at: Mapped[datetime] = mapped_column(DateTime)
     finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    passage_title: Mapped[Optional[str]] = mapped_column(String(80), nullable=True)
+    passage: Mapped[Optional[str]] = mapped_column(String(900), nullable=True)
 
     member: Mapped[Member] = relationship(back_populates="drill_sessions")
     questions: Mapped[list[DrillQuestion]] = relationship(back_populates="session")

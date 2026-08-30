@@ -31,6 +31,7 @@ const MATH_KINDS: { kind: DrillKind; emoji: string }[] = [
 const KOKUGO_KINDS: { kind: DrillKind; emoji: string }[] = [
   { kind: 'かんじのよみ', emoji: 'あ' },
   { kind: 'じゅくごのよみ', emoji: '語' },
+  { kind: 'おはなしのどくかい', emoji: '📖' },
 ]
 
 const SHAKAI_KINDS: { kind: DrillKind; emoji: string }[] = [
@@ -44,8 +45,20 @@ function isKokugo(kind: string) {
   return kind === 'かんじのよみ' || kind === 'じゅくごのよみ'
 }
 
+function isDokkai(kind: string) {
+  return kind === 'おはなしのどくかい'
+}
+
 function isShakai(kind: string) {
   return SHAKAI_KINDS.some((item) => item.kind === kind)
+}
+
+function isStageKind(kind: string) {
+  return isShakai(kind) || isDokkai(kind)
+}
+
+function isChoiceDrill(kind: string) {
+  return isShakai(kind) || isDokkai(kind)
 }
 
 function progressFor(progress: DrillProgress[], kind: string) {
@@ -257,7 +270,7 @@ export default function DrillPage({ role }: { role: Role }) {
                   streak={row.perfect_streak}
                   needed={row.perfect_needed}
                   maxStep={row.max_step}
-                  stage={isShakai(row.kind)}
+                  stage={isStageKind(row.kind)}
                   compact
                 />
               </li>
@@ -287,7 +300,7 @@ function KindButton({
   const step = prog?.step ?? 1
   const streak = prog?.perfect_streak ?? 0
   const needed = prog?.perfect_needed ?? 5
-  const stage = isShakai(item.kind)
+  const stage = isStageKind(item.kind)
   const maxStep = prog?.max_step ?? (stage ? 6 : 100)
   return (
     <button
@@ -350,14 +363,16 @@ function PlayView({
   const [busy, setBusy] = useState(false)
   const [feedback, setFeedback] = useState<DrillSession['questions'][0] | null>(null)
   const [pending, setPending] = useState<DrillSession | null>(null)
-  const shakai = isShakai(session.kind)
+  const choiceDrill = isChoiceDrill(session.kind)
+  const stage = isStageKind(session.kind)
+  const total = session.questions.length
 
   async function submit(answer?: string) {
     if (!current) return
     const value = answer ?? draft
     if (value.trim() === '') return
     const kokugo = isKokugo(session.kind)
-    if (!kokugo && !shakai) {
+    if (!kokugo && !choiceDrill) {
       const num = Number(value)
       if (Number.isNaN(num)) return
     }
@@ -366,7 +381,7 @@ function PlayView({
       const next = await answerDrill(
         session.id,
         current.id,
-        kokugo || shakai ? value.trim() : String(Number(value)),
+        kokugo || choiceDrill ? value.trim() : String(Number(value)),
       )
       const answered = next.questions.find((q) => q.id === current.id) ?? null
       setFeedback(answered)
@@ -391,15 +406,21 @@ function PlayView({
   return (
     <section className="rounded-3xl bg-white p-5 shadow-sm">
       <p className="text-sm font-bold text-sky">
-        {session.kind} {shown.seq}/10
+        {session.kind} {shown.seq}/{total}
       </p>
       <LevelBadge
         step={session.step ?? 1}
         streak={session.perfect_streak ?? 0}
         needed={session.perfect_needed}
-        maxStep={session.max_step ?? (shakai ? 6 : 100)}
-        stage={shakai}
+        maxStep={session.max_step ?? (stage ? 6 : 100)}
+        stage={stage}
       />
+      {session.passage && (
+        <div className="mt-4 rounded-2xl bg-cream px-4 py-3 text-left text-sm leading-relaxed">
+          {session.passage_title && <p className="mb-2 font-black text-sky">{session.passage_title}</p>}
+          <p className="whitespace-pre-wrap">{session.passage}</p>
+        </div>
+      )}
       {shown.image_url && (
         <div className="mt-4 flex justify-center">
           <img
@@ -412,24 +433,37 @@ function PlayView({
           />
         </div>
       )}
-      <div className={`mt-6 text-center font-black ${shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'}`}>
-        {promptLines.map((line, idx) => (
-          <p key={idx} className={idx > 0 ? 'mt-2' : ''}>
-            {line}
-          </p>
-        ))}
+      <div
+        className={`mt-6 text-center font-black ${
+          choiceDrill ? 'text-base leading-relaxed sm:text-lg' : shown.prompt.includes('？') ? 'text-xl leading-relaxed' : 'text-4xl'
+        }`}
+      >
+        {choiceDrill || shown.prompt.includes('？') ? (
+          <p>{shown.prompt}</p>
+        ) : (
+          promptLines.map((line, idx) => (
+            <p key={idx} className={idx > 0 ? 'mt-2' : ''}>
+              {line}
+            </p>
+          ))
+        )}
       </div>
       {feedback ? (
         <div className="mt-6 text-center">
           <p className={`text-2xl font-black ${feedback.is_correct ? 'text-mint' : 'text-coral'}`}>
             {feedback.is_correct ? 'せいかい！' : 'ざんねん'}
           </p>
-          {!feedback.is_correct && <p className="mt-2 text-sm">こたえは {feedback.correct}</p>}
+          {!feedback.is_correct && (
+            <p className="mt-2 break-words text-sm">こたえは {feedback.correct}</p>
+          )}
+          {feedback.explanation && (
+            <p className="mt-2 break-words text-left text-sm leading-relaxed text-ink/80">{feedback.explanation}</p>
+          )}
           <button type="button" onClick={goNext} className="mt-4 rounded-full bg-sun px-6 py-2 font-black">
             {pending?.status === 'finished' ? 'けっかをみる' : 'つぎ'}
           </button>
         </div>
-      ) : shakai && shown.choices ? (
+      ) : choiceDrill && shown.choices ? (
         <div className="mt-6 grid grid-cols-2 gap-3">
           {shown.choices.map((choice) => (
             <button
@@ -483,8 +517,9 @@ function ResultView({
   role: Role
   onAgain: () => void
 }) {
-  const perfect = session.correct_count === 10
-  const stage = isShakai(session.kind)
+  const total = session.questions.length
+  const perfect = session.correct_count === total
+  const stage = isStageKind(session.kind)
   const maxStep = session.max_step ?? (stage ? 6 : 100)
   return (
     <section className="space-y-4">
@@ -505,7 +540,7 @@ function ResultView({
           </div>
         )}
         <p className="mt-2 font-black">
-          {session.correct_count ?? 0}/10もん ・ {session.duration_sec ?? 0}びょう
+          {session.correct_count ?? 0}/{total}もん ・ {session.duration_sec ?? 0}びょう
         </p>
         {role === 'child' && session.points_earned != null && session.points_earned > 0 && (
           <p className="mt-3 text-lg font-black text-sun">+{session.points_earned}点 もらえた！</p>
@@ -524,15 +559,13 @@ function ResultView({
           </button>
         )}
       </div>
-      <ul className="space-y-2 rounded-3xl bg-white p-5 shadow-sm">
+      <ul className="space-y-3 rounded-3xl bg-white p-5 shadow-sm">
         {session.questions.map((q) => (
-          <li key={q.id} className="flex items-start justify-between gap-3 text-sm font-bold">
-            <span className="min-w-0 break-words">
-              {q.seq}. {q.prompt}
-            </span>
-            <span className={`shrink-0 ${q.is_correct ? 'text-mint' : 'text-coral'}`}>
+          <li key={q.id} className="text-sm leading-relaxed">
+            <p className="font-bold break-words">{q.seq}. {q.prompt}</p>
+            <p className={`mt-1 font-black break-words ${q.is_correct ? 'text-mint' : 'text-coral'}`}>
               {q.is_correct ? '○' : `× ${q.correct}`}
-            </span>
+            </p>
           </li>
         ))}
       </ul>

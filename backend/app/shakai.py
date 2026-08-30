@@ -5,6 +5,8 @@ import random
 from dataclasses import dataclass
 from pathlib import Path
 
+from .shakai_regions import REGIONS, codes_for_kenkatachi
+
 MAX_STEP = 6
 WORD_STEP_FROM = 5
 
@@ -232,19 +234,35 @@ def pick_ten_chizukigo(step: int = 1) -> list[GeneratedQuestion]:
     return [_one_chizukigo(step, symbol=row) for row in chosen]
 
 
+def _kenkatachi_choices(code: str, correct: str) -> list[str]:
+    region_codes = set(codes_for_kenkatachi(code))
+    region_names = [str(row["name"]) for row in PREFECTURES if str(row["code"]) in region_codes]
+    if code == "okinawa":
+        kyushu_names = [
+            str(row["name"])
+            for row in PREFECTURES
+            if str(row["code"]) in REGIONS["kyushu"] and str(row["code"]) != "okinawa"
+        ]
+        wrong = random.sample(kyushu_names, 3)
+        options = wrong + [correct]
+        random.shuffle(options)
+        return options
+    return _shuffle_choices(correct, region_names)
+
+
 def _one_kenkatachi(step: int, *, with_context: bool) -> GeneratedQuestion:
     pool = _pref_pool(step) or list(PREFECTURES)
     pref = random.choice(pool)
     name = str(pref["name"])
-    names = [str(row["name"]) for row in PREFECTURES]
+    code = str(pref["code"])
     prompt = "いろが ついた とちは どの けん？"
     if with_context:
-        prompt = f"にほんちずの なかで みどりに なっている ばしょです。\n{prompt}"
+        prompt = f"この ちいきの ちずで みどりに なっている ばしょです。\n{prompt}"
     return GeneratedQuestion(
         prompt=prompt,
         correct=name,
-        choices=_shuffle_choices(name, names),
-        image_url=f"/shakai/maps/{pref['code']}.svg",
+        choices=_kenkatachi_choices(code, name),
+        image_url=f"/shakai/maps/{code}.svg",
     )
 
 

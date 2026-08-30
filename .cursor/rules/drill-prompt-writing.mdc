@@ -1,6 +1,6 @@
 ﻿---
 description: 小学3年生向けドリル問題文・例文の作成ルール
-globs: backend/app/kokugo.py,backend/app/shakai.py,backend/app/generate.py,backend/scripts/**
+globs: backend/app/kokugo.py,backend/app/shakai.py,backend/app/dokkai.py,backend/app/generate.py,backend/scripts/**,backend/data/kokugo/**
 alwaysApply: false
 ---
 
@@ -28,6 +28,10 @@ alwaysApply: false
 - 専門用語の羅列にしない。
 - 小学生の視点で「不思議」「身近な発見」をベースにする。
 
-## 4. 作業後
+## 4. おはなしの読解
+
+- 詳細は [docs/dokkai.md](../../docs/dokkai.md)。原稿は `dokkai_stories.json`、ふりがなは実行時付与。
+
+## 5. 作業後
 
 問題を追加・変更したら、声に出して読み、不自然さ・語彙レベル・正解の自然さを確認する。

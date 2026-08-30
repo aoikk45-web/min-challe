@@ -8,8 +8,9 @@ from .shakai import GeneratedQuestion, pick_ten as shakai_pick_ten
 
 MATH_KINDS = ("たしざん", "ひきざん", "かけざん", "わりざん")
 KOKUGO_KINDS = ("かんじのよみ", "じゅくごのよみ")
+DOKKAI_KINDS = ("おはなしのどくかい",)
 SHAKAI_KINDS = ("とどうふけん", "にほんのちり", "ちずきごう", "けんのかたち")
-KINDS = MATH_KINDS + KOKUGO_KINDS + SHAKAI_KINDS
+KINDS = MATH_KINDS + KOKUGO_KINDS + DOKKAI_KINDS + SHAKAI_KINDS
 PROGRESS_KINDS = KINDS
 
 MAX_STEP = 100
@@ -73,6 +74,8 @@ def _step_band(step: int) -> tuple[int, float]:
 def generate_ten(kind: str, step: int = 1) -> list[GeneratedQuestion]:
     if kind not in KINDS:
         raise ValueError(f"unknown kind: {kind}")
+    if kind in DOKKAI_KINDS:
+        raise ValueError("use generate_dokkai for reading drills")
     if kind in KOKUGO_KINDS:
         return [GeneratedQuestion(prompt, correct) for prompt, correct in kokugo_pick_ten(kind, step)]
     if kind in SHAKAI_KINDS:

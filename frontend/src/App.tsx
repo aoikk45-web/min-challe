@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
-import { BookOpen, Home, Sparkles, Star, Trophy } from 'lucide-react'
+import { BookOpen, ClipboardList, Home, Star, Trophy } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { RoleProvider, useRole } from './role'
 import { useHousehold } from './api'
@@ -69,7 +69,7 @@ function Shell() {
         <ul className="grid grid-cols-5 gap-1 text-center text-[11px] font-bold">
           <NavItem to="/" icon={<Home size={22} />} label="ホーム" />
           <NavItem to="/plan" icon={<BookOpen size={22} />} label="けいかく" />
-          <NavItem to="/drill" icon={<Sparkles size={22} />} label="ドリル" />
+          <NavItem to="/drill" icon={<ClipboardList size={22} />} label="ドリル" />
           <NavItem to="/points" icon={<Trophy size={22} />} label="ポイント" />
           <NavItem to="/album" icon={<Star size={22} />} label="アルバム" />
         </ul>

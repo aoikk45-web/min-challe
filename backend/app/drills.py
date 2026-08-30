@@ -20,7 +20,9 @@ from .drill_progress import (
     max_step_for_kind,
     step_label,
 )
+from .dokkai import pick_three
 from .generate import (
+    DOKKAI_KINDS,
     KINDS,
     KOKUGO_KINDS,
     MATH_KINDS,
@@ -41,6 +43,7 @@ Kind = Literal[
     "わりざん",
     "かんじのよみ",
     "じゅくごのよみ",
+    "おはなしのどくかい",
     "とどうふけん",
     "にほんのちり",
     "ちずきごう",
@@ -77,6 +80,7 @@ class QuestionOut(BaseModel):
     correct: str | None
     choices: list[str] | None = None
     image_url: str | None = None
+    explanation: str | None = None
 
 
 class SessionOut(BaseModel):
@@ -96,6 +100,8 @@ class SessionOut(BaseModel):
     max_step: int = MAX_STEP
     perfect_needed: int = PERFECT_NEEDED
     points_earned: int | None = None
+    passage_title: str | None = None
+    passage: str | None = None
 
 
 class HistoryItem(BaseModel):
@@ -205,6 +211,21 @@ def _close_stale_session(session: DrillSession) -> None:
     session.duration_sec = max(0, int(elapsed))
 
 
+def _parse_choices_json(raw: str | None) -> tuple[list[str] | None, str | None]:
+    if not raw:
+        return None, None
+    data = json.loads(raw)
+    if isinstance(data, list):
+        return data, None
+    if isinstance(data, dict):
+        choices = data.get("choices")
+        if choices is not None:
+            choices = [str(c) for c in choices]
+        explanation = data.get("explanation")
+        return choices, str(explanation) if explanation else None
+    return None, None
+
+
 def _points_earned_for_session(db: Session, member_id: int, session: DrillSession) -> int | None:
     if session.status != "finished":
         return None
@@ -239,6 +260,8 @@ def _serialize(
         duration_sec=session.duration_sec,
         started_at=session.started_at,
         finished_at=session.finished_at,
+        passage_title=session.passage_title,
+        passage=session.passage,
         questions=[
             QuestionOut(
                 id=q.id,
@@ -247,10 +270,12 @@ def _serialize(
                 child_answer=q.child_answer,
                 is_correct=q.is_correct,
                 correct=q.correct if finished or q.child_answer is not None else None,
-                choices=json.loads(q.choices_json) if q.choices_json else None,
+                choices=choices,
+                explanation=explanation if (finished or q.child_answer is not None) else None,
                 image_url=_normalize_image_url(q.image_url),
             )
             for q in questions
+            for choices, explanation in [_parse_choices_json(q.choices_json)]
         ],
         perfect_streak=perfect_streak,
         step_label=label,
@@ -335,17 +360,35 @@ def start_drill(
     db.add(session)
     db.flush()
     gen_step = drill_step if drill_step is not None else 1
-    for seq, question in enumerate(generate_ten(kind, gen_step), start=1):
-        db.add(
-            DrillQuestion(
-                session_id=session.id,
-                seq=seq,
-                prompt=question.prompt,
-                correct=question.correct,
-                choices_json=json.dumps(question.choices, ensure_ascii=False) if question.choices else None,
-                image_url=question.image_url,
+    if kind in DOKKAI_KINDS:
+        story = pick_three(gen_step)
+        session.passage_title = story.title
+        session.passage = story.passage
+        for seq, question in enumerate(story.questions, start=1):
+            db.add(
+                DrillQuestion(
+                    session_id=session.id,
+                    seq=seq,
+                    prompt=question.prompt,
+                    correct=question.correct,
+                    choices_json=json.dumps(
+                        {"choices": question.choices, "explanation": question.explanation},
+                        ensure_ascii=False,
+                    ),
+                )
             )
-        )
+    else:
+        for seq, question in enumerate(generate_ten(kind, gen_step), start=1):
+            db.add(
+                DrillQuestion(
+                    session_id=session.id,
+                    seq=seq,
+                    prompt=question.prompt,
+                    correct=question.correct,
+                    choices_json=json.dumps(question.choices, ensure_ascii=False) if question.choices else None,
+                    image_url=question.image_url,
+                )
+            )
     db.commit()
     return _serialize(_get_session(db, session.id, child.id), perfect_streak=streak)
 
@@ -400,11 +443,10 @@ def answer_drill(
         raise HTTPException(409, "already answered")
     given = str(body.answer)
     question.child_answer = given
-    if session.kind in KOKUGO_KINDS or session.kind in SHAKAI_KINDS:
-        if session.kind in KOKUGO_KINDS:
-            question.is_correct = kokugo_reading_matches(given, question.correct)
-        else:
-            question.is_correct = normalize_reading(given) == normalize_reading(question.correct)
+    if session.kind in KOKUGO_KINDS:
+        question.is_correct = kokugo_reading_matches(given, question.correct)
+    elif session.kind in DOKKAI_KINDS or session.kind in SHAKAI_KINDS:
+        question.is_correct = normalize_reading(given) == normalize_reading(question.correct)
     else:
         question.is_correct = given.strip() == str(question.correct).strip()
 
@@ -426,7 +468,8 @@ def answer_drill(
             reason=f"ドリル: {session.kind}",
             related_id=session.id,
         )
-        if session.correct_count == 10:
+        total_q = len(session.questions)
+        if session.correct_count == total_q:
             points_earned += award(
                 db,
                 household_id=family[0].id,
@@ -444,7 +487,7 @@ def answer_drill(
             member_id=session.member_id,
             kind="drill",
             title="ドリルをやりきった",
-            body=f"{session.kind} {session.correct_count}/10",
+            body=f"{session.kind} {session.correct_count}/{total_q}",
             related_id=session.id,
         )
     elif session.kind in PROGRESS_KINDS:

@@ -120,6 +120,7 @@ def test_progress_api_lists_all_drill_kinds():
         "わりざん",
         "かんじのよみ",
         "じゅくごのよみ",
+        "おはなしのどくかい",
         "とどうふけん",
         "にほんのちり",
         "ちずきごう",
@@ -357,3 +358,82 @@ def test_drill_finish_awards_points():
     assert last["points_earned"] == 10
     after = client.get("/api/points/summary", params={"role": "child"}).json()["balance"]
     assert after - before == 10
+
+
+def test_dokkai_bank_has_ninety_stories():
+    import json
+    from pathlib import Path
+
+    rows = json.loads((Path(__file__).resolve().parents[1] / "data" / "kokugo" / "dokkai.json").read_text(encoding="utf-8"))
+    assert len(rows) == 90
+    counts = {}
+    for row in rows:
+        counts[row["stage"]] = counts.get(row["stage"], 0) + 1
+        assert len(row["questions"]) == 3
+        for q in row["questions"]:
+            assert q["correct"] in q["choices"]
+            assert len(q["choices"]) == 4
+    assert counts == {1: 15, 2: 15, 3: 15, 4: 15, 5: 15, 6: 15}
+
+
+def test_dokkai_session_has_three_questions_and_passage():
+    from app.database import SessionLocal
+    from app.models import DrillQuestion
+
+    client = TestClient(app)
+    session = client.post(
+        "/api/drills/start",
+        params={"role": "child"},
+        json={"kind": "おはなしのどくかい"},
+    ).json()
+    assert session["kind"] == "おはなしのどくかい"
+    assert len(session["questions"]) == 3
+    assert session["passage"]
+    assert session["passage_title"]
+    assert all(q["choices"] for q in session["questions"])
+    last = session
+    with SessionLocal() as db:
+        for question in session["questions"]:
+            row = db.get(DrillQuestion, question["id"])
+            assert row is not None
+            last = client.post(
+                f"/api/drills/{session['id']}/answer",
+                params={"role": "child"},
+                json={"question_id": question["id"], "answer": row.correct},
+            ).json()
+    assert last["status"] == "finished"
+    assert last["correct_count"] == 3
+    assert last["points_earned"] == 15
+
+
+def test_dokkai_session_shuffles_choices():
+    import json
+    import random
+
+    from app.database import SessionLocal
+    from app.models import DrillQuestion
+
+    random.seed(7)
+    client = TestClient(app)
+    session = client.post(
+        "/api/drills/start",
+        params={"role": "child"},
+        json={"kind": "おはなしのどくかい"},
+    ).json()
+    first_positions: list[int] = []
+    with SessionLocal() as db:
+        for question in session["questions"]:
+            row = db.get(DrillQuestion, question["id"])
+            assert row is not None
+            choices = json.loads(row.choices_json or "{}")["choices"]
+            assert row.correct in choices
+            first_positions.append(choices.index(row.correct))
+    assert len(set(first_positions)) > 1
+
+
+def test_dokkai_progress_uses_six_stages():
+    client = TestClient(app)
+    rows = client.get("/api/drills/progress", params={"role": "child"}).json()
+    dokkai = next(row for row in rows if row["kind"] == "おはなしのどくかい")
+    assert dokkai["max_step"] == 6
+    assert dokkai["step_label"].startswith("ステージ")

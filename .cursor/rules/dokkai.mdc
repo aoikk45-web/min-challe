@@ -1,0 +1,32 @@
+---
+description: おはなしの読解（L13）の原稿・ふりがな・データ運用
+globs: backend/app/dokkai.py,backend/app/kokugo_kanji.py,backend/data/kokugo/dokkai_stories.json,backend/data/kokugo/dokkai.json,backend/scripts/build_dokkai_bank.py,backend/scripts/validate_dokkai_json.py,backend/scripts/dokkai_stories_catalog.py,frontend/src/pages/DrillPage.tsx
+alwaysApply: false
+---
+
+# おはなしの読解
+
+正本は [docs/dokkai.md](../../docs/dokkai.md)。文体は [docs/drill-prompt-rules.md](../../docs/drill-prompt-rules.md) §4。
+
+## 原稿
+
+- 編集先: `backend/data/kokugo/dokkai_stories.json`（ふりがななしプレーンテキスト）
+- **90話の本文・設問は NotebookLM で作成**（[dokkai.md](../../docs/dokkai.md) の「原稿の出所」参照）
+- `correct` は `choices` と完全一致。正解は本文から読み取れること
+- 原稿では正解を1番目に置いてよい（出題時シャッフル）
+
+## ふりがな（実行時）
+
+- 熟語: `準備(じゅんび)` / 送り仮名: `座(すわ)って` / 引っ張る: `引っ張(はっぱ)って`
+- 実装: `kokugo_kanji.py`。ゴールデン: `s1_03`（`test_neko_no_gogo_passage_furigana`）
+
+## 変更後
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe scripts\validate_dokkai_json.py data\kokugo\dokkai_stories.json
+.\.venv\Scripts\python.exe scripts\build_dokkai_bank.py
+.\.venv\Scripts\python.exe -m pytest tests/test_kokugo_kanji.py tests/test_drills.py -q
+```
+
+進行中セッションは DB に本文・選択肢が固定される。原稿変更後は新規セッションで確認。
