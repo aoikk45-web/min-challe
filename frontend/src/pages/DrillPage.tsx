@@ -84,7 +84,7 @@ function isStageKind(kind: string) {
 }
 
 function isChoiceDrill(kind: string) {
-  return isShakai(kind) || isDokkai(kind) || isRika(kind)
+  return isKokugo(kind) || isShakai(kind) || isDokkai(kind) || isRika(kind)
 }
 
 function progressFor(progress: DrillProgress[], kind: string) {
@@ -188,8 +188,14 @@ export default function DrillPage({ role }: { role: Role }) {
   }, [role])
 
   async function openSession(id: number) {
-    const next = await fetchDrill(role, id)
-    setSession(next)
+    try {
+      const next = await fetchDrill(role, id)
+      setSession(next)
+    } catch {
+      setSession(null)
+      await reloadHistory()
+      setError(true)
+    }
   }
 
   async function begin(kind: DrillKind) {
@@ -522,7 +528,12 @@ function PlayView({
             {feedback.is_correct ? 'せいかい！' : 'ざんねん'}
           </p>
           {!feedback.is_correct && (
-            <p className="mt-2 break-words text-sm">こたえは {feedback.correct}</p>
+            <>
+              {feedback.child_answer && (
+                <p className="mt-2 break-words text-sm">あなたのこたえ: {feedback.child_answer}</p>
+              )}
+              <p className="mt-2 break-words text-sm">こたえは {feedback.correct}</p>
+            </>
           )}
           {feedback.explanation && (
             <p className="mt-2 break-words text-left text-sm leading-relaxed text-ink/80">{feedback.explanation}</p>

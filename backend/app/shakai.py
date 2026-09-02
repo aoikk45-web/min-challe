@@ -92,11 +92,72 @@ def _symbols() -> tuple[dict[str, str | int], ...]:
         _symbols_mtime = mtime
     return _symbols_cache
 
-CAPITAL_CONTEXTS: tuple[str, ...] = (
-    "くにの りょうどいっぱい は どうちょうしょ がある まちです。",
-    "けんの ちゅうしんちに ある まちです。",
-    "たくさんの ひとが すんでいる まちです。",
-)
+
+def _pref_admin_type(code: str) -> str:
+    if code == "tokyo":
+        return "to"
+    if code == "hokkaido":
+        return "do"
+    if code in ("kyoto", "osaka"):
+        return "fu"
+    return "ken"
+
+
+_CAPITAL_SITE_LABELS = {
+    "to": "とちょうしょざいち",
+    "do": "どうちょうしょざいち",
+    "fu": "ふちょうしょざいち",
+    "ken": "けんちょうしょざいち",
+}
+
+_CAPITAL_CONTEXTS_BY_TYPE: dict[str, tuple[str, ...]] = {
+    "to": (
+        "とうきょうと の ちゅうしんとなる まちです。",
+        "とちょうが ある まちです。",
+        "たくさんの ひとが すんでいる まちです。",
+    ),
+    "do": (
+        "ほっかいどうの ちゅうしんとなる まちです。",
+        "どうちょうが ある まちです。",
+        "たくさんの ひとが すんでいる まちです。",
+    ),
+    "fu": (
+        "府の ちゅうしんとなる まちです。",
+        "ふちょうが ある まちです。",
+        "たくさんの ひとが すんでいる まちです。",
+    ),
+    "ken": (
+        "県の ちゅうしんとなる まちです。",
+        "けんちょうが ある まちです。",
+        "たくさんの ひとが すんでいる まちです。",
+    ),
+}
+
+
+def _capital_site_label(code: str) -> str:
+    return _CAPITAL_SITE_LABELS[_pref_admin_type(code)]
+
+
+def _capital_contexts(code: str) -> tuple[str, ...]:
+    return _CAPITAL_CONTEXTS_BY_TYPE[_pref_admin_type(code)]
+
+
+def capital_prompt_for_pref(name: str, code: str) -> str:
+    return f"{name}の {_capital_site_label(code)}は？"
+
+
+def capital_prompt_is_wrong(prompt: str) -> bool:
+    """True when と/道/府 に 県庁所在地 と書いてしまっている。"""
+    line = prompt.split("\n")[-1].strip()
+    for pref in PREFECTURES:
+        name = str(pref["name"])
+        code = str(pref["code"])
+        if line == capital_prompt_for_pref(name, code):
+            return False
+        generic = f"{name}の {_CAPITAL_SITE_LABELS['ken']}は？"
+        if line == generic and _pref_admin_type(code) != "ken":
+            return True
+    return False
 
 
 @dataclass
@@ -171,11 +232,13 @@ def _one_todofuken(step: int, *, with_context: bool) -> GeneratedQuestion:
     pool = _pref_pool(step) or list(PREFECTURES)
     pref = random.choice(pool)
     name = str(pref["name"])
+    code = str(pref["code"])
     capital = str(pref["capital"])
     capitals = [str(row["capital"]) for row in PREFECTURES]
-    prompt = f"{name}の けんちょうしょざいちは？"
+    site_label = _capital_site_label(code)
+    prompt = f"{name}の {site_label}は？"
     if with_context:
-        prompt = f"{random.choice(CAPITAL_CONTEXTS)}\n{prompt}"
+        prompt = f"{random.choice(_capital_contexts(code))}\n{prompt}"
     return GeneratedQuestion(
         prompt=prompt,
         correct=capital,
@@ -244,6 +307,12 @@ def _kenkatachi_choices(code: str, correct: str) -> list[str]:
             if str(row["code"]) in REGIONS["kyushu"] and str(row["code"]) != "okinawa"
         ]
         wrong = random.sample(kyushu_names, 3)
+        options = wrong + [correct]
+        random.shuffle(options)
+        return options
+    if code == "hokkaido":
+        tohoku_names = [str(row["name"]) for row in PREFECTURES if str(row["code"]) in REGIONS["tohoku"]]
+        wrong = random.sample(tohoku_names, 3)
         options = wrong + [correct]
         random.shuffle(options)
         return options

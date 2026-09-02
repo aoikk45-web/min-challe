@@ -208,6 +208,56 @@ def _session_uses_legacy_symbols(session: DrillSession) -> bool:
     return any(_is_legacy_symbol_url(q.image_url) for q in session.questions)
 
 
+def _repair_capital_prompts(session: DrillSession) -> bool:
+    if session.kind != "とどうふけん":
+        return False
+    from .shakai import PREFECTURES, capital_prompt_for_pref, capital_prompt_is_wrong
+
+    name_to_code = {str(p["name"]): str(p["code"]) for p in PREFECTURES}
+    changed = False
+    for q in session.questions:
+        if not capital_prompt_is_wrong(q.prompt):
+            continue
+        lines = q.prompt.split("\n")
+        last = lines[-1].strip()
+        if "の " not in last or not last.endswith("は？"):
+            continue
+        name = last.split("の ", 1)[0]
+        code = name_to_code.get(name)
+        if not code:
+            continue
+        lines[-1] = capital_prompt_for_pref(name, code)
+        q.prompt = "\n".join(lines)
+        changed = True
+    return changed
+
+
+def _session_uses_legacy_capital_prompts(session: DrillSession) -> bool:
+    if session.kind != "とどうふけん":
+        return False
+    from .shakai import capital_prompt_is_wrong
+
+    return any(capital_prompt_is_wrong(q.prompt) for q in session.questions)
+
+
+def _session_uses_legacy_kokugo(session: DrillSession) -> bool:
+    if session.kind not in KOKUGO_KINDS:
+        return False
+    return any(not q.choices_json for q in session.questions)
+
+
+def _session_is_stale(session: DrillSession, requested_kind: str) -> bool:
+    if session.kind != requested_kind:
+        return True
+    if _session_uses_legacy_symbols(session):
+        return True
+    if _session_uses_legacy_capital_prompts(session):
+        return True
+    if _session_uses_legacy_kokugo(session):
+        return True
+    return False
+
+
 def _close_stale_session(session: DrillSession) -> None:
     now = _now()
     session.status = "finished"
@@ -215,6 +265,20 @@ def _close_stale_session(session: DrillSession) -> None:
     session.correct_count = sum(1 for q in session.questions if q.is_correct)
     elapsed = (now - session.started_at).total_seconds()
     session.duration_sec = max(0, int(elapsed))
+
+
+def _prepare_in_progress_session(
+    session: DrillSession,
+    *,
+    requested_kind: str | None = None,
+) -> None:
+    if session.status != "in_progress":
+        return
+    kind = requested_kind if requested_kind is not None else session.kind
+    _repair_capital_prompts(session)
+    if _session_is_stale(session, kind):
+        _close_stale_session(session)
+        raise HTTPException(410, "drill session expired; start again")
 
 
 def _parse_choices_json(raw: str | None) -> tuple[list[str] | None, str | None]:
@@ -330,6 +394,7 @@ def start_drill(
     db: Session = Depends(get_db),
 ):
     child = _child(family)
+    kind = body.kind if body.kind in KINDS else "たしざん"
     existing = db.scalars(
         select(DrillSession)
         .options(selectinload(DrillSession.questions))
@@ -337,7 +402,8 @@ def start_drill(
         .order_by(DrillSession.id.desc())
     ).first()
     if existing is not None:
-        if _session_uses_legacy_symbols(existing):
+        _repair_capital_prompts(existing)
+        if _session_is_stale(existing, kind):
             _close_stale_session(existing)
             db.flush()
             existing = None
@@ -348,7 +414,6 @@ def start_drill(
             return _serialize(existing, perfect_streak=streak)
 
     school_grade = child.grade or 3
-    kind = body.kind if body.kind in KINDS else "たしざん"
     drill_step: int | None = None
     streak: int | None = None
     if kind in PROGRESS_KINDS:
@@ -423,6 +488,13 @@ def get_drill(
 ):
     child = _child(family)
     session = _get_session(db, session_id, child.id)
+    try:
+        _prepare_in_progress_session(session)
+    except HTTPException as exc:
+        if exc.status_code == 410:
+            db.commit()
+        raise
+    db.commit()
     streak = None
     if session.kind in PROGRESS_KINDS:
         streak = ensure_progress(db, child.id, session.kind).perfect_streak
@@ -442,6 +514,12 @@ def answer_drill(
     session = _get_session(db, session_id, child.id)
     if session.status != "in_progress":
         raise HTTPException(409, "already finished")
+    try:
+        _prepare_in_progress_session(session)
+    except HTTPException as exc:
+        if exc.status_code == 410:
+            db.commit()
+        raise
     question = next((q for q in session.questions if q.id == body.question_id), None)
     if question is None:
         raise HTTPException(404, "question not found")

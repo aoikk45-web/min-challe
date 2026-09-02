@@ -21,7 +21,54 @@ OUT_SYMBOLS = ROOT / "frontend" / "public" / "shakai" / "symbols"
 OUT_JSON = ROOT / "backend" / "data" / "shakai" / "symbols.json"
 ITIRAN_URL = "https://www.gsi.go.jp/kohokocho/map-sign-tizukigou-2022-itiran.html"
 GSI_BASE = "https://www.gsi.go.jp"
-LABEL_CROP_RATIO = 0.72
+LABEL_CROP_FALLBACK_RATIO = 0.78
+# 記号ごとの例外（全体ロジックではラベルが残る／記号が切れるものだけ）
+SYMBOL_CROP_RATIO_OVERRIDES: dict[str, float] = {
+    "ekitikatetu": 0.64,
+    "toshokan": 0.75,
+}
+
+
+def _row_density(img) -> list[float]:
+    rgba = img.convert("RGBA")
+    w, h = rgba.size
+    px = rgba.load()
+    return [
+        sum(1 for x in range(w) if px[x, y][3] > 128 and sum(px[x, y][:3]) < 700) / w
+        for y in range(h)
+    ]
+
+
+def _detect_label_crop_height(row_frac: list[float], h: int) -> int:
+    """Keep the symbol graphic and remove only the bottom label band."""
+    search_from = int(h * 0.42)
+    quiet_thr = 0.026
+    min_quiet = 14
+    padding = 8
+
+    runs: list[tuple[int, int, int]] = []
+    y = h - 1
+    while y >= search_from:
+        if row_frac[y] < quiet_thr:
+            end = y
+            while y >= search_from and row_frac[y] < quiet_thr:
+                y -= 1
+            start = y + 1
+            length = end - start + 1
+            if length >= min_quiet:
+                runs.append((start, end, length))
+        y -= 1
+
+    if not runs:
+        return int(h * LABEL_CROP_FALLBACK_RATIO)
+
+    bottom_zone = int(h * 0.62)
+    candidates = [r for r in runs if r[1] >= bottom_zone] or runs
+    candidates.sort(key=lambda r: (-r[2], r[0]))
+    start, _end, _length = candidates[0]
+    crop = min(h, start + padding)
+    crop = min(crop, int(h * 0.82))
+    return max(crop, int(h * 0.62))
 
 # Easier symbols first (grade 1-2), specialized later (grade 5-6).
 GRADE_KEYWORDS: list[tuple[int, tuple[str, ...]]] = [
@@ -156,13 +203,63 @@ def _download(url: str, dest: Path) -> None:
     dest.write_bytes(urllib.request.urlopen(req, timeout=60).read())
 
 
-def _strip_label_png(path: Path) -> None:
+def _strip_label_png(path: Path, symbol_id: str | None = None) -> None:
     from PIL import Image
 
-    img = Image.open(path).convert("RGBA")
-    w, h = img.size
-    crop_h = max(1, int(h * LABEL_CROP_RATIO))
-    img.crop((0, 0, w, crop_h)).save(path)
+    with Image.open(path) as img:
+        rgba = img.convert("RGBA")
+        w, h = rgba.size
+        if symbol_id and symbol_id in SYMBOL_CROP_RATIO_OVERRIDES:
+            crop_h = max(1, int(h * SYMBOL_CROP_RATIO_OVERRIDES[symbol_id]))
+        else:
+            crop_h = _detect_label_crop_height(_row_density(rgba), h)
+        cropped = rgba.crop((0, 0, w, crop_h))
+    tmp = path.with_suffix(".tmp.png")
+    cropped.save(tmp)
+    tmp.replace(path)
+
+
+def _fetch_and_strip_symbol(png_url: str, dest: Path, *, symbol_id: str | None = None) -> None:
+    tmp = dest.with_suffix(".download.png")
+    _download(png_url, tmp)
+    _strip_label_png(tmp, symbol_id)
+    tmp.replace(dest)
+
+
+def recrop_existing_symbols() -> int:
+    """Re-download symbol PNGs and apply the current label crop."""
+    if not OUT_JSON.exists():
+        raise FileNotFoundError(f"missing {OUT_JSON}")
+    rows: list[dict] = json.loads(OUT_JSON.read_text(encoding="utf-8"))
+    updated = 0
+    failed = 0
+    for row in rows:
+        slug = row.get("gsi_slug")
+        if not slug:
+            continue
+        dest = OUT_SYMBOLS / f"{row['id']}.png"
+        parsed = None
+        for url in _page_urls(slug):
+            try:
+                parsed = _parse_symbol_page(_fetch_html(url))
+            except Exception:
+                continue
+            if parsed:
+                break
+        if not parsed:
+            failed += 1
+            continue
+        _, png_path = parsed
+        try:
+            _fetch_and_strip_symbol(f"{GSI_BASE}{png_path}", dest, symbol_id=row["id"])
+            updated += 1
+        except Exception as exc:
+            failed += 1
+            print(f"skip {row['id']}: {exc}")
+        time.sleep(0.05)
+    if failed:
+        print(f"failed {failed} symbols")
+    return updated
 
 
 def _finalize_grades(rows: list[dict]) -> None:
@@ -216,8 +313,7 @@ def main() -> None:
         name = _to_hiragana(label)
         file_name = f"{symbol_id}.png"
         dest = OUT_SYMBOLS / file_name
-        _download(f"{GSI_BASE}{png_path}", dest)
-        _strip_label_png(dest)
+        _fetch_and_strip_symbol(f"{GSI_BASE}{png_path}", dest, symbol_id=symbol_id)
         rows.append(
             {
                 "id": symbol_id,
@@ -245,4 +341,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if len(sys.argv) > 1 and sys.argv[1] == "--recrop":
+        print(f"recropped {recrop_existing_symbols()} symbols")
+    else:
+        main()

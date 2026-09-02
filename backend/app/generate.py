@@ -54,14 +54,100 @@ def normalize_reading(value: str) -> str:
     return "".join(chars)
 
 
+_YOON_PAIRS: tuple[tuple[str, str], ...] = (
+    ("きゃ", "きや"),
+    ("きゅ", "きゆ"),
+    ("きょ", "きよ"),
+    ("しゃ", "しや"),
+    ("しゅ", "しゆ"),
+    ("しょ", "しよ"),
+    ("ちゃ", "ちや"),
+    ("ちゅ", "ちゆ"),
+    ("ちょ", "ちよ"),
+    ("にゃ", "にや"),
+    ("にゅ", "にゆ"),
+    ("にょ", "によ"),
+    ("ひゃ", "ひや"),
+    ("ひゅ", "ひゆ"),
+    ("ひょ", "ひよ"),
+    ("みゃ", "みや"),
+    ("みゅ", "みゆ"),
+    ("みょ", "みよ"),
+    ("りゃ", "りや"),
+    ("りゅ", "りゆ"),
+    ("りょ", "りよ"),
+    ("ぎゃ", "ぎや"),
+    ("ぎゅ", "ぎゆ"),
+    ("ぎょ", "ぎよ"),
+    ("じゃ", "じや"),
+    ("じゅ", "じゆ"),
+    ("じょ", "じよ"),
+    ("びゃ", "びや"),
+    ("びゅ", "びゆ"),
+    ("びょ", "びよ"),
+    ("ぴゃ", "ぴや"),
+    ("ぴゅ", "ぴゆ"),
+    ("ぴょ", "ぴよ"),
+)
+
+_LONG_VOWEL_PAIRS: tuple[tuple[str, str], ...] = (
+    ("おう", "おお"),
+    ("こう", "こお"),
+    ("そう", "そお"),
+    ("とう", "とお"),
+    ("どう", "どお"),
+    ("ろう", "ろお"),
+    ("ぼう", "ぼお"),
+    ("もう", "もお"),
+    ("よう", "よお"),
+    ("ほう", "ほお"),
+)
+
+
+def _reading_variants(text: str) -> set[str]:
+    base = normalize_reading(text)
+    variants: set[str] = {base}
+    queue = [base]
+    while queue:
+        current = queue.pop()
+        for a, b in _YOON_PAIRS:
+            for src, dst in ((a, b), (b, a)):
+                if src in current:
+                    nxt = current.replace(src, dst)
+                    if nxt not in variants:
+                        variants.add(nxt)
+                        queue.append(nxt)
+        for a, b in _LONG_VOWEL_PAIRS:
+            for src, dst in ((a, b), (b, a)):
+                if src in current:
+                    nxt = current.replace(src, dst)
+                    if nxt not in variants:
+                        variants.add(nxt)
+                        queue.append(nxt)
+        if "っ" in current:
+            nxt = current.replace("っ", "つ")
+            if nxt not in variants:
+                variants.add(nxt)
+                queue.append(nxt)
+        if "つ" in current:
+            nxt = current.replace("つ", "っ", 1)
+            if nxt not in variants:
+                variants.add(nxt)
+                queue.append(nxt)
+    return variants
+
+
 def kokugo_reading_matches(given: str, correct: str) -> bool:
     from .kokugo_natural import JUKUGO_READING_ALTERNATES
 
-    g = normalize_reading(given)
-    c = normalize_reading(correct)
-    if g == c:
+    given_variants = _reading_variants(given)
+    correct_variants = _reading_variants(correct)
+    if given_variants & correct_variants:
         return True
-    return g in JUKUGO_READING_ALTERNATES.get(c, set())
+    for alt in JUKUGO_READING_ALTERNATES.get(normalize_reading(correct), set()):
+        if given_variants & _reading_variants(alt):
+            return True
+    return False
 
 
 def _step_band(step: int) -> tuple[int, float]:
@@ -78,7 +164,7 @@ def generate_ten(kind: str, step: int = 1) -> list[GeneratedQuestion]:
     if kind in DOKKAI_KINDS:
         raise ValueError("use generate_dokkai for reading drills")
     if kind in KOKUGO_KINDS:
-        return [GeneratedQuestion(prompt, correct) for prompt, correct in kokugo_pick_ten(kind, step)]
+        return kokugo_pick_ten(kind, step)
     if kind in SHAKAI_KINDS:
         return shakai_pick_ten(kind, step)
     if kind in RIKA_KINDS:
