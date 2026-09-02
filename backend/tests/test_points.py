@@ -125,3 +125,84 @@ def test_stamp_rejects_auto_rule():
         json={"event_key": "plan_complete"},
     )
     assert res.status_code == 400
+
+
+def _give_points(client: TestClient, count: int = 5) -> None:
+    for _ in range(count):
+        client.post("/api/points/stamp", params={"role": "parent"}, json={"note": "てすと"})
+
+
+def test_redeem_daily_limit_blocks_second():
+    client = TestClient(app)
+    reward = create_reward(client, name="おやつ", cost=3, daily_limit=1)
+    _give_points(client, 5)
+    first = client.post(f"/api/points/rewards/{reward['id']}/redeem", params={"role": "child"})
+    assert first.status_code == 200
+    second = client.post(f"/api/points/rewards/{reward['id']}/redeem", params={"role": "child"})
+    assert second.status_code == 400
+    assert "きょうは" in second.json()["detail"]
+    listed = client.get("/api/points/rewards", params={"role": "child"}).json()
+    row = next(r for r in listed if r["id"] == reward["id"])
+    assert row["redeems_today"] == 1
+    assert row["daily_limit"] == 1
+
+
+def test_redeem_unlimited_when_no_daily_limit():
+    client = TestClient(app)
+    reward = create_reward(client, name="おやつ", cost=3, daily_limit=0)
+    _give_points(client, 10)
+    for _ in range(2):
+        res = client.post(f"/api/points/rewards/{reward['id']}/redeem", params={"role": "child"})
+        assert res.status_code == 200
+    listed = client.get("/api/points/rewards", params={"role": "child"}).json()
+    row = next(r for r in listed if r["id"] == reward["id"])
+    assert row["daily_limit"] is None
+    assert row["redeems_today"] == 2
+
+
+def test_patch_reward_daily_limit():
+    client = TestClient(app)
+    reward = create_reward(client, name="ゲーム", cost=5)
+    res = client.patch(
+        f"/api/points/rewards/{reward['id']}",
+        params={"role": "parent"},
+        json={"daily_limit": 2},
+    )
+    assert res.status_code == 200
+    assert res.json()["daily_limit"] == 2
+    res2 = client.patch(
+        f"/api/points/rewards/{reward['id']}",
+        params={"role": "parent"},
+        json={"daily_limit": 0},
+    )
+    assert res2.status_code == 200
+    assert res2.json()["daily_limit"] is None
+
+
+def test_redeem_daily_limit_ignores_yesterday():
+    from datetime import timedelta
+
+    from sqlalchemy import select
+
+    from app.database import SessionLocal
+    from app.ledger import now_utc
+    from app.models import Member, PointLedger
+
+    client = TestClient(app)
+    reward = create_reward(client, name="おやつ", cost=3, daily_limit=1)
+    _give_points(client, 5)
+    with SessionLocal() as db:
+        child = db.scalars(select(Member).where(Member.role == "child")).first()
+        db.add(
+            PointLedger(
+                member_id=child.id,
+                delta=-3,
+                reason="ごほうび: おやつ",
+                event_key="redeem",
+                related_id=reward["id"],
+                created_at=now_utc() - timedelta(days=1),
+            )
+        )
+        db.commit()
+    res = client.post(f"/api/points/rewards/{reward['id']}/redeem", params={"role": "child"})
+    assert res.status_code == 200

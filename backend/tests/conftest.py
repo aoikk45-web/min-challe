@@ -27,11 +27,20 @@ def create_plan(
     return res.json()
 
 
-def create_reward(client: TestClient, *, name: str = "ゲーム 15ふん", cost: int = 30) -> dict:
+def create_reward(
+    client: TestClient,
+    *,
+    name: str = "ゲーム 15ふん",
+    cost: int = 30,
+    daily_limit: int | None = None,
+) -> dict:
+    body: dict = {"name": name, "cost": cost}
+    if daily_limit is not None:
+        body["daily_limit"] = daily_limit
     res = client.post(
         "/api/points/rewards",
         params={"role": "parent"},
-        json={"name": name, "cost": cost},
+        json=body,
     )
     assert res.status_code == 201
     return res.json()

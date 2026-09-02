@@ -121,6 +121,7 @@ class Reward(Base):
     name: Mapped[str] = mapped_column(String(80))
     cost: Mapped[int] = mapped_column(Integer)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    daily_limit: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     household: Mapped[Household] = relationship(back_populates="rewards")
 
