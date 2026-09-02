@@ -96,6 +96,15 @@ export default function PointsPage({ role }: { role: Role }) {
             setMessage('うまくいかなかったよ')
           }
         }}
+        onUpdateDailyLimit={async (reward, dailyLimit) => {
+          try {
+            setMessage('')
+            await updateReward(reward.id, { daily_limit: dailyLimit })
+            await reload()
+          } catch {
+            setMessage('うまくいかなかったよ')
+          }
+        }}
         onDelete={async (id) => {
           if (!window.confirm('このごほうびを消しますか？')) return
           try {
@@ -109,10 +118,10 @@ export default function PointsPage({ role }: { role: Role }) {
         addForm={
           role === 'parent' ? (
             <RewardForm
-              onCreate={async (name, cost) => {
+              onCreate={async (name, cost, dailyLimit) => {
                 try {
                   setMessage('')
-                  await createReward({ name, cost })
+                  await createReward({ name, cost, daily_limit: dailyLimit })
                   await reload()
                   setMessage(`「${name}」を ついかしたよ`)
                 } catch {
@@ -172,12 +181,21 @@ function BalanceCard({ summary }: { summary: PointSummary }) {
   )
 }
 
+function rewardAtDailyLimit(reward: Reward): boolean {
+  return (
+    reward.daily_limit != null &&
+    reward.daily_limit > 0 &&
+    reward.redeems_today >= reward.daily_limit
+  )
+}
+
 function RewardList({
   rewards,
   role,
   balance,
   onRedeem,
   onToggle,
+  onUpdateDailyLimit,
   onDelete,
   addForm,
 }: {
@@ -186,6 +204,7 @@ function RewardList({
   balance: number
   onRedeem: (id: number) => void
   onToggle: (reward: Reward, enabled: boolean) => void
+  onUpdateDailyLimit: (reward: Reward, dailyLimit: number | null) => void
   onDelete: (id: number) => void
   addForm?: ReactNode
 }) {
@@ -197,24 +216,53 @@ function RewardList({
       <ul className="mt-3 space-y-2">
         {rewards.map((reward) => {
           const lack = Math.max(0, reward.cost - balance)
+          const atLimit = rewardAtDailyLimit(reward)
           return (
             <li key={reward.id} className="rounded-2xl bg-cream p-3">
               <p className="font-black">
                 {reward.name} ・ {reward.cost}点
                 {!reward.enabled && <span className="ml-2 text-xs text-ink/50">オフ</span>}
               </p>
+              {reward.daily_limit != null && reward.daily_limit > 0 && (
+                <p className="mt-1 text-xs text-ink/60">
+                  1日 {reward.daily_limit}回まで
+                  {role === 'child' && `（きょう ${reward.redeems_today}回）`}
+                </p>
+              )}
               {role === 'child' && reward.enabled && (
-                <button
-                  type="button"
-                  onClick={() => onRedeem(reward.id)}
-                  disabled={lack > 0}
-                  className="mt-2 rounded-full bg-sun px-4 py-1.5 text-sm font-black disabled:bg-white disabled:text-ink/50"
-                >
-                  {lack > 0 ? `あと${lack}点` : 'こうかん'}
-                </button>
+                <>
+                  {atLimit && (
+                    <p className="mt-1 text-xs font-bold text-coral">きょうは もう こうかん できないよ</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onRedeem(reward.id)}
+                    disabled={lack > 0 || atLimit}
+                    className="mt-2 rounded-full bg-sun px-4 py-1.5 text-sm font-black disabled:bg-white disabled:text-ink/50"
+                  >
+                    {atLimit ? 'きょうは おしまい' : lack > 0 ? `あと${lack}点` : 'こうかん'}
+                  </button>
+                </>
               )}
               {role === 'parent' && (
-                <div className="mt-2 flex gap-2">
+                <div className="mt-2 space-y-2">
+                  <label className="flex items-center gap-2 text-xs font-bold text-ink/60">
+                    1日の上限（0＝むげん）
+                    <input
+                      type="number"
+                      min={0}
+                      max={99}
+                      defaultValue={reward.daily_limit ?? 0}
+                      onBlur={(e) => {
+                        const next = Math.max(0, Math.min(99, Number(e.target.value) || 0))
+                        const current = reward.daily_limit ?? 0
+                        if (next !== current) onUpdateDailyLimit(reward, next === 0 ? null : next)
+                      }}
+                      className="w-16 rounded-xl bg-white px-2 py-1 text-sm text-ink"
+                    />
+                    回
+                  </label>
+                  <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => onToggle(reward, !reward.enabled)}
@@ -229,6 +277,7 @@ function RewardList({
                   >
                     けす
                   </button>
+                </div>
                 </div>
               )}
             </li>
@@ -427,9 +476,14 @@ function RuleEditor({ rules, onSave }: { rules: PointRule[]; onSave: (rules: Poi
   )
 }
 
-function RewardForm({ onCreate }: { onCreate: (name: string, cost: number) => Promise<void> }) {
+function RewardForm({
+  onCreate,
+}: {
+  onCreate: (name: string, cost: number, dailyLimit: number | null) => Promise<void>
+}) {
   const [name, setName] = useState('')
   const [cost, setCost] = useState('20')
+  const [dailyLimit, setDailyLimit] = useState('0')
   const [busy, setBusy] = useState(false)
   return (
     <form
@@ -438,12 +492,14 @@ function RewardForm({ onCreate }: { onCreate: (name: string, cost: number) => Pr
         event.preventDefault()
         const trimmed = name.trim()
         const points = Math.max(1, Math.min(9999, Number(cost) || 1))
+        const limit = Math.max(0, Math.min(99, Number(dailyLimit) || 0))
         if (!trimmed || busy) return
         setBusy(true)
-        onCreate(trimmed, points)
+        onCreate(trimmed, points, limit === 0 ? null : limit)
           .then(() => {
             setName('')
             setCost('20')
+            setDailyLimit('0')
           })
           .finally(() => setBusy(false))
       }}
@@ -465,6 +521,15 @@ function RewardForm({ onCreate }: { onCreate: (name: string, cost: number) => Pr
         value={cost}
         onChange={(e) => setCost(e.target.value)}
         required
+        className="mt-1 w-full rounded-2xl bg-white px-3 py-2"
+      />
+      <label className="mt-2 block text-xs font-bold text-ink/60">1日の上限（0＝むげん）</label>
+      <input
+        type="number"
+        min={0}
+        max={99}
+        value={dailyLimit}
+        onChange={(e) => setDailyLimit(e.target.value)}
         className="mt-1 w-full rounded-2xl bg-white px-3 py-2"
       />
       <button

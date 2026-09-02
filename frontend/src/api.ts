@@ -211,6 +211,8 @@ export type Reward = {
   name: string
   cost: number
   enabled: boolean
+  daily_limit: number | null
+  redeems_today: number
 }
 
 export type LedgerEntry = {
@@ -261,7 +263,7 @@ export function fetchRewards(role: Role) {
   return fetch(`/api/points/rewards?role=${role}`).then((res) => readJson<Reward[]>(res))
 }
 
-export function createReward(body: { name: string; cost: number }) {
+export function createReward(body: { name: string; cost: number; daily_limit?: number | null }) {
   return fetch('/api/points/rewards?role=parent', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -269,7 +271,10 @@ export function createReward(body: { name: string; cost: number }) {
   }).then((res) => readJson<Reward>(res))
 }
 
-export function updateReward(id: number, body: Partial<Pick<Reward, 'name' | 'cost' | 'enabled'>>) {
+export function updateReward(
+  id: number,
+  body: Partial<Pick<Reward, 'name' | 'cost' | 'enabled' | 'daily_limit'>>,
+) {
   return fetch(`/api/points/rewards/${id}?role=parent`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

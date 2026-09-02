@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, time, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .database import get_db
@@ -13,6 +14,7 @@ from .deps import demo_family, parse_role, require_child, require_parent
 from .album import record_album
 from .ledger import BUILTIN_KEYS, award, balance_of, now_utc
 from .models import Household, Member, PointLedger, PointRule, Reward
+from .timeutil import JST, today_jst
 
 router = APIRouter(prefix="/api/points", tags=["points"])
 
@@ -48,14 +50,59 @@ class RewardOut(BaseModel):
     name: str
     cost: int
     enabled: bool
+    daily_limit: Optional[int] = None
+    redeems_today: int = 0
 
     model_config = {"from_attributes": True}
+
+
+def _normalize_daily_limit(value: Optional[int]) -> Optional[int]:
+    if value is None or value <= 0:
+        return None
+    return value
+
+
+def _jst_day_bounds_utc_naive(day=None) -> tuple[datetime, datetime]:
+    day = day or today_jst()
+    start_jst = datetime.combine(day, time.min, tzinfo=JST)
+    end_jst = datetime.combine(day, time.max, tzinfo=JST)
+    start_utc = start_jst.astimezone(timezone.utc).replace(tzinfo=None)
+    end_utc = end_jst.astimezone(timezone.utc).replace(tzinfo=None)
+    return start_utc, end_utc
+
+
+def redeems_today(db: Session, member_id: int, reward_id: int) -> int:
+    start, end = _jst_day_bounds_utc_naive()
+    count = db.scalar(
+        select(func.count())
+        .select_from(PointLedger)
+        .where(
+            PointLedger.member_id == member_id,
+            PointLedger.event_key == "redeem",
+            PointLedger.related_id == reward_id,
+            PointLedger.created_at >= start,
+            PointLedger.created_at <= end,
+        )
+    )
+    return int(count or 0)
+
+
+def _reward_out(db: Session, reward: Reward, member_id: int) -> RewardOut:
+    return RewardOut(
+        id=reward.id,
+        name=reward.name,
+        cost=reward.cost,
+        enabled=reward.enabled,
+        daily_limit=reward.daily_limit,
+        redeems_today=redeems_today(db, member_id, reward.id),
+    )
 
 
 class RewardIn(BaseModel):
     name: str = Field(min_length=1, max_length=80)
     cost: int = Field(ge=1, le=9999)
     enabled: bool = True
+    daily_limit: Optional[int] = Field(default=None, ge=0, le=99)
 
     @field_validator("name")
     @classmethod
@@ -70,6 +117,7 @@ class RewardPatch(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=80)
     cost: int | None = Field(default=None, ge=1, le=9999)
     enabled: bool | None = None
+    daily_limit: Optional[int] = Field(default=None, ge=0, le=99)
 
     @field_validator("name")
     @classmethod
@@ -223,9 +271,11 @@ def list_rewards(
     family: tuple[Household, Member, Member] = Depends(demo_family),
     db: Session = Depends(get_db),
 ):
-    return db.scalars(
+    child = _child(family)
+    rewards = db.scalars(
         select(Reward).where(Reward.household_id == _hh(family).id).order_by(Reward.cost, Reward.id)
     ).all()
+    return [_reward_out(db, reward, child.id) for reward in rewards]
 
 
 @router.post("/rewards", response_model=RewardOut, status_code=201)
@@ -235,11 +285,17 @@ def create_reward(
     family: tuple[Household, Member, Member] = Depends(demo_family),
     db: Session = Depends(get_db),
 ):
-    reward = Reward(household_id=_hh(family).id, name=body.name, cost=body.cost, enabled=body.enabled)
+    reward = Reward(
+        household_id=_hh(family).id,
+        name=body.name,
+        cost=body.cost,
+        enabled=body.enabled,
+        daily_limit=_normalize_daily_limit(body.daily_limit),
+    )
     db.add(reward)
     db.commit()
     db.refresh(reward)
-    return reward
+    return _reward_out(db, reward, _child(family).id)
 
 
 @router.patch("/rewards/{reward_id}", response_model=RewardOut)
@@ -254,11 +310,13 @@ def patch_reward(
     if reward is None or reward.household_id != _hh(family).id:
         raise HTTPException(404, "reward not found")
     data = body.model_dump(exclude_unset=True)
+    if "daily_limit" in data:
+        data["daily_limit"] = _normalize_daily_limit(data["daily_limit"])
     for key, value in data.items():
         setattr(reward, key, value)
     db.commit()
     db.refresh(reward)
-    return reward
+    return _reward_out(db, reward, _child(family).id)
 
 
 @router.delete("/rewards/{reward_id}", status_code=204)
@@ -286,6 +344,9 @@ def redeem_reward(
     reward = db.get(Reward, reward_id)
     if reward is None or reward.household_id != _hh(family).id or not reward.enabled:
         raise HTTPException(404, "reward not found")
+    limit = reward.daily_limit
+    if limit and limit > 0 and redeems_today(db, child.id, reward.id) >= limit:
+        raise HTTPException(400, "きょうは もう こうかん できないよ")
     bal = balance_of(db, child.id)
     if bal < reward.cost:
         raise HTTPException(400, f"あと{reward.cost - bal}点")

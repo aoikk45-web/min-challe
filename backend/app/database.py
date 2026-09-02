@@ -24,6 +24,9 @@ def migrate_schema() -> None:
             conn.execute(text("ALTER TABLE drill_sessions ADD COLUMN passage_title VARCHAR(80)"))
         if session_cols and "passage" not in session_cols:
             conn.execute(text("ALTER TABLE drill_sessions ADD COLUMN passage VARCHAR(900)"))
+        reward_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(rewards)"))}
+        if reward_cols and "daily_limit" not in reward_cols:
+            conn.execute(text("ALTER TABLE rewards ADD COLUMN daily_limit INTEGER"))
 
 
 def get_db():
