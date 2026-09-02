@@ -85,42 +85,32 @@
   {
     "char": "上",
     "readings": [
-      "あ"
+      "うえ"
     ],
     "grade": 1,
     "examples": [
-      {
-        "sentence": "階段を **上**がりました。",
-        "reading": "あ"
-      },
       {
         "sentence": "机の **上** に のせます。",
         "reading": "うえ"
       }
     ],
     "sentences": [
-      "階段を **上**がりました。",
       "机の **上** に のせます。"
     ]
   },
   {
     "char": "下",
     "readings": [
-      "くだ"
+      "した"
     ],
     "grade": 1,
     "examples": [
-      {
-        "sentence": "階段を **下**りました。",
-        "reading": "くだ"
-      },
       {
         "sentence": "机の **下** に 入れます。",
         "reading": "した"
       }
     ],
     "sentences": [
-      "階段を **下**りました。",
       "机の **下** に 入れます。"
     ]
   },
@@ -336,17 +326,22 @@
   {
     "char": "円",
     "readings": [
-      "まる"
+      "えん"
     ],
     "grade": 1,
     "examples": [
       {
-        "sentence": "本当のことを **円**います。",
-        "reading": "まる"
+        "sentence": "えんぴつで きれいな **円**を えがきます。",
+        "reading": "えん"
+      },
+      {
+        "sentence": "ノートを 百**円**で 買いました。",
+        "reading": "えん"
       }
     ],
     "sentences": [
-      "本当のことを **円**います。"
+      "えんぴつで きれいな **円**を えがきます。",
+      "ノートを 百**円**で 買いました。"
     ]
   },
   {
@@ -394,7 +389,7 @@
       },
       {
         "sentence": "**十**分 まちます。",
-        "reading": "じゅう"
+        "reading": "じゅっ"
       },
       {
         "sentence": "**十**月です。",
@@ -899,17 +894,22 @@
   {
     "char": "正",
     "readings": [
-      "せい"
+      "ただ"
     ],
     "grade": 1,
     "examples": [
       {
         "sentence": "**正**しい 答えです。",
+        "reading": "ただ"
+      },
+      {
+        "sentence": "**正**門から 入りました。",
         "reading": "せい"
       }
     ],
     "sentences": [
-      "**正**しい 答えです。"
+      "**正**しい 答えです。",
+      "**正**門から 入りました。"
     ]
   },
   {
@@ -926,22 +926,6 @@
     ],
     "sentences": [
       "いい **気**分です。"
-    ]
-  },
-  {
-    "char": "水",
-    "readings": [
-      "みず"
-    ],
-    "grade": 1,
-    "examples": [
-      {
-        "sentence": "**水**を のみます。",
-        "reading": "みず"
-      }
-    ],
-    "sentences": [
-      "**水**を のみます。"
     ]
   },
   {
@@ -1403,22 +1387,6 @@
     ]
   },
   {
-    "char": "丸",
-    "readings": [
-      "まる"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **丸**います。",
-        "reading": "まる"
-      }
-    ],
-    "sentences": [
-      "本当のことを **丸**います。"
-    ]
-  },
-  {
     "char": "今",
     "readings": [
       "いま"
@@ -1611,22 +1579,6 @@
     ]
   },
   {
-    "char": "合",
-    "readings": [
-      "あ"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **合**います。",
-        "reading": "あ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **合**います。"
-    ]
-  },
-  {
     "char": "売",
     "readings": [
       "う"
@@ -1707,22 +1659,6 @@
     ]
   },
   {
-    "char": "太",
-    "readings": [
-      "ふと"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **太**います。",
-        "reading": "ふと"
-      }
-    ],
-    "sentences": [
-      "本当のことを **太**います。"
-    ]
-  },
-  {
     "char": "少",
     "readings": [
       "すく"
@@ -1755,38 +1691,6 @@
     ]
   },
   {
-    "char": "帰",
-    "readings": [
-      "かえ"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "友達と **帰**す。",
-        "reading": "かえ"
-      }
-    ],
-    "sentences": [
-      "友達と **帰**す。"
-    ]
-  },
-  {
-    "char": "広",
-    "readings": [
-      "ひろ"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **広**います。",
-        "reading": "ひろ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **広**います。"
-    ]
-  },
-  {
     "char": "店",
     "readings": [
       "みせ"
@@ -1800,59 +1704,6 @@
     ],
     "sentences": [
       "**店**で 買い物を しました。"
-    ]
-  },
-  {
-    "char": "引",
-    "readings": [
-      "ひ"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "ここから **引**く。",
-        "reading": "ひ"
-      },
-      {
-        "sentence": "音楽を **引**き。",
-        "reading": "ひ"
-      }
-    ],
-    "sentences": [
-      "ここから **引**く。",
-      "音楽を **引**き。"
-    ]
-  },
-  {
-    "char": "弱",
-    "readings": [
-      "よわ"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **弱**います。",
-        "reading": "よわ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **弱**います。"
-    ]
-  },
-  {
-    "char": "強",
-    "readings": [
-      "つよ"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **強**います。",
-        "reading": "つよ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **強**います。"
     ]
   },
   {
@@ -1954,17 +1805,22 @@
   {
     "char": "明",
     "readings": [
-      "あ"
+      "あか"
     ],
     "grade": 2,
     "examples": [
       {
-        "sentence": "字を **明**きます。",
-        "reading": "あ"
+        "sentence": "カーテンを あけて 部屋を **明**るく します。",
+        "reading": "あか"
+      },
+      {
+        "sentence": "東の 空が **明**るく なってきました。",
+        "reading": "あか"
       }
     ],
     "sentences": [
-      "字を **明**きます。"
+      "カーテンを あけて 部屋を **明**るく します。",
+      "東の 空が **明**るく なってきました。"
     ]
   },
   {
@@ -2096,43 +1952,6 @@
     ]
   },
   {
-    "char": "楽",
-    "readings": [
-      "この"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "みんなで **楽**む。",
-        "reading": "この"
-      }
-    ],
-    "sentences": [
-      "みんなで **楽**む。"
-    ]
-  },
-  {
-    "char": "歩",
-    "readings": [
-      "ある"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "ここから **歩**く。",
-        "reading": "ある"
-      },
-      {
-        "sentence": "みんなで **歩**む。",
-        "reading": "あゆ"
-      }
-    ],
-    "sentences": [
-      "ここから **歩**く。",
-      "みんなで **歩**む。"
-    ]
-  },
-  {
     "char": "母",
     "readings": [
       "はは"
@@ -2181,32 +2000,6 @@
     ]
   },
   {
-    "char": "活",
-    "readings": [
-      "い"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "音楽を **活**きます。",
-        "reading": "い"
-      },
-      {
-        "sentence": "字を **活**きます。",
-        "reading": "い"
-      },
-      {
-        "sentence": "お花に **活**けました。",
-        "reading": "い"
-      }
-    ],
-    "sentences": [
-      "音楽を **活**きます。",
-      "字を **活**きます。",
-      "お花に **活**けました。"
-    ]
-  },
-  {
     "char": "海",
     "readings": [
       "うみ"
@@ -2230,17 +2023,12 @@
     "grade": 2,
     "examples": [
       {
-        "sentence": "お花に **点**けました。",
-        "reading": "つ"
-      },
-      {
-        "sentence": "ここから **点**く。",
+        "sentence": "ストーブに 火を **点**けました。",
         "reading": "つ"
       }
     ],
     "sentences": [
-      "お花に **点**けました。",
-      "ここから **点**く。"
+      "ストーブに 火を **点**けました。"
     ]
   },
   {
@@ -2267,60 +2055,12 @@
     "grade": 2,
     "examples": [
       {
-        "sentence": "本当のことを **用**います。",
+        "sentence": "理科の 実験で 虫めがねを **用**います。",
         "reading": "もち"
       }
     ],
     "sentences": [
-      "本当のことを **用**います。"
-    ]
-  },
-  {
-    "char": "画",
-    "readings": [
-      "えが"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "ここから **画**く。",
-        "reading": "えが"
-      }
-    ],
-    "sentences": [
-      "ここから **画**く。"
-    ]
-  },
-  {
-    "char": "番",
-    "readings": [
-      "つが"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **番**います。",
-        "reading": "つが"
-      }
-    ],
-    "sentences": [
-      "本当のことを **番**います。"
-    ]
-  },
-  {
-    "char": "直",
-    "readings": [
-      "なお"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "友達と **直**す。",
-        "reading": "なお"
-      }
-    ],
-    "sentences": [
-      "友達と **直**す。"
+      "理科の 実験で 虫めがねを **用**います。"
     ]
   },
   {
@@ -2369,43 +2109,6 @@
     ],
     "sentences": [
       "**秋**に もみじを 見ました。"
-    ]
-  },
-  {
-    "char": "細",
-    "readings": [
-      "ほそ"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **細**います。",
-        "reading": "ほそ"
-      },
-      {
-        "sentence": "字を **細**きます。",
-        "reading": "こま"
-      }
-    ],
-    "sentences": [
-      "本当のことを **細**います。",
-      "字を **細**きます。"
-    ]
-  },
-  {
-    "char": "組",
-    "readings": [
-      "く"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "みんなで **組**む。",
-        "reading": "く"
-      }
-    ],
-    "sentences": [
-      "みんなで **組**む。"
     ]
   },
   {
@@ -2542,22 +2245,6 @@
     ]
   },
   {
-    "char": "記",
-    "readings": [
-      "しる"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "友達と **記**す。",
-        "reading": "しる"
-      }
-    ],
-    "sentences": [
-      "友達と **記**す。"
-    ]
-  },
-  {
     "char": "話",
     "readings": [
       "はな"
@@ -2574,22 +2261,6 @@
     ]
   },
   {
-    "char": "読",
-    "readings": [
-      "よ"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本を **読**みます。",
-        "reading": "よ"
-      }
-    ],
-    "sentences": [
-      "本を **読**みます。"
-    ]
-  },
-  {
     "char": "買",
     "readings": [
       "か"
@@ -2603,22 +2274,6 @@
     ],
     "sentences": [
       "パンを **買**います。"
-    ]
-  },
-  {
-    "char": "近",
-    "readings": [
-      "ちか"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **近**います。",
-        "reading": "ちか"
-      }
-    ],
-    "sentences": [
-      "本当のことを **近**います。"
     ]
   },
   {
@@ -2651,22 +2306,6 @@
     ],
     "sentences": [
       "この **道** を まっすぐ 行きます。"
-    ]
-  },
-  {
-    "char": "遠",
-    "readings": [
-      "とお"
-    ],
-    "grade": 2,
-    "examples": [
-      {
-        "sentence": "本当のことを **遠**います。",
-        "reading": "とお"
-      }
-    ],
-    "sentences": [
-      "本当のことを **遠**います。"
     ]
   },
   {
@@ -2853,12 +2492,12 @@
     "grade": 2,
     "examples": [
       {
-        "sentence": "ここから **鳴**く。",
+        "sentence": "小鳥が チュンチュンと **鳴**きます。",
         "reading": "な"
       }
     ],
     "sentences": [
-      "ここから **鳴**く。"
+      "小鳥が チュンチュンと **鳴**きます。"
     ]
   },
   {
@@ -2912,33 +2551,17 @@
   {
     "char": "予",
     "readings": [
-      "あらかじ"
+      "よ"
     ],
     "grade": 3,
     "examples": [
       {
-        "sentence": "水を **予**め。",
-        "reading": "あらかじ"
+        "sentence": "明日の **予**定を カレンダーに 書きます。",
+        "reading": "よ"
       }
     ],
     "sentences": [
-      "水を **予**め。"
-    ]
-  },
-  {
-    "char": "住",
-    "readings": [
-      "す"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "みんなで **住**む。",
-        "reading": "す"
-      }
-    ],
-    "sentences": [
-      "みんなで **住**む。"
+      "明日の **予**定を カレンダーに 書きます。"
     ]
   },
   {
@@ -2976,38 +2599,17 @@
   {
     "char": "全",
     "readings": [
-      "まった"
+      "まっ"
     ],
     "grade": 3,
     "examples": [
       {
-        "sentence": "ここから **全**く。",
-        "reading": "まった"
-      },
-      {
-        "sentence": "ごはんを **全**て。",
-        "reading": "すべ"
+        "sentence": "ゆうきの 言うことは **全**く 正しいです。",
+        "reading": "まっ"
       }
     ],
     "sentences": [
-      "ここから **全**く。",
-      "ごはんを **全**て。"
-    ]
-  },
-  {
-    "char": "写",
-    "readings": [
-      "うつ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "友達と **写**す。",
-        "reading": "うつ"
-      }
-    ],
-    "sentences": [
-      "友達と **写**す。"
+      "ゆうきの 言うことは **全**く 正しいです。"
     ]
   },
   {
@@ -3018,43 +2620,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "お花に **助**けました。",
+        "sentence": "道に まよっている 友だちを **助**けました。",
         "reading": "たす"
-      },
-      {
-        "sentence": "字を **助**きます。",
-        "reading": "たす"
-      },
-      {
-        "sentence": "お花に **助**けました。",
-        "reading": "す"
       }
     ],
     "sentences": [
-      "お花に **助**けました。",
-      "字を **助**きます。",
-      "お花に **助**けました。"
-    ]
-  },
-  {
-    "char": "動",
-    "readings": [
-      "うご"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "ここから **動**く。",
-        "reading": "うご"
-      },
-      {
-        "sentence": "字を **動**きます。",
-        "reading": "うご"
-      }
-    ],
-    "sentences": [
-      "ここから **動**く。",
-      "字を **動**きます。"
+      "道に まよっている 友だちを **助**けました。"
     ]
   },
   {
@@ -3065,112 +2636,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "りんごが **勝**つ あります。",
+        "sentence": "かけっこで 友だちに **勝**ちました。",
         "reading": "か"
       }
     ],
     "sentences": [
-      "りんごが **勝**つ あります。"
-    ]
-  },
-  {
-    "char": "化",
-    "readings": [
-      "ば"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "お花に **化**けました。",
-        "reading": "ば"
-      },
-      {
-        "sentence": "字を **化**きます。",
-        "reading": "ば"
-      },
-      {
-        "sentence": "お花に **化**けました。",
-        "reading": "ふ"
-      }
-    ],
-    "sentences": [
-      "お花に **化**けました。",
-      "字を **化**きます。",
-      "お花に **化**けました。"
-    ]
-  },
-  {
-    "char": "反",
-    "readings": [
-      "かえ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "友達と **反**す。",
-        "reading": "かえ"
-      }
-    ],
-    "sentences": [
-      "友達と **反**す。"
-    ]
-  },
-  {
-    "char": "受",
-    "readings": [
-      "う"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "お花に **受**けました。",
-        "reading": "う"
-      },
-      {
-        "sentence": "字を **受**きます。",
-        "reading": "う"
-      }
-    ],
-    "sentences": [
-      "お花に **受**けました。",
-      "字を **受**きます。"
-    ]
-  },
-  {
-    "char": "号",
-    "readings": [
-      "さけ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "みんなで **号**ぶ。",
-        "reading": "さけ"
-      }
-    ],
-    "sentences": [
-      "みんなで **号**ぶ。"
-    ]
-  },
-  {
-    "char": "向",
-    "readings": [
-      "む"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "ここから **向**く。",
-        "reading": "む"
-      },
-      {
-        "sentence": "本当のことを **向**います。",
-        "reading": "む"
-      }
-    ],
-    "sentences": [
-      "ここから **向**く。",
-      "本当のことを **向**います。"
+      "かけっこで 友だちに **勝**ちました。"
     ]
   },
   {
@@ -3197,44 +2668,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "みんなで **和**む。",
+        "sentence": "みんなで **和**やかに 話し合いました。",
         "reading": "なご"
       }
     ],
     "sentences": [
-      "みんなで **和**む。"
-    ]
-  },
-  {
-    "char": "問",
-    "readings": [
-      "と"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **問**います。",
-        "reading": "と"
-      }
-    ],
-    "sentences": [
-      "本当のことを **問**います。"
-    ]
-  },
-  {
-    "char": "安",
-    "readings": [
-      "やす"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **安**います。",
-        "reading": "やす"
-      }
-    ],
-    "sentences": [
-      "本当のことを **安**います。"
+      "みんなで **和**やかに 話し合いました。"
     ]
   },
   {
@@ -3245,12 +2684,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "字を **定**きます。",
+        "sentence": "みんなで 会う 日を **定**めました。",
         "reading": "さだ"
       }
     ],
     "sentences": [
-      "字を **定**きます。"
+      "みんなで 会う 日を **定**めました。"
     ]
   },
   {
@@ -3272,49 +2711,17 @@
   {
     "char": "宿",
     "readings": [
-      "やど"
+      "しゅく"
     ],
     "grade": 3,
     "examples": [
       {
-        "sentence": "友達と **宿**す。",
-        "reading": "やど"
+        "sentence": "学校から 帰って すぐに **宿**題を します。",
+        "reading": "しゅく"
       }
     ],
     "sentences": [
-      "友達と **宿**す。"
-    ]
-  },
-  {
-    "char": "寒",
-    "readings": [
-      "さむ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **寒**います。",
-        "reading": "さむ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **寒**います。"
-    ]
-  },
-  {
-    "char": "対",
-    "readings": [
-      "そろ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **対**います。",
-        "reading": "そろ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **対**います。"
+      "学校から 帰って すぐに **宿**題を します。"
     ]
   },
   {
@@ -3334,59 +2741,6 @@
     ]
   },
   {
-    "char": "幸",
-    "readings": [
-      "さいわ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **幸**います。",
-        "reading": "さいわ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **幸**います。"
-    ]
-  },
-  {
-    "char": "待",
-    "readings": [
-      "ま"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "りんごが **待**つ あります。",
-        "reading": "ま"
-      }
-    ],
-    "sentences": [
-      "りんごが **待**つ あります。"
-    ]
-  },
-  {
-    "char": "急",
-    "readings": [
-      "いそ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "ここから **急**ぐ。",
-        "reading": "いそ"
-      },
-      {
-        "sentence": "ここから **急**く。",
-        "reading": "せ"
-      }
-    ],
-    "sentences": [
-      "ここから **急**ぐ。",
-      "ここから **急**く。"
-    ]
-  },
-  {
     "char": "息",
     "readings": [
       "いき"
@@ -3403,22 +2757,6 @@
     ]
   },
   {
-    "char": "悪",
-    "readings": [
-      "わる"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **悪**います。",
-        "reading": "わる"
-      }
-    ],
-    "sentences": [
-      "本当のことを **悪**います。"
-    ]
-  },
-  {
     "char": "打",
     "readings": [
       "う"
@@ -3426,17 +2764,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "りんごが **打**つ あります。",
+        "sentence": "バットで ボールを **打**ちました。",
         "reading": "う"
-      },
-      {
-        "sentence": "りんごが **打**つ あります。",
-        "reading": "ぶ"
       }
     ],
     "sentences": [
-      "りんごが **打**つ あります。",
-      "りんごが **打**つ あります。"
+      "バットで ボールを **打**ちました。"
     ]
   },
   {
@@ -3456,43 +2789,6 @@
     ]
   },
   {
-    "char": "指",
-    "readings": [
-      "さ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "友達と **指**す。",
-        "reading": "さ"
-      }
-    ],
-    "sentences": [
-      "友達と **指**す。"
-    ]
-  },
-  {
-    "char": "放",
-    "readings": [
-      "はな"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "友達と **放**す。",
-        "reading": "はな"
-      },
-      {
-        "sentence": "りんごが **放**つ あります。",
-        "reading": "はな"
-      }
-    ],
-    "sentences": [
-      "友達と **放**す。",
-      "りんごが **放**つ あります。"
-    ]
-  },
-  {
     "char": "昔",
     "readings": [
       "むかし"
@@ -3506,59 +2802,6 @@
     ],
     "sentences": [
       "**昔**の 話を 聞きました。"
-    ]
-  },
-  {
-    "char": "暑",
-    "readings": [
-      "あつ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **暑**います。",
-        "reading": "あつ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **暑**います。"
-    ]
-  },
-  {
-    "char": "暗",
-    "readings": [
-      "くら"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **暗**います。",
-        "reading": "くら"
-      },
-      {
-        "sentence": "みんなで **暗**む。",
-        "reading": "くら"
-      }
-    ],
-    "sentences": [
-      "本当のことを **暗**います。",
-      "みんなで **暗**む。"
-    ]
-  },
-  {
-    "char": "曲",
-    "readings": [
-      "ま"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "階段を **曲**がりました。",
-        "reading": "ま"
-      }
-    ],
-    "sentences": [
-      "階段を **曲**がりました。"
     ]
   },
   {
@@ -3610,93 +2853,19 @@
     ]
   },
   {
-    "char": "次",
-    "readings": [
-      "つ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "ここから **次**ぐ。",
-        "reading": "つ"
-      }
-    ],
-    "sentences": [
-      "ここから **次**ぐ。"
-    ]
-  },
-  {
     "char": "歯",
     "readings": [
-      "よわ"
+      "は"
     ],
     "grade": 3,
     "examples": [
       {
-        "sentence": "本当のことを **歯**います。",
-        "reading": "よわ"
+        "sentence": "ごはんの あとで **歯**を みがきます。",
+        "reading": "は"
       }
     ],
     "sentences": [
-      "本当のことを **歯**います。"
-    ]
-  },
-  {
-    "char": "死",
-    "readings": [
-      "し"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "みんなで **死**ぬ。",
-        "reading": "し"
-      }
-    ],
-    "sentences": [
-      "みんなで **死**ぬ。"
-    ]
-  },
-  {
-    "char": "注",
-    "readings": [
-      "そそ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "ここから **注**ぐ。",
-        "reading": "そそ"
-      },
-      {
-        "sentence": "友達と **注**す。",
-        "reading": "さ"
-      },
-      {
-        "sentence": "ここから **注**ぐ。",
-        "reading": "つ"
-      }
-    ],
-    "sentences": [
-      "ここから **注**ぐ。",
-      "友達と **注**す。",
-      "ここから **注**ぐ。"
-    ]
-  },
-  {
-    "char": "泳",
-    "readings": [
-      "およ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "ここから **泳**ぐ。",
-        "reading": "およ"
-      }
-    ],
-    "sentences": [
-      "ここから **泳**ぐ。"
+      "ごはんの あとで **歯**を みがきます。"
     ]
   },
   {
@@ -3713,70 +2882,6 @@
     ],
     "sentences": [
       "**洋**服を 着ました。"
-    ]
-  },
-  {
-    "char": "流",
-    "readings": [
-      "なが"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "友達と **流**す。",
-        "reading": "なが"
-      }
-    ],
-    "sentences": [
-      "友達と **流**す。"
-    ]
-  },
-  {
-    "char": "消",
-    "readings": [
-      "け"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "友達と **消**す。",
-        "reading": "け"
-      }
-    ],
-    "sentences": [
-      "友達と **消**す。"
-    ]
-  },
-  {
-    "char": "深",
-    "readings": [
-      "ふか"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **深**います。",
-        "reading": "ふか"
-      }
-    ],
-    "sentences": [
-      "本当のことを **深**います。"
-    ]
-  },
-  {
-    "char": "温",
-    "readings": [
-      "あたた"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "字を **温**きます。",
-        "reading": "あたた"
-      }
-    ],
-    "sentences": [
-      "字を **温**きます。"
     ]
   },
   {
@@ -3844,56 +2949,19 @@
     ]
   },
   {
-    "char": "病",
-    "readings": [
-      "や"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "みんなで **病**む。",
-        "reading": "や"
-      }
-    ],
-    "sentences": [
-      "みんなで **病**む。"
-    ]
-  },
-  {
     "char": "発",
     "readings": [
-      "た"
+      "はつ"
     ],
     "grade": 3,
     "examples": [
       {
-        "sentence": "りんごが **発**つ あります。",
-        "reading": "た"
-      },
-      {
-        "sentence": "ここから **発**く。",
-        "reading": "あば"
+        "sentence": "電車の **発**車時刻を しらべます。",
+        "reading": "はつ"
       }
     ],
     "sentences": [
-      "りんごが **発**つ あります。",
-      "ここから **発**く。"
-    ]
-  },
-  {
-    "char": "登",
-    "readings": [
-      "あ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "階段を **登**がりました。",
-        "reading": "あ"
-      }
-    ],
-    "sentences": [
-      "階段を **登**がりました。"
+      "電車の **発**車時刻を しらべます。"
     ]
   },
   {
@@ -3931,49 +2999,17 @@
   {
     "char": "県",
     "readings": [
-      "か"
+      "けん"
     ],
     "grade": 3,
     "examples": [
       {
-        "sentence": "お花に **県**けました。",
-        "reading": "か"
+        "sentence": "**県**庁の 建物を 見学しました。",
+        "reading": "けん"
       }
     ],
     "sentences": [
-      "お花に **県**けました。"
-    ]
-  },
-  {
-    "char": "短",
-    "readings": [
-      "みじか"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **短**います。",
-        "reading": "みじか"
-      }
-    ],
-    "sentences": [
-      "本当のことを **短**います。"
-    ]
-  },
-  {
-    "char": "研",
-    "readings": [
-      "と"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "ここから **研**ぐ。",
-        "reading": "と"
-      }
-    ],
-    "sentences": [
-      "ここから **研**ぐ。"
+      "**県**庁の 建物を 見学しました。"
     ]
   },
   {
@@ -4121,22 +3157,6 @@
     ]
   },
   {
-    "char": "習",
-    "readings": [
-      "なら"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **習**います。",
-        "reading": "なら"
-      }
-    ],
-    "sentences": [
-      "本当のことを **習**います。"
-    ]
-  },
-  {
     "char": "育",
     "readings": [
       "そだ"
@@ -4144,12 +3164,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "りんごが **育**つ あります。",
+        "sentence": "うえきばちで アサガオを **育**てます。",
         "reading": "そだ"
       }
     ],
     "sentences": [
-      "りんごが **育**つ あります。"
+      "うえきばちで アサガオを **育**てます。"
     ]
   },
   {
@@ -4185,22 +3205,6 @@
     ]
   },
   {
-    "char": "表",
-    "readings": [
-      "あらわ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "友達と **表**す。",
-        "reading": "あらわ"
-      }
-    ],
-    "sentences": [
-      "友達と **表**す。"
-    ]
-  },
-  {
     "char": "詩",
     "readings": [
       "し"
@@ -4224,49 +3228,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "ごはんを **調**べます。",
+        "sentence": "辞書で ことばの 意味を **調**べます。",
         "reading": "しら"
       }
     ],
     "sentences": [
-      "ごはんを **調**べます。"
-    ]
-  },
-  {
-    "char": "負",
-    "readings": [
-      "ま"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "お花に **負**けました。",
-        "reading": "ま"
-      },
-      {
-        "sentence": "字を **負**きます。",
-        "reading": "ま"
-      }
-    ],
-    "sentences": [
-      "お花に **負**けました。",
-      "字を **負**きます。"
-    ]
-  },
-  {
-    "char": "起",
-    "readings": [
-      "お"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "音楽を **起**きます。",
-        "reading": "お"
-      }
-    ],
-    "sentences": [
-      "音楽を **起**きます。"
+      "辞書で ことばの 意味を **調**べます。"
     ]
   },
   {
@@ -4302,38 +3269,6 @@
     ]
   },
   {
-    "char": "転",
-    "readings": [
-      "ころ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "階段を **転**がりました。",
-        "reading": "ころ"
-      }
-    ],
-    "sentences": [
-      "階段を **転**がりました。"
-    ]
-  },
-  {
-    "char": "軽",
-    "readings": [
-      "かる"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **軽**います。",
-        "reading": "かる"
-      }
-    ],
-    "sentences": [
-      "本当のことを **軽**います。"
-    ]
-  },
-  {
     "char": "返",
     "readings": [
       "かえ"
@@ -4341,44 +3276,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "友達と **返**す。",
+        "sentence": "図書館に 本を **返**しました。",
         "reading": "かえ"
       }
     ],
     "sentences": [
-      "友達と **返**す。"
-    ]
-  },
-  {
-    "char": "速",
-    "readings": [
-      "はや"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "本当のことを **速**います。",
-        "reading": "はや"
-      }
-    ],
-    "sentences": [
-      "本当のことを **速**います。"
-    ]
-  },
-  {
-    "char": "進",
-    "readings": [
-      "すす"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "みんなで **進**む。",
-        "reading": "すす"
-      }
-    ],
-    "sentences": [
-      "みんなで **進**む。"
+      "図書館に 本を **返**しました。"
     ]
   },
   {
@@ -4389,28 +3292,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "みんなで **遊**ぶ。",
+        "sentence": "公園で 友だちと **遊**びました。",
         "reading": "あそ"
       }
     ],
     "sentences": [
-      "みんなで **遊**ぶ。"
-    ]
-  },
-  {
-    "char": "運",
-    "readings": [
-      "はこ"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "みんなで **運**ぶ。",
-        "reading": "はこ"
-      }
-    ],
-    "sentences": [
-      "みんなで **運**ぶ。"
+      "公園で 友だちと **遊**びました。"
     ]
   },
   {
@@ -4437,12 +3324,12 @@
     "grade": 3,
     "examples": [
       {
-        "sentence": "本当のことを **重**います。",
+        "sentence": "この 荷物は **重**いです。",
         "reading": "おも"
       }
     ],
     "sentences": [
-      "本当のことを **重**います。"
+      "この 荷物は **重**いです。"
     ]
   },
   {
@@ -4459,27 +3346,6 @@
     ],
     "sentences": [
       "**銀**の コップを 見ました。"
-    ]
-  },
-  {
-    "char": "開",
-    "readings": [
-      "ひら"
-    ],
-    "grade": 3,
-    "examples": [
-      {
-        "sentence": "ここから **開**く。",
-        "reading": "ひら"
-      },
-      {
-        "sentence": "音楽を **開**き。",
-        "reading": "ひら"
-      }
-    ],
-    "sentences": [
-      "ここから **開**く。",
-      "音楽を **開**き。"
     ]
   },
   {
@@ -4563,22 +3429,6 @@
     ]
   },
   {
-    "char": "付",
-    "readings": [
-      "つ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "お花に **付**けました。",
-        "reading": "つ"
-      }
-    ],
-    "sentences": [
-      "お花に **付**けました。"
-    ]
-  },
-  {
     "char": "令",
     "readings": [
       "れい"
@@ -4597,17 +3447,17 @@
   {
     "char": "以",
     "readings": [
-      "もっ"
+      "い"
     ],
     "grade": 4,
     "examples": [
       {
-        "sentence": "ごはんを **以**て。",
-        "reading": "もっ"
+        "sentence": "宿題は **以**前に 終わらせます。",
+        "reading": "い"
       }
     ],
     "sentences": [
-      "ごはんを **以**て。"
+      "宿題は **以**前に 終わらせます。"
     ]
   },
   {
@@ -4643,22 +3493,6 @@
     ]
   },
   {
-    "char": "低",
-    "readings": [
-      "ひく"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "本当のことを **低**います。",
-        "reading": "ひく"
-      }
-    ],
-    "sentences": [
-      "本当のことを **低**います。"
-    ]
-  },
-  {
     "char": "佐",
     "readings": [
       "さ"
@@ -4672,192 +3506,6 @@
     ],
     "sentences": [
       "**佐**藤さんと あいました。"
-    ]
-  },
-  {
-    "char": "借",
-    "readings": [
-      "か"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "階段を **借**りました。",
-        "reading": "か"
-      }
-    ],
-    "sentences": [
-      "階段を **借**りました。"
-    ]
-  },
-  {
-    "char": "働",
-    "readings": [
-      "はたら"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ここから **働**く。",
-        "reading": "はたら"
-      }
-    ],
-    "sentences": [
-      "ここから **働**く。"
-    ]
-  },
-  {
-    "char": "兆",
-    "readings": [
-      "きざ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **兆**す。",
-        "reading": "きざ"
-      }
-    ],
-    "sentences": [
-      "友達と **兆**す。"
-    ]
-  },
-  {
-    "char": "初",
-    "readings": [
-      "はじ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "水を **初**め。",
-        "reading": "はじ"
-      }
-    ],
-    "sentences": [
-      "水を **初**め。"
-    ]
-  },
-  {
-    "char": "別",
-    "readings": [
-      "わ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "お花に **別**けました。",
-        "reading": "わ"
-      }
-    ],
-    "sentences": [
-      "お花に **別**けました。"
-    ]
-  },
-  {
-    "char": "利",
-    "readings": [
-      "き"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ここから **利**く。",
-        "reading": "き"
-      }
-    ],
-    "sentences": [
-      "ここから **利**く。"
-    ]
-  },
-  {
-    "char": "勇",
-    "readings": [
-      "いさ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **勇**む。",
-        "reading": "いさ"
-      }
-    ],
-    "sentences": [
-      "みんなで **勇**む。"
-    ]
-  },
-  {
-    "char": "包",
-    "readings": [
-      "つつ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **包**む。",
-        "reading": "つつ"
-      },
-      {
-        "sentence": "みんなで **包**む。",
-        "reading": "くる"
-      }
-    ],
-    "sentences": [
-      "みんなで **包**む。",
-      "みんなで **包**む。"
-    ]
-  },
-  {
-    "char": "印",
-    "readings": [
-      "しる"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **印**す。",
-        "reading": "しる"
-      }
-    ],
-    "sentences": [
-      "友達と **印**す。"
-    ]
-  },
-  {
-    "char": "喜",
-    "readings": [
-      "よろこ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **喜**ぶ。",
-        "reading": "よろこ"
-      }
-    ],
-    "sentences": [
-      "みんなで **喜**ぶ。"
-    ]
-  },
-  {
-    "char": "囲",
-    "readings": [
-      "かこ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **囲**む。",
-        "reading": "かこ"
-      },
-      {
-        "sentence": "本当のことを **囲**います。",
-        "reading": "かこ"
-      }
-    ],
-    "sentences": [
-      "みんなで **囲**む。",
-      "本当のことを **囲**います。"
     ]
   },
   {
@@ -4893,32 +3541,6 @@
     ]
   },
   {
-    "char": "好",
-    "readings": [
-      "この"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **好**む。",
-        "reading": "この"
-      },
-      {
-        "sentence": "ここから **好**く。",
-        "reading": "す"
-      },
-      {
-        "sentence": "本当のことを **好**います。",
-        "reading": "よ"
-      }
-    ],
-    "sentences": [
-      "みんなで **好**む。",
-      "ここから **好**く。",
-      "本当のことを **好**います。"
-    ]
-  },
-  {
     "char": "媛",
     "readings": [
       "ひめ"
@@ -4926,24 +3548,24 @@
     "grade": 4,
     "examples": [
       {
-        "sentence": "**媛**賀 へ 行きたいです。",
+        "sentence": "愛**媛**県へ 行きたいです。",
         "reading": "ひめ"
       }
     ],
     "sentences": [
-      "**媛**賀 へ 行きたいです。"
+      "愛**媛**県へ 行きたいです。"
     ]
   },
   {
     "char": "岐",
     "readings": [
-      "また"
+      "ぎ"
     ],
     "grade": 4,
     "examples": [
       {
         "sentence": "**岐**阜の きれいな 川を 見ました。",
-        "reading": "また"
+        "reading": "ぎ"
       }
     ],
     "sentences": [
@@ -4983,118 +3605,6 @@
     ]
   },
   {
-    "char": "差",
-    "readings": [
-      "さ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **差**す。",
-        "reading": "さ"
-      }
-    ],
-    "sentences": [
-      "友達と **差**す。"
-    ]
-  },
-  {
-    "char": "建",
-    "readings": [
-      "た"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ごはんを **建**て。",
-        "reading": "た"
-      }
-    ],
-    "sentences": [
-      "ごはんを **建**て。"
-    ]
-  },
-  {
-    "char": "成",
-    "readings": [
-      "な"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **成**す。",
-        "reading": "な"
-      }
-    ],
-    "sentences": [
-      "友達と **成**す。"
-    ]
-  },
-  {
-    "char": "戦",
-    "readings": [
-      "おのの"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ここから **戦**く。",
-        "reading": "おのの"
-      }
-    ],
-    "sentences": [
-      "ここから **戦**く。"
-    ]
-  },
-  {
-    "char": "挙",
-    "readings": [
-      "あ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "階段を **挙**がりました。",
-        "reading": "あ"
-      }
-    ],
-    "sentences": [
-      "階段を **挙**がりました。"
-    ]
-  },
-  {
-    "char": "望",
-    "readings": [
-      "のぞ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **望**む。",
-        "reading": "のぞ"
-      }
-    ],
-    "sentences": [
-      "みんなで **望**む。"
-    ]
-  },
-  {
-    "char": "果",
-    "readings": [
-      "はた"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **果**す。",
-        "reading": "はた"
-      }
-    ],
-    "sentences": [
-      "友達と **果**す。"
-    ]
-  },
-  {
     "char": "栃",
     "readings": [
       "とち"
@@ -5124,64 +3634,6 @@
     ],
     "sentences": [
       "あまい **梨**を たべます。"
-    ]
-  },
-  {
-    "char": "欠",
-    "readings": [
-      "か"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "お花に **欠**けました。",
-        "reading": "か"
-      },
-      {
-        "sentence": "ここから **欠**く。",
-        "reading": "か"
-      }
-    ],
-    "sentences": [
-      "お花に **欠**けました。",
-      "ここから **欠**く。"
-    ]
-  },
-  {
-    "char": "残",
-    "readings": [
-      "のこ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **残**す。",
-        "reading": "のこ"
-      }
-    ],
-    "sentences": [
-      "友達と **残**す。"
-    ]
-  },
-  {
-    "char": "殺",
-    "readings": [
-      "ころ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **殺**す。",
-        "reading": "ころ"
-      },
-      {
-        "sentence": "ここから **殺**ぐ。",
-        "reading": "そ"
-      }
-    ],
-    "sentences": [
-      "友達と **殺**す。",
-      "ここから **殺**ぐ。"
     ]
   },
   {
@@ -5233,70 +3685,6 @@
     ]
   },
   {
-    "char": "泣",
-    "readings": [
-      "な"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ここから **泣**く。",
-        "reading": "な"
-      }
-    ],
-    "sentences": [
-      "ここから **泣**く。"
-    ]
-  },
-  {
-    "char": "浅",
-    "readings": [
-      "あさ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "本当のことを **浅**います。",
-        "reading": "あさ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **浅**います。"
-    ]
-  },
-  {
-    "char": "清",
-    "readings": [
-      "きよ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "本当のことを **清**います。",
-        "reading": "きよ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **清**います。"
-    ]
-  },
-  {
-    "char": "満",
-    "readings": [
-      "み"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "りんごが **満**つ あります。",
-        "reading": "み"
-      }
-    ],
-    "sentences": [
-      "りんごが **満**つ あります。"
-    ]
-  },
-  {
     "char": "滋",
     "readings": [
       "し"
@@ -5329,43 +3717,6 @@
     ]
   },
   {
-    "char": "無",
-    "readings": [
-      "な"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "本当のことを **無**います。",
-        "reading": "な"
-      }
-    ],
-    "sentences": [
-      "本当のことを **無**います。"
-    ]
-  },
-  {
-    "char": "焼",
-    "readings": [
-      "や"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ここから **焼**く。",
-        "reading": "や"
-      },
-      {
-        "sentence": "音楽を **焼**き。",
-        "reading": "や"
-      }
-    ],
-    "sentences": [
-      "ここから **焼**く。",
-      "音楽を **焼**き。"
-    ]
-  },
-  {
     "char": "熊",
     "readings": [
       "くま"
@@ -5379,22 +3730,6 @@
     ],
     "sentences": [
       "**熊**が 山に います。"
-    ]
-  },
-  {
-    "char": "熱",
-    "readings": [
-      "あつ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "本当のことを **熱**います。",
-        "reading": "あつ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **熱**います。"
     ]
   },
   {
@@ -5414,43 +3749,6 @@
     ]
   },
   {
-    "char": "産",
-    "readings": [
-      "う"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **産**む。",
-        "reading": "う"
-      }
-    ],
-    "sentences": [
-      "みんなで **産**む。"
-    ]
-  },
-  {
-    "char": "省",
-    "readings": [
-      "かえり"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "テレビを **省**みます。",
-        "reading": "かえり"
-      },
-      {
-        "sentence": "ここから **省**く。",
-        "reading": "はぶ"
-      }
-    ],
-    "sentences": [
-      "テレビを **省**みます。",
-      "ここから **省**く。"
-    ]
-  },
-  {
     "char": "積",
     "readings": [
       "つ"
@@ -5458,81 +3756,12 @@
     "grade": 4,
     "examples": [
       {
-        "sentence": "みんなで **積**む。",
+        "sentence": "雪が **積**もっています。",
         "reading": "つ"
       }
     ],
     "sentences": [
-      "みんなで **積**む。"
-    ]
-  },
-  {
-    "char": "競",
-    "readings": [
-      "くら"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ごはんを **競**べます。",
-        "reading": "くら"
-      }
-    ],
-    "sentences": [
-      "ごはんを **競**べます。"
-    ]
-  },
-  {
-    "char": "笑",
-    "readings": [
-      "え"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **笑**む。",
-        "reading": "え"
-      }
-    ],
-    "sentences": [
-      "みんなで **笑**む。"
-    ]
-  },
-  {
-    "char": "結",
-    "readings": [
-      "むす"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **結**ぶ。",
-        "reading": "むす"
-      }
-    ],
-    "sentences": [
-      "みんなで **結**ぶ。"
-    ]
-  },
-  {
-    "char": "続",
-    "readings": [
-      "つづ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ここから **続**く。",
-        "reading": "つづ"
-      },
-      {
-        "sentence": "お花に **続**けました。",
-        "reading": "つづ"
-      }
-    ],
-    "sentences": [
-      "ここから **続**く。",
-      "お花に **続**けました。"
+      "雪が **積**もっています。"
     ]
   },
   {
@@ -5552,64 +3781,6 @@
     ]
   },
   {
-    "char": "置",
-    "readings": [
-      "お"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ここから **置**く。",
-        "reading": "お"
-      }
-    ],
-    "sentences": [
-      "ここから **置**く。"
-    ]
-  },
-  {
-    "char": "老",
-    "readings": [
-      "お"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "本当のことを **老**います。",
-        "reading": "お"
-      },
-      {
-        "sentence": "お花に **老**けました。",
-        "reading": "ふ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **老**います。",
-      "お花に **老**けました。"
-    ]
-  },
-  {
-    "char": "良",
-    "readings": [
-      "よ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "本当のことを **良**います。",
-        "reading": "よ"
-      },
-      {
-        "sentence": "本当のことを **良**います。",
-        "reading": "い"
-      }
-    ],
-    "sentences": [
-      "本当のことを **良**います。",
-      "本当のことを **良**います。"
-    ]
-  },
-  {
     "char": "茨",
     "readings": [
       "いばら"
@@ -5623,123 +3794,6 @@
     ],
     "sentences": [
       "**茨**の 花が さいています。"
-    ]
-  },
-  {
-    "char": "観",
-    "readings": [
-      "しめ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **観**す。",
-        "reading": "しめ"
-      }
-    ],
-    "sentences": [
-      "友達と **観**す。"
-    ]
-  },
-  {
-    "char": "訓",
-    "readings": [
-      "よ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **訓**む。",
-        "reading": "よ"
-      }
-    ],
-    "sentences": [
-      "みんなで **訓**む。"
-    ]
-  },
-  {
-    "char": "試",
-    "readings": [
-      "こころ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "テレビを **試**みます。",
-        "reading": "こころ"
-      },
-      {
-        "sentence": "友達と **試**す。",
-        "reading": "ため"
-      }
-    ],
-    "sentences": [
-      "テレビを **試**みます。",
-      "友達と **試**す。"
-    ]
-  },
-  {
-    "char": "説",
-    "readings": [
-      "と"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "ここから **説**く。",
-        "reading": "と"
-      }
-    ],
-    "sentences": [
-      "ここから **説**く。"
-    ]
-  },
-  {
-    "char": "辞",
-    "readings": [
-      "いな"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **辞**む。",
-        "reading": "いな"
-      }
-    ],
-    "sentences": [
-      "みんなで **辞**む。"
-    ]
-  },
-  {
-    "char": "選",
-    "readings": [
-      "えら"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **選**ぶ。",
-        "reading": "えら"
-      }
-    ],
-    "sentences": [
-      "みんなで **選**ぶ。"
-    ]
-  },
-  {
-    "char": "録",
-    "readings": [
-      "しる"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **録**す。",
-        "reading": "しる"
-      }
-    ],
-    "sentences": [
-      "友達と **録**す。"
     ]
   },
   {
@@ -5775,54 +3829,6 @@
     ]
   },
   {
-    "char": "静",
-    "readings": [
-      "しず"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "字を **静**きます。",
-        "reading": "しず"
-      }
-    ],
-    "sentences": [
-      "字を **静**きます。"
-    ]
-  },
-  {
-    "char": "類",
-    "readings": [
-      "たぐ"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "本当のことを **類**います。",
-        "reading": "たぐ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **類**います。"
-    ]
-  },
-  {
-    "char": "飛",
-    "readings": [
-      "と"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "みんなで **飛**ぶ。",
-        "reading": "と"
-      }
-    ],
-    "sentences": [
-      "みんなで **飛**ぶ。"
-    ]
-  },
-  {
     "char": "香",
     "readings": [
       "か"
@@ -5836,22 +3842,6 @@
     ],
     "sentences": [
       "花の **香**りが します。"
-    ]
-  },
-  {
-    "char": "験",
-    "readings": [
-      "ため"
-    ],
-    "grade": 4,
-    "examples": [
-      {
-        "sentence": "友達と **験**す。",
-        "reading": "ため"
-      }
-    ],
-    "sentences": [
-      "友達と **験**す。"
     ]
   },
   {
@@ -5871,1574 +3861,24 @@
     ]
   },
   {
-    "char": "任",
-    "readings": [
-      "まか"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **任**す。",
-        "reading": "まか"
-      }
-    ],
-    "sentences": [
-      "友達と **任**す。"
-    ]
-  },
-  {
-    "char": "余",
-    "readings": [
-      "あま"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **余**す。",
-        "reading": "あま"
-      }
-    ],
-    "sentences": [
-      "友達と **余**す。"
-    ]
-  },
-  {
-    "char": "保",
-    "readings": [
-      "たも"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "りんごが **保**つ あります。",
-        "reading": "たも"
-      }
-    ],
-    "sentences": [
-      "りんごが **保**つ あります。"
-    ]
-  },
-  {
-    "char": "効",
-    "readings": [
-      "き"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **効**く。",
-        "reading": "き"
-      }
-    ],
-    "sentences": [
-      "ここから **効**く。"
-    ]
-  },
-  {
-    "char": "勢",
-    "readings": [
-      "いきお"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **勢**います。",
-        "reading": "いきお"
-      }
-    ],
-    "sentences": [
-      "本当のことを **勢**います。"
-    ]
-  },
-  {
-    "char": "厚",
-    "readings": [
-      "あつ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **厚**います。",
-        "reading": "あつ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **厚**います。"
-    ]
-  },
-  {
-    "char": "営",
-    "readings": [
-      "いとな"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "みんなで **営**む。",
-        "reading": "いとな"
-      },
-      {
-        "sentence": "本を **営**み。",
-        "reading": "いとな"
-      }
-    ],
-    "sentences": [
-      "みんなで **営**む。",
-      "本を **営**み。"
-    ]
-  },
-  {
-    "char": "因",
-    "readings": [
-      "ちな"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "みんなで **因**む。",
-        "reading": "ちな"
-      }
-    ],
-    "sentences": [
-      "みんなで **因**む。"
-    ]
-  },
-  {
-    "char": "団",
-    "readings": [
-      "まる"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **団**います。",
-        "reading": "まる"
-      }
-    ],
-    "sentences": [
-      "本当のことを **団**います。"
-    ]
-  },
-  {
-    "char": "圧",
-    "readings": [
-      "お"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **圧**す。",
-        "reading": "お"
-      },
-      {
-        "sentence": "友達と **圧**す。",
-        "reading": "へ"
-      }
-    ],
-    "sentences": [
-      "友達と **圧**す。",
-      "友達と **圧**す。"
-    ]
-  },
-  {
-    "char": "均",
+    "char": "並",
     "readings": [
       "なら"
     ],
-    "grade": 5,
+    "grade": 6,
     "examples": [
       {
-        "sentence": "友達と **均**す。",
+        "sentence": "お店に **並**んで 待ちました。",
+        "reading": "なら"
+      },
+      {
+        "sentence": "本を **並**べました。",
         "reading": "なら"
       }
     ],
     "sentences": [
-      "友達と **均**す。"
-    ]
-  },
-  {
-    "char": "報",
-    "readings": [
-      "むく"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **報**います。",
-        "reading": "むく"
-      }
-    ],
-    "sentences": [
-      "本当のことを **報**います。"
-    ]
-  },
-  {
-    "char": "増",
-    "readings": [
-      "ま"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **増**す。",
-        "reading": "ま"
-      }
-    ],
-    "sentences": [
-      "友達と **増**す。"
-    ]
-  },
-  {
-    "char": "夢",
-    "readings": [
-      "ゆめ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "テレビを **夢**みます。",
-        "reading": "ゆめ"
-      },
-      {
-        "sentence": "本当のことを **夢**います。",
-        "reading": "くら"
-      }
-    ],
-    "sentences": [
-      "テレビを **夢**みます。",
-      "本当のことを **夢**います。"
-    ]
-  },
-  {
-    "char": "富",
-    "readings": [
-      "と"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "みんなで **富**む。",
-        "reading": "と"
-      }
-    ],
-    "sentences": [
-      "みんなで **富**む。"
-    ]
-  },
-  {
-    "char": "導",
-    "readings": [
-      "みちび"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **導**く。",
-        "reading": "みちび"
-      }
-    ],
-    "sentences": [
-      "ここから **導**く。"
-    ]
-  },
-  {
-    "char": "弁",
-    "readings": [
-      "わ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "お花に **弁**けました。",
-        "reading": "わ"
-      }
-    ],
-    "sentences": [
-      "お花に **弁**けました。"
-    ]
-  },
-  {
-    "char": "往",
-    "readings": [
-      "い"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **往**く。",
-        "reading": "い"
-      }
-    ],
-    "sentences": [
-      "ここから **往**く。"
-    ]
-  },
-  {
-    "char": "志",
-    "readings": [
-      "こころざ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **志**す。",
-        "reading": "こころざ"
-      }
-    ],
-    "sentences": [
-      "友達と **志**す。"
-    ]
-  },
-  {
-    "char": "快",
-    "readings": [
-      "こころよ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **快**います。",
-        "reading": "こころよ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **快**います。"
-    ]
-  },
-  {
-    "char": "承",
-    "readings": [
-      "う"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "お花に **承**けました。",
-        "reading": "う"
-      }
-    ],
-    "sentences": [
-      "お花に **承**けました。"
-    ]
-  },
-  {
-    "char": "招",
-    "readings": [
-      "まね"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **招**く。",
-        "reading": "まね"
-      }
-    ],
-    "sentences": [
-      "ここから **招**く。"
-    ]
-  },
-  {
-    "char": "授",
-    "readings": [
-      "さず"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "お花に **授**けました。",
-        "reading": "さず"
-      },
-      {
-        "sentence": "字を **授**きます。",
-        "reading": "さず"
-      }
-    ],
-    "sentences": [
-      "お花に **授**けました。",
-      "字を **授**きます。"
-    ]
-  },
-  {
-    "char": "接",
-    "readings": [
-      "つ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **接**ぐ。",
-        "reading": "つ"
-      }
-    ],
-    "sentences": [
-      "ここから **接**ぐ。"
-    ]
-  },
-  {
-    "char": "故",
-    "readings": [
-      "ふる"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **故**います。",
-        "reading": "ふる"
-      }
-    ],
-    "sentences": [
-      "本当のことを **故**います。"
-    ]
-  },
-  {
-    "char": "断",
-    "readings": [
-      "た"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "りんごが **断**つ あります。",
-        "reading": "た"
-      }
-    ],
-    "sentences": [
-      "りんごが **断**つ あります。"
-    ]
-  },
-  {
-    "char": "旧",
-    "readings": [
-      "ふる"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **旧**います。",
-        "reading": "ふる"
-      }
-    ],
-    "sentences": [
-      "本当のことを **旧**います。"
-    ]
-  },
-  {
-    "char": "易",
-    "readings": [
-      "やす"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **易**います。",
-        "reading": "やす"
-      }
-    ],
-    "sentences": [
-      "本当のことを **易**います。"
-    ]
-  },
-  {
-    "char": "暴",
-    "readings": [
-      "あば"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **暴**く。",
-        "reading": "あば"
-      }
-    ],
-    "sentences": [
-      "ここから **暴**く。"
-    ]
-  },
-  {
-    "char": "検",
-    "readings": [
-      "しら"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ごはんを **検**べます。",
-        "reading": "しら"
-      }
-    ],
-    "sentences": [
-      "ごはんを **検**べます。"
-    ]
-  },
-  {
-    "char": "比",
-    "readings": [
-      "くら"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ごはんを **比**べます。",
-        "reading": "くら"
-      }
-    ],
-    "sentences": [
-      "ごはんを **比**べます。"
-    ]
-  },
-  {
-    "char": "永",
-    "readings": [
-      "なが"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **永**います。",
-        "reading": "なが"
-      }
-    ],
-    "sentences": [
-      "本当のことを **永**います。"
-    ]
-  },
-  {
-    "char": "潔",
-    "readings": [
-      "いさぎよ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **潔**います。",
-        "reading": "いさぎよ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **潔**います。"
-    ]
-  },
-  {
-    "char": "災",
-    "readings": [
-      "わざわ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **災**います。",
-        "reading": "わざわ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **災**います。"
-    ]
-  },
-  {
-    "char": "燃",
-    "readings": [
-      "も"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **燃**す。",
-        "reading": "も"
-      }
-    ],
-    "sentences": [
-      "友達と **燃**す。"
-    ]
-  },
-  {
-    "char": "犯",
-    "readings": [
-      "おか"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **犯**す。",
-        "reading": "おか"
-      }
-    ],
-    "sentences": [
-      "友達と **犯**す。"
-    ]
-  },
-  {
-    "char": "率",
-    "readings": [
-      "ひき"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **率**います。",
-        "reading": "ひき"
-      }
-    ],
-    "sentences": [
-      "本当のことを **率**います。"
-    ]
-  },
-  {
-    "char": "現",
-    "readings": [
-      "あらわ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **現**す。",
-        "reading": "あらわ"
-      }
-    ],
-    "sentences": [
-      "友達と **現**す。"
-    ]
-  },
-  {
-    "char": "略",
-    "readings": [
-      "はぶ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **略**く。",
-        "reading": "はぶ"
-      },
-      {
-        "sentence": "友達と **略**す。",
-        "reading": "おか"
-      }
-    ],
-    "sentences": [
-      "ここから **略**く。",
-      "友達と **略**す。"
-    ]
-  },
-  {
-    "char": "益",
-    "readings": [
-      "ま"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **益**す。",
-        "reading": "ま"
-      }
-    ],
-    "sentences": [
-      "友達と **益**す。"
-    ]
-  },
-  {
-    "char": "確",
-    "readings": [
-      "たし"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "字を **確**きます。",
-        "reading": "たし"
-      }
-    ],
-    "sentences": [
-      "字を **確**きます。"
-    ]
-  },
-  {
-    "char": "示",
-    "readings": [
-      "しめ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **示**す。",
-        "reading": "しめ"
-      }
-    ],
-    "sentences": [
-      "友達と **示**す。"
-    ]
-  },
-  {
-    "char": "移",
-    "readings": [
-      "うつ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **移**す。",
-        "reading": "うつ"
-      }
-    ],
-    "sentences": [
-      "友達と **移**す。"
-    ]
-  },
-  {
-    "char": "築",
-    "readings": [
-      "きず"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **築**く。",
-        "reading": "きず"
-      }
-    ],
-    "sentences": [
-      "ここから **築**く。"
-    ]
-  },
-  {
-    "char": "経",
-    "readings": [
-      "た"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "りんごが **経**つ あります。",
-        "reading": "た"
-      }
-    ],
-    "sentences": [
-      "りんごが **経**つ あります。"
-    ]
-  },
-  {
-    "char": "統",
-    "readings": [
-      "す"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ごはんを **統**べます。",
-        "reading": "す"
-      }
-    ],
-    "sentences": [
-      "ごはんを **統**べます。"
-    ]
-  },
-  {
-    "char": "絶",
-    "readings": [
-      "た"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "りんごが **絶**つ あります。",
-        "reading": "た"
-      }
-    ],
-    "sentences": [
-      "りんごが **絶**つ あります。"
-    ]
-  },
-  {
-    "char": "総",
-    "readings": [
-      "す"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ごはんを **総**べます。",
-        "reading": "す"
-      },
-      {
-        "sentence": "ごはんを **総**て。",
-        "reading": "すべ"
-      }
-    ],
-    "sentences": [
-      "ごはんを **総**べます。",
-      "ごはんを **総**て。"
-    ]
-  },
-  {
-    "char": "編",
-    "readings": [
-      "あ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "みんなで **編**む。",
-        "reading": "あ"
-      }
-    ],
-    "sentences": [
-      "みんなで **編**む。"
-    ]
-  },
-  {
-    "char": "耕",
-    "readings": [
-      "たがや"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **耕**す。",
-        "reading": "たがや"
-      }
-    ],
-    "sentences": [
-      "友達と **耕**す。"
-    ]
-  },
-  {
-    "char": "能",
-    "readings": [
-      "よ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **能**く。",
-        "reading": "よ"
-      }
-    ],
-    "sentences": [
-      "ここから **能**く。"
-    ]
-  },
-  {
-    "char": "興",
-    "readings": [
-      "おこ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **興**す。",
-        "reading": "おこ"
-      }
-    ],
-    "sentences": [
-      "友達と **興**す。"
-    ]
-  },
-  {
-    "char": "解",
-    "readings": [
-      "と"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **解**く。",
-        "reading": "と"
-      },
-      {
-        "sentence": "字を **解**きます。",
-        "reading": "と"
-      },
-      {
-        "sentence": "お花に **解**けました。",
-        "reading": "と"
-      }
-    ],
-    "sentences": [
-      "ここから **解**く。",
-      "字を **解**きます。",
-      "お花に **解**けました。"
-    ]
-  },
-  {
-    "char": "設",
-    "readings": [
-      "もう"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "お花に **設**けました。",
-        "reading": "もう"
-      }
-    ],
-    "sentences": [
-      "お花に **設**けました。"
-    ]
-  },
-  {
-    "char": "許",
-    "readings": [
-      "ゆる"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **許**す。",
-        "reading": "ゆる"
-      }
-    ],
-    "sentences": [
-      "友達と **許**す。"
-    ]
-  },
-  {
-    "char": "識",
-    "readings": [
-      "しる"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **識**す。",
-        "reading": "しる"
-      }
-    ],
-    "sentences": [
-      "友達と **識**す。"
-    ]
-  },
-  {
-    "char": "豊",
-    "readings": [
-      "ゆた"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "字を **豊**きます。",
-        "reading": "ゆた"
-      }
-    ],
-    "sentences": [
-      "字を **豊**きます。"
-    ]
-  },
-  {
-    "char": "貸",
-    "readings": [
-      "か"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **貸**す。",
-        "reading": "か"
-      }
-    ],
-    "sentences": [
-      "友達と **貸**す。"
-    ]
-  },
-  {
-    "char": "賛",
-    "readings": [
-      "たす"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "お花に **賛**けました。",
-        "reading": "たす"
-      }
-    ],
-    "sentences": [
-      "お花に **賛**けました。"
-    ]
-  },
-  {
-    "char": "質",
-    "readings": [
-      "ただ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "友達と **質**す。",
-        "reading": "ただ"
-      }
-    ],
-    "sentences": [
-      "友達と **質**す。"
-    ]
-  },
-  {
-    "char": "述",
-    "readings": [
-      "の"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ごはんを **述**べます。",
-        "reading": "の"
-      }
-    ],
-    "sentences": [
-      "ごはんを **述**べます。"
-    ]
-  },
-  {
-    "char": "退",
-    "readings": [
-      "しりぞ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **退**く。",
-        "reading": "しりぞ"
-      },
-      {
-        "sentence": "お花に **退**けました。",
-        "reading": "しりぞ"
-      },
-      {
-        "sentence": "ここから **退**く。",
-        "reading": "ひ"
-      }
-    ],
-    "sentences": [
-      "ここから **退**く。",
-      "お花に **退**けました。",
-      "ここから **退**く。"
-    ]
-  },
-  {
-    "char": "酸",
-    "readings": [
-      "す"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "本当のことを **酸**います。",
-        "reading": "す"
-      }
-    ],
-    "sentences": [
-      "本当のことを **酸**います。"
-    ]
-  },
-  {
-    "char": "防",
-    "readings": [
-      "ふせ"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "ここから **防**ぐ。",
-        "reading": "ふせ"
-      }
-    ],
-    "sentences": [
-      "ここから **防**ぐ。"
-    ]
-  },
-  {
-    "char": "預",
-    "readings": [
-      "あず"
-    ],
-    "grade": 5,
-    "examples": [
-      {
-        "sentence": "お花に **預**けました。",
-        "reading": "あず"
-      },
-      {
-        "sentence": "字を **預**きます。",
-        "reading": "あず"
-      }
-    ],
-    "sentences": [
-      "お花に **預**けました。",
-      "字を **預**きます。"
-    ]
-  },
-  {
-    "char": "並",
-    "readings": [
-      "な"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本を **並**み。",
-        "reading": "な"
-      },
-      {
-        "sentence": "ごはんを **並**べます。",
-        "reading": "なら"
-      }
-    ],
-    "sentences": [
-      "本を **並**み。",
-      "ごはんを **並**べます。"
-    ]
-  },
-  {
-    "char": "乱",
-    "readings": [
-      "みだ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "友達と **乱**す。",
-        "reading": "みだ"
-      }
-    ],
-    "sentences": [
-      "友達と **乱**す。"
-    ]
-  },
-  {
-    "char": "亡",
-    "readings": [
-      "な"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **亡**います。",
-        "reading": "な"
-      },
-      {
-        "sentence": "音楽を **亡**き。",
-        "reading": "な"
-      }
-    ],
-    "sentences": [
-      "本当のことを **亡**います。",
-      "音楽を **亡**き。"
-    ]
-  },
-  {
-    "char": "傷",
-    "readings": [
-      "いた"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "みんなで **傷**む。",
-        "reading": "いた"
-      }
-    ],
-    "sentences": [
-      "みんなで **傷**む。"
-    ]
-  },
-  {
-    "char": "刻",
-    "readings": [
-      "きざ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "みんなで **刻**む。",
-        "reading": "きざ"
-      },
-      {
-        "sentence": "本を **刻**み。",
-        "reading": "きざ"
-      }
-    ],
-    "sentences": [
-      "みんなで **刻**む。",
-      "本を **刻**み。"
-    ]
-  },
-  {
-    "char": "厳",
-    "readings": [
-      "おごそ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "字を **厳**きます。",
-        "reading": "おごそ"
-      }
-    ],
-    "sentences": [
-      "字を **厳**きます。"
-    ]
-  },
-  {
-    "char": "呼",
-    "readings": [
-      "よ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "みんなで **呼**ぶ。",
-        "reading": "よ"
-      }
-    ],
-    "sentences": [
-      "みんなで **呼**ぶ。"
-    ]
-  },
-  {
-    "char": "善",
-    "readings": [
-      "よ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **善**います。",
-        "reading": "よ"
-      },
-      {
-        "sentence": "本当のことを **善**います。",
-        "reading": "い"
-      },
-      {
-        "sentence": "ここから **善**く。",
-        "reading": "よ"
-      }
-    ],
-    "sentences": [
-      "本当のことを **善**います。",
-      "本当のことを **善**います。",
-      "ここから **善**く。"
-    ]
-  },
-  {
-    "char": "存",
-    "readings": [
-      "たも"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "りんごが **存**つ あります。",
-        "reading": "たも"
-      }
-    ],
-    "sentences": [
-      "りんごが **存**つ あります。"
-    ]
-  },
-  {
-    "char": "密",
-    "readings": [
-      "ひそ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "字を **密**きます。",
-        "reading": "ひそ"
-      }
-    ],
-    "sentences": [
-      "字を **密**きます。"
-    ]
-  },
-  {
-    "char": "射",
-    "readings": [
-      "さ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "友達と **射**す。",
-        "reading": "さ"
-      },
-      {
-        "sentence": "りんごが **射**つ あります。",
-        "reading": "う"
-      }
-    ],
-    "sentences": [
-      "友達と **射**す。",
-      "りんごが **射**つ あります。"
-    ]
-  },
-  {
-    "char": "尊",
-    "readings": [
-      "たっと"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **尊**います。",
-        "reading": "たっと"
-      },
-      {
-        "sentence": "本当のことを **尊**います。",
-        "reading": "とうと"
-      },
-      {
-        "sentence": "みんなで **尊**ぶ。",
-        "reading": "たっと"
-      }
-    ],
-    "sentences": [
-      "本当のことを **尊**います。",
-      "本当のことを **尊**います。",
-      "みんなで **尊**ぶ。"
-    ]
-  },
-  {
-    "char": "就",
-    "readings": [
-      "つ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "ここから **就**く。",
-        "reading": "つ"
-      },
-      {
-        "sentence": "お花に **就**けました。",
-        "reading": "つ"
-      }
-    ],
-    "sentences": [
-      "ここから **就**く。",
-      "お花に **就**けました。"
-    ]
-  },
-  {
-    "char": "届",
-    "readings": [
-      "とど"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "お花に **届**けました。",
-        "reading": "とど"
-      },
-      {
-        "sentence": "ここから **届**く。",
-        "reading": "とど"
-      }
-    ],
-    "sentences": [
-      "お花に **届**けました。",
-      "ここから **届**く。"
-    ]
-  },
-  {
-    "char": "巻",
-    "readings": [
-      "ま"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "ここから **巻**く。",
-        "reading": "ま"
-      },
-      {
-        "sentence": "音楽を **巻**き。",
-        "reading": "ま"
-      }
-    ],
-    "sentences": [
-      "ここから **巻**く。",
-      "音楽を **巻**き。"
-    ]
-  },
-  {
-    "char": "干",
-    "readings": [
-      "ほ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "友達と **干**す。",
-        "reading": "ほ"
-      }
-    ],
-    "sentences": [
-      "友達と **干**す。"
-    ]
-  },
-  {
-    "char": "幼",
-    "readings": [
-      "おさな"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **幼**います。",
-        "reading": "おさな"
-      }
-    ],
-    "sentences": [
-      "本当のことを **幼**います。"
-    ]
-  },
-  {
-    "char": "延",
-    "readings": [
-      "の"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "ごはんを **延**べます。",
-        "reading": "の"
-      }
-    ],
-    "sentences": [
-      "ごはんを **延**べます。"
-    ]
-  },
-  {
-    "char": "我",
-    "readings": [
-      "わ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "階段を **我**がりました。",
-        "reading": "わ"
-      }
-    ],
-    "sentences": [
-      "階段を **我**がりました。"
-    ]
-  },
-  {
-    "char": "担",
-    "readings": [
-      "かつ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "ここから **担**ぐ。",
-        "reading": "かつ"
-      }
-    ],
-    "sentences": [
-      "ここから **担**ぐ。"
-    ]
-  },
-  {
-    "char": "拝",
-    "readings": [
-      "おが"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "みんなで **拝**む。",
-        "reading": "おが"
-      },
-      {
-        "sentence": "みんなで **拝**む。",
-        "reading": "おろが"
-      }
-    ],
-    "sentences": [
-      "みんなで **拝**む。",
-      "みんなで **拝**む。"
-    ]
-  },
-  {
-    "char": "拡",
-    "readings": [
-      "ひろ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "階段を **拡**がりました。",
-        "reading": "ひろ"
-      }
-    ],
-    "sentences": [
-      "階段を **拡**がりました。"
-    ]
-  },
-  {
-    "char": "探",
-    "readings": [
-      "さが"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "友達と **探**す。",
-        "reading": "さが"
-      }
-    ],
-    "sentences": [
-      "友達と **探**す。"
-    ]
-  },
-  {
-    "char": "推",
-    "readings": [
-      "お"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "友達と **推**す。",
-        "reading": "お"
-      }
-    ],
-    "sentences": [
-      "友達と **推**す。"
-    ]
-  },
-  {
-    "char": "映",
-    "readings": [
-      "うつ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "友達と **映**す。",
-        "reading": "うつ"
-      }
-    ],
-    "sentences": [
-      "友達と **映**す。"
-    ]
-  },
-  {
-    "char": "暖",
-    "readings": [
-      "あたた"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "字を **暖**きます。",
-        "reading": "あたた"
-      }
-    ],
-    "sentences": [
-      "字を **暖**きます。"
+      "お店に **並**んで 待ちました。",
+      "本を **並**べました。"
     ]
   },
   {
@@ -7458,364 +3898,19 @@
     ]
   },
   {
-    "char": "済",
-    "readings": [
-      "す"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "みんなで **済**む。",
-        "reading": "す"
-      }
-    ],
-    "sentences": [
-      "みんなで **済**む。"
-    ]
-  },
-  {
-    "char": "痛",
-    "readings": [
-      "いた"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **痛**います。",
-        "reading": "いた"
-      },
-      {
-        "sentence": "みんなで **痛**む。",
-        "reading": "いた"
-      }
-    ],
-    "sentences": [
-      "本当のことを **痛**います。",
-      "みんなで **痛**む。"
-    ]
-  },
-  {
-    "char": "秘",
-    "readings": [
-      "ひそ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "字を **秘**きます。",
-        "reading": "ひそ"
-      },
-      {
-        "sentence": "友達と **秘**す。",
-        "reading": "かく"
-      }
-    ],
-    "sentences": [
-      "字を **秘**きます。",
-      "友達と **秘**す。"
-    ]
-  },
-  {
-    "char": "簡",
-    "readings": [
-      "えら"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "みんなで **簡**ぶ。",
-        "reading": "えら"
-      }
-    ],
-    "sentences": [
-      "みんなで **簡**ぶ。"
-    ]
-  },
-  {
-    "char": "紅",
-    "readings": [
-      "あか"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **紅**います。",
-        "reading": "あか"
-      }
-    ],
-    "sentences": [
-      "本当のことを **紅**います。"
-    ]
-  },
-  {
-    "char": "縮",
-    "readings": [
-      "ちぢ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "みんなで **縮**む。",
-        "reading": "ちぢ"
-      }
-    ],
-    "sentences": [
-      "みんなで **縮**む。"
-    ]
-  },
-  {
-    "char": "背",
-    "readings": [
-      "そむ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "ここから **背**く。",
-        "reading": "そむ"
-      }
-    ],
-    "sentences": [
-      "ここから **背**く。"
-    ]
-  },
-  {
-    "char": "臨",
-    "readings": [
-      "のぞ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "みんなで **臨**む。",
-        "reading": "のぞ"
-      }
-    ],
-    "sentences": [
-      "みんなで **臨**む。"
-    ]
-  },
-  {
-    "char": "若",
-    "readings": [
-      "わか"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **若**います。",
-        "reading": "わか"
-      }
-    ],
-    "sentences": [
-      "本当のことを **若**います。"
-    ]
-  },
-  {
-    "char": "著",
-    "readings": [
-      "あらわ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "友達と **著**す。",
-        "reading": "あらわ"
-      }
-    ],
-    "sentences": [
-      "友達と **著**す。"
-    ]
-  },
-  {
-    "char": "蒸",
-    "readings": [
-      "む"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "友達と **蒸**す。",
-        "reading": "む"
-      }
-    ],
-    "sentences": [
-      "友達と **蒸**す。"
-    ]
-  },
-  {
-    "char": "衆",
-    "readings": [
-      "おお"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **衆**います。",
-        "reading": "おお"
-      }
-    ],
-    "sentences": [
-      "本当のことを **衆**います。"
-    ]
-  },
-  {
-    "char": "裁",
-    "readings": [
-      "た"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "りんごが **裁**つ あります。",
-        "reading": "た"
-      },
-      {
-        "sentence": "ここから **裁**く。",
-        "reading": "さば"
-      }
-    ],
-    "sentences": [
-      "りんごが **裁**つ あります。",
-      "ここから **裁**く。"
-    ]
-  },
-  {
-    "char": "装",
-    "readings": [
-      "よそお"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **装**います。",
-        "reading": "よそお"
-      }
-    ],
-    "sentences": [
-      "本当のことを **装**います。"
-    ]
-  },
-  {
-    "char": "討",
-    "readings": [
-      "う"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "りんごが **討**つ あります。",
-        "reading": "う"
-      }
-    ],
-    "sentences": [
-      "りんごが **討**つ あります。"
-    ]
-  },
-  {
-    "char": "貴",
-    "readings": [
-      "たっと"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "本当のことを **貴**います。",
-        "reading": "たっと"
-      },
-      {
-        "sentence": "本当のことを **貴**います。",
-        "reading": "とうと"
-      },
-      {
-        "sentence": "みんなで **貴**ぶ。",
-        "reading": "たっと"
-      }
-    ],
-    "sentences": [
-      "本当のことを **貴**います。",
-      "本当のことを **貴**います。",
-      "みんなで **貴**ぶ。"
-    ]
-  },
-  {
-    "char": "遺",
-    "readings": [
-      "のこ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "友達と **遺**す。",
-        "reading": "のこ"
-      }
-    ],
-    "sentences": [
-      "友達と **遺**す。"
-    ]
-  },
-  {
-    "char": "降",
-    "readings": [
-      "お"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "階段を **降**りました。",
-        "reading": "お"
-      }
-    ],
-    "sentences": [
-      "階段を **降**りました。"
-    ]
-  },
-  {
-    "char": "除",
-    "readings": [
-      "のぞ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "ここから **除**く。",
-        "reading": "のぞ"
-      }
-    ],
-    "sentences": [
-      "ここから **除**く。"
-    ]
-  },
-  {
-    "char": "難",
+    "char": "片",
     "readings": [
       "かた"
     ],
     "grade": 6,
     "examples": [
       {
-        "sentence": "本当のことを **難**います。",
+        "sentence": "部屋の **片**づけを しました。",
         "reading": "かた"
       }
     ],
     "sentences": [
-      "本当のことを **難**います。"
-    ]
-  },
-  {
-    "char": "頂",
-    "readings": [
-      "いただ"
-    ],
-    "grade": 6,
-    "examples": [
-      {
-        "sentence": "ここから **頂**く。",
-        "reading": "いただ"
-      }
-    ],
-    "sentences": [
-      "ここから **頂**く。"
+      "部屋の **片**づけを しました。"
     ]
   }
 ]

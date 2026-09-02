@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 from .kokugo_natural import is_natural_example
+from .shakai import GeneratedQuestion
 
 MAX_STEP = 100
 WORD_STEP_FROM = 40
@@ -63,6 +64,16 @@ def _is_valid_example(target: str, sentence: str) -> bool:
     return is_natural_example(target, sentence)
 
 
+def _reading_for_entry(entry: dict, sentence: str) -> str:
+    examples = entry.get("examples") or []
+    for ex in examples:
+        if ex["sentence"] == sentence:
+            return ex["reading"]
+    if "readings" in entry:
+        return entry["readings"][0]
+    return entry["reading"]
+
+
 def _pick_example(entry: dict) -> tuple[str, str]:
     examples = entry.get("examples") or []
     target = _target(entry)
@@ -82,29 +93,59 @@ def _prompt_context(entry: dict) -> tuple[str, str]:
     return f"{display}\n「{target}」の よみは？", reading
 
 
-def _one(kind: str, step: int) -> tuple[str, str]:
+def _reading_pool(kind: str, step: int) -> list[str]:
     pool = _pool(kind, step)
     if not pool:
         pool = _kanji_bank() if kind == "かんじのよみ" else _jukugo_bank()
-    return _prompt_context(random.choice(pool))
+    readings: set[str] = set()
+    for entry in pool:
+        for ex in entry.get("examples") or []:
+            readings.add(ex["reading"])
+        if "readings" in entry:
+            readings.update(entry["readings"])
+        elif "reading" in entry:
+            readings.add(entry["reading"])
+    return sorted(readings)
 
 
-def pick_ten(kind: str, step: int = 1) -> list[tuple[str, str]]:
+def _shuffle_reading_choices(correct: str, pool: list[str]) -> list[str]:
+    wrong = [item for item in pool if item != correct]
+    picks = random.sample(wrong, min(3, len(wrong)))
+    while len(picks) < 3 and wrong:
+        extra = random.choice(wrong)
+        if extra not in picks:
+            picks.append(extra)
+    options = picks + [correct]
+    random.shuffle(options)
+    return options
+
+
+def _one(kind: str, step: int) -> GeneratedQuestion:
+    pool = _pool(kind, step)
+    if not pool:
+        pool = _kanji_bank() if kind == "かんじのよみ" else _jukugo_bank()
+    entry = random.choice(pool)
+    prompt, answer = _prompt_context(entry)
+    choice_pool = _reading_pool(kind, step)
+    choices = _shuffle_reading_choices(answer, choice_pool)
+    return GeneratedQuestion(prompt=prompt, correct=answer, choices=choices)
+
+
+def pick_ten(kind: str, step: int = 1) -> list[GeneratedQuestion]:
     step = min(max(step, 1), MAX_STEP)
     seen: set[str] = set()
-    out: list[tuple[str, str]] = []
+    out: list[GeneratedQuestion] = []
 
     for _ in range(300):
         if len(out) >= 10:
             break
-        prompt, answer = _one(kind, step)
-        if prompt in seen:
+        question = _one(kind, step)
+        if question.prompt in seen:
             continue
-        seen.add(prompt)
-        out.append((prompt, answer))
+        seen.add(question.prompt)
+        out.append(question)
 
     while len(out) < 10:
-        prompt, answer = _one(kind, step)
-        out.append((prompt, answer))
+        out.append(_one(kind, step))
 
     return out

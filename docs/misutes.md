@@ -6,6 +6,22 @@
 
 ---
 
+## 2026-09-02 L16 デモフィードバック修正（ゲート B 待ち）
+
+- 人間: デモ修了・L16 承認。ゆうきさん継続利用のため **DB リセット禁止**。
+- **実装:**
+  - 国語バンク: `正しい`→読み `ただ`、`十分`→`じゅっ`。`kanji.json` / `jukugo.json` 再生成。
+  - 国語ドリル: 4択 UI（`kokugo.py` が `choices` 付き `GeneratedQuestion` を返す）。
+  - 採点ゆるし: `_reading_variants`（拗音・長音・促音）。`kokugo_reading_matches` 拡張。
+  - フロント: `isChoiceDrill` に国語追加。誤答時に `child_answer` 表示。
+  - 社会: `_kenkatachi_choices` で北海道→東北3県を誤答候補に。
+  - 地図記号: `LABEL_CROP_RATIO` 0.60、`--recrop` 追加。PIL 保存は temp 経由で Windows ロック回避。
+- **やらなかったこと（F1〜F4）:** ご褒美上限、バランスボーナス、英語、ミニゲーム。
+- **確認:** `pytest` 82 passed。`npm run build` 成功。
+- **注意:** 記号 PNG の `--recrop` はアプリ稼働中だとファイルロックで失敗しうる。比率変更はスクリプトに反映済み。
+
+---
+
 ## 2026-08-30 L13 国語読解の提案（ゲートA 待ち）
 
 - 人間: お話の内容は良い。1話3問の短尺ドリル。レベルは社会と同様の分け方でよい。

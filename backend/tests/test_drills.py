@@ -158,9 +158,17 @@ def test_start_hides_unanswered_correct():
 def test_resume_in_progress_instead_of_new():
     client = TestClient(app)
     first = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "たしざん"}).json()
-    second = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "かけざん"}).json()
+    second = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "たしざん"}).json()
     assert first["id"] == second["id"]
     assert second["kind"] == "たしざん"
+
+
+def test_start_different_kind_closes_in_progress():
+    client = TestClient(app)
+    first = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "たしざん"}).json()
+    second = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "かけざん"}).json()
+    assert first["id"] != second["id"]
+    assert second["kind"] == "かけざん"
 
 
 def test_answer_and_finish():
@@ -213,6 +221,7 @@ def test_start_kokugo_jukugo():
     assert data["step"] == 1
     assert len(data["questions"]) == 10
     assert all(q["correct"] is None for q in data["questions"])
+    assert all(q["choices"] is not None and len(q["choices"]) == 4 for q in data["questions"])
 
 
 def test_kokugo_step1_uses_grade1_pool():
@@ -221,26 +230,35 @@ def test_kokugo_step1_uses_grade1_pool():
     from app.kokugo import _kanji_bank, _max_grade_for_step
 
     allowed = {row["char"] for row in _kanji_bank() if row["grade"] <= _max_grade_for_step(1)}
-    for prompt, _ in items:
-        assert "？" in prompt
-        assert "\n" in prompt
-        assert any(char in prompt for char in allowed)
+    for question in items:
+        assert "？" in question.prompt
+        assert "\n" in question.prompt
+        assert any(char in question.prompt for char in allowed)
 
 
 def test_kokugo_always_uses_context():
     for kind in ("かんじのよみ", "じゅくごのよみ"):
         items = generate_ten(kind, 1)
         assert len(items) == 10
-        for prompt, _ in items:
-            assert "？" in prompt
-            assert "\n" in prompt
-            assert "「" in prompt and "」の よみは？" in prompt
+        for question in items:
+            assert "？" in question.prompt
+            assert "\n" in question.prompt
+            assert "「" in question.prompt and "」の よみは？" in question.prompt
+
+
+def test_kokugo_pick_ten_has_four_choices():
+    for kind in ("かんじのよみ", "じゅくごのよみ"):
+        items = generate_ten(kind, 1)
+        for question in items:
+            assert question.choices is not None
+            assert len(question.choices) == 4
+            assert question.correct in question.choices
 
 
 def test_kokugo_sentence_from_step40():
     items = generate_ten("じゅくごのよみ", 50)
     assert len(items) == 10
-    assert all("？" in p and "\n" in p for p, _ in items)
+    assert all("？" in q.prompt and "\n" in q.prompt for q in items)
 
 
 def test_kokugo_grades_katakana_as_hiragana():
@@ -321,6 +339,24 @@ def test_shakai_context_from_stage5():
     assert all("\n" in q.prompt for q in items[8:])
 
 
+def test_kokugo_bank_has_no_kun_templates():
+    import json
+    from pathlib import Path
+
+    from app.kokugo_natural import is_kun_template_bug, plain_sentence
+
+    data_dir = Path(__file__).resolve().parents[1] / "data" / "kokugo"
+    for name in ("kanji.json", "jukugo.json"):
+        for row in json.loads((data_dir / name).read_text(encoding="utf-8")):
+            target = row.get("char") or row["word"]
+            for example in row.get("examples", []):
+                assert not is_kun_template_bug(target, example["sentence"]), (
+                    name,
+                    target,
+                    plain_sentence(example["sentence"]),
+                )
+
+
 def test_kokugo_bank_examples_are_natural():
     import json
     from pathlib import Path
@@ -338,6 +374,23 @@ def test_kokugo_bank_examples_are_natural():
     for example in hi["examples"]:
         plain = plain_sentence(example["sentence"])
         assert "日本" not in plain, example
+    sei = next(row for row in kanji if row["char"] == "正")
+    tadashii = next(ex for ex in sei["examples"] if "正しい" in plain_sentence(ex["sentence"]))
+    assert tadashii["reading"] == "ただ"
+    juu = next(row for row in kanji if row["char"] == "十")
+    juppun = next(ex for ex in juu["examples"] if "十分" in plain_sentence(ex["sentence"]))
+    assert juppun["reading"] == "じゅっ"
+    en = next(row for row in kanji if row["char"] == "円")
+    assert any(ex["reading"] == "えん" for ex in en["examples"])
+    assert not any("本当のことを" in plain_sentence(ex["sentence"]) for ex in en["examples"])
+    katsu = next(row for row in kanji if row["char"] == "勝")
+    assert any("勝ちました" in plain_sentence(ex["sentence"]) for ex in katsu["examples"])
+    ken = next(row for row in kanji if row["char"] == "県")
+    assert ken["examples"][0]["reading"] == "けん"
+    assert "県庁" in plain_sentence(ken["examples"][0]["sentence"])
+    ha = next(row for row in kanji if row["char"] == "歯")
+    assert ha["examples"][0]["reading"] == "は"
+    assert "みがき" in plain_sentence(ha["examples"][0]["sentence"])
 
 
 def test_nihon_accepts_both_readings():
@@ -346,6 +399,15 @@ def test_nihon_accepts_both_readings():
     assert kokugo_reading_matches("にほん", "にほん")
     assert kokugo_reading_matches("にっぽん", "にほん")
     assert not kokugo_reading_matches("にち", "にほん")
+
+
+def test_kokugo_reading_leniency():
+    from app.generate import kokugo_reading_matches
+
+    assert kokugo_reading_matches("きや", "きゃ")
+    assert kokugo_reading_matches("しゆう", "しゅう")
+    assert kokugo_reading_matches("じゆつ", "じゅっ")
+    assert kokugo_reading_matches("こうえん", "こおえん")
 
 
 def test_drill_finish_awards_points():
@@ -442,3 +504,45 @@ def test_dokkai_progress_uses_six_stages():
     dokkai = next(row for row in rows if row["kind"] == "おはなしのどくかい")
     assert dokkai["max_step"] == 6
     assert dokkai["step_label"].startswith("ステージ")
+
+
+def test_get_drill_repairs_legacy_capital_prompt():
+    from sqlalchemy import select
+
+    from app.database import SessionLocal
+    from app.models import DrillQuestion, DrillSession
+
+    client = TestClient(app)
+    session = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "とどうふけん"}).json()
+    with SessionLocal() as db:
+        row = db.scalars(
+            select(DrillQuestion).where(
+                DrillQuestion.session_id == session["id"],
+                DrillQuestion.prompt.like("%おおさかふ%"),
+            )
+        ).first()
+        if row is None:
+            row = db.get(DrillQuestion, session["questions"][0]["id"])
+        row.prompt = "おおさかふの けんちょうしょざいちは？"
+        db.commit()
+    refreshed = client.get(f"/api/drills/{session['id']}", params={"role": "child"}).json()
+    osaka = next(q for q in refreshed["questions"] if "おおさかふ" in q["prompt"])
+    assert "ふちょうしょざいち" in osaka["prompt"]
+    assert "けんちょうしょざいち" not in osaka["prompt"].split("\n")[-1]
+
+
+def test_get_drill_closes_legacy_kokugo_session():
+    from app.database import SessionLocal
+    from app.models import DrillQuestion
+
+    client = TestClient(app)
+    session = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "かんじのよみ"}).json()
+    with SessionLocal() as db:
+        row = db.get(DrillQuestion, session["questions"][0]["id"])
+        row.choices_json = None
+        db.commit()
+    res = client.get(f"/api/drills/{session['id']}", params={"role": "child"})
+    assert res.status_code == 410
+    history = client.get("/api/drills/history", params={"role": "child"}).json()
+    assert all(row["id"] != session["id"] or row["status"] == "finished" for row in history)
+

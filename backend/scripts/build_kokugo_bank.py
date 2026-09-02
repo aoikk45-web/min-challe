@@ -19,6 +19,7 @@ from app.kokugo_natural import (
     AMBIGUOUS_GENERIC_PHRASES,
     SAFE_JUKUGO_SUFFIX_TEMPLATES as JUKUGO_SUFFIX_TEMPLATES,
     SKIP_JUKUGO,
+    is_kun_template_bug,
     is_natural_example,
     is_standalone_kanji_highlight,
 )
@@ -28,10 +29,10 @@ KYOIKU_URL = "https://raw.githubusercontent.com/davidluzgouveia/kanji-data/maste
 # 2020改訂で追加された都道府県漢字（1006字データセットに無い分）
 SUPPLEMENTAL_KANJI: dict[str, dict] = {
     "茨": {"grade": 4, "readings": ["いばら"], "sentences": ["**茨**の 花が さいています。"]},
-    "媛": {"grade": 4, "readings": ["ひめ"], "sentences": ["**媛**賀 へ 行きたいです。"]},
+    "媛": {"grade": 4, "readings": ["ひめ"], "sentences": ["愛**媛**県へ 行きたいです。"]},
     "岡": {"grade": 4, "readings": ["おか"], "sentences": ["小さな **岡**を のぼりました。"]},
     "潟": {"grade": 4, "readings": ["かた"], "sentences": ["新**潟**の 米は 有名です。"]},
-    "岐": {"grade": 4, "readings": ["また"], "sentences": ["**岐**阜の きれいな 川を 見ました。"]},
+    "岐": {"grade": 4, "readings": ["ぎ"], "sentences": ["**岐**阜の きれいな 川を 見ました。"]},
     "熊": {"grade": 4, "readings": ["くま"], "sentences": ["**熊**が 山に います。"]},
     "香": {"grade": 4, "readings": ["か"], "sentences": ["花の **香**りが します。"]},
     "佐": {"grade": 4, "readings": ["さ"], "sentences": ["**佐**藤さんと あいました。"]},
@@ -87,7 +88,7 @@ JUKUGO_BY_GRADE: dict[int, list[tuple[str, str]]] = {
         ("日本", "にほん"),
         ("左手", "ひだりて"),
         ("右手", "みぎて"),
-        ("音色", "おんいろ"),
+        ("音色", "ねいろ"),
         ("人数", "にんずう"),
     ],
     2: [
@@ -98,7 +99,6 @@ JUKUGO_BY_GRADE: dict[int, list[tuple[str, str]]] = {
         ("兄弟", "きょうだい"),
         ("姉妹", "しまい"),
         ("父母", "ふぼ"),
-        ("春秋", "しゅんじゅう"),
         ("曜日", "ようび"),
         ("時間", "じかん"),
         ("毎週", "まいしゅう"),
@@ -116,7 +116,7 @@ JUKUGO_BY_GRADE: dict[int, list[tuple[str, str]]] = {
         ("米屋", "こめや"),
         ("鳥羽", "とりば"),
         ("羽根", "はね"),
-        ("羽色", "はないろ"),
+        ("羽色", "はねいろ"),
         ("黒板", "こくばん"),
         ("白紙", "はくし"),
         ("黄色", "きいろ"),
@@ -152,6 +152,7 @@ JUKUGO_BY_GRADE: dict[int, list[tuple[str, str]]] = {
         ("試合", "しあい"),
         ("勝負", "しょうぶ"),
         ("出発", "しゅっぱつ"),
+        ("春夏秋冬", "しゅんかしゅうとう"),
         ("返事", "へんじ"),
         ("病気", "びょうき"),
         ("病院", "びょういん"),
@@ -502,7 +503,7 @@ JUKUGO_SENTENCES: dict[str, str] = {
     "赤色": "はたは **赤色** です。",
     "青色": "空は **青色** に 見えます。",
     "黄色": "**黄色** の 花が さいています。",
-    "羽色": "鳥の **羽色** が きれいです。",
+    "羽色": "小鳥の **羽色** が きれいです。",
     "虫食": "葉っぱに **虫食** が ありました。",
     "力仕事": "畑で **力仕事** を しました。",
     "村長": "**村長** さんに 会いました。",
@@ -511,7 +512,6 @@ JUKUGO_SENTENCES: dict[str, str] = {
     "王様": "**王様** の 絵を かきました。",
     "貝殻": "海で **貝殻** を 拾いました。",
     "冬夏": "**冬夏** の 気候を 調べました。",
-    "春秋": "絵に **春秋** の 文字を 書きました。",
     "曜日": "今週の **曜日** を 確認しました。",
     "米屋": "**米屋** で 米を 買いました。",
     "犬猫": "**犬猫** の 絵を かきました。",
@@ -527,6 +527,7 @@ JUKUGO_SENTENCES: dict[str, str] = {
     "研究": "昆虫の **研究** を しました。",
     "勝負": "サッカーの **勝負** が 決まりました。",
     "出発": "朝 **出発** の 準備を しました。",
+    "春夏秋冬": "絵に **春夏秋冬** の 文字を かきました。",
     "返事": "先生の **返事** を 待ちました。",
     "予定": "明日の **予定** を 書きました。",
     "反対": "**反対** 意見も あります。",
@@ -664,6 +665,9 @@ KANJI_KUN_SENTENCES: dict[str, list[tuple[str, str]]] = {
     "聞": [("音楽を **聞**きます。", "き")],
     "読": [("本を **読**みます。", "よ")],
     "書": [("字を **書**きます。", "か")],
+    "片": [("部屋の **片**づけを しました。", "かた")],
+    "積": [("箱に 本を **積**みました。", "つ"), ("雪が **積**もっています。", "つ")],
+    "重": [("この 荷物は **重**いです。", "おも")],
     "話": [("友達と **話**します。", "はな")],
     "立": [("そこに **立**ってください。", "た")],
     "入": [("部屋に **入**ります。", "はい")],
@@ -721,7 +725,7 @@ KANJI_KUN_SENTENCES: dict[str, list[tuple[str, str]]] = {
     "玉": [("**玉**を なげました。", "たま")],
     "王": [("**王**さまの 絵を かきました。", "おう")],
     "貝": [("**貝**がらを 拾いました。", "かい")],
-    "正": [("**正**しい 答えです。", "せい")],
+    "正": [("**正**しい 答えです。", "ただ"), ("**正**門から 入りました。", "せい")],
     "早": [("**早**く 起きました。", "はや")],
     "夕": [("**夕**方に 帰ります。", "ゆう")],
     "夜": [("**夜**は 早く ねます。", "よる")],
@@ -763,6 +767,32 @@ KANJI_KUN_SENTENCES: dict[str, list[tuple[str, str]]] = {
     "分": [("ケーキを **分**けました。", "わ")],
     "何": [("**何**を しますか。", "なに")],
     "人": [("**人**が たくさん います。", "ひと")],
+    "円": [
+        ("えんぴつで きれいな **円**を えがきます。", "えん"),
+        ("ノートを 百**円**で 買いました。", "えん"),
+    ],
+    "点": [("ストーブに 火を **点**けました。", "つ")],
+    "用": [("理科の 実験で 虫めがねを **用**います。", "もち")],
+    "助": [("道に まよっている 友だちを **助**けました。", "たす")],
+    "勝": [("かけっこで 友だちに **勝**ちました。", "か")],
+    "県": [("**県**庁の 建物を 見学しました。", "けん")],
+    "歯": [("ごはんの あとで **歯**を みがきます。", "は")],
+    "発": [("電車の **発**車時刻を しらべます。", "はつ")],
+    "調": [("辞書で ことばの 意味を **調**べます。", "しら")],
+    "和": [("みんなで **和**やかに 話し合いました。", "なご")],
+    "以": [("宿題は **以**前に 終わらせます。", "い")],
+    "遊": [("公園で 友だちと **遊**びました。", "あそ")],
+    "返": [("図書館に 本を **返**しました。", "かえ")],
+    "打": [("バットで ボールを **打**ちました。", "う")],
+    "育": [("うえきばちで アサガオを **育**てます。", "そだ")],
+    "定": [("みんなで 会う 日を **定**めました。", "さだ")],
+    "宿": [("学校から 帰って すぐに **宿**題を します。", "しゅく")],
+    "予": [("明日の **予**定を カレンダーに 書きます。", "よ")],
+    "明": [
+        ("カーテンを あけて 部屋を **明**るく します。", "あか"),
+        ("東の 空が **明**るく なってきました。", "あか"),
+    ],
+    "全": [("ゆうきの 言うことは **全**く 正しいです。", "まっ")],
     "子": [("**子**どもが あそんでいます。", "こ")],
     "女": [("**女**の子が 走っています。", "おんな")],
     "男": [("**男**の子が 走っています。", "おとこ")],
@@ -770,6 +800,7 @@ KANJI_KUN_SENTENCES: dict[str, list[tuple[str, str]]] = {
     "父": [("**父**は 会社へ 行きます。", "ちち")],
     "力": [("**力**を いれて 押します。", "ちから")],
     "名": [("**名**前を 書きます。", "な")],
+    "鳴": [("小鳥が チュンチュンと **鳴**きます。", "な")],
     "字": [("漢 **字** を 練習します。", "じ")],
     "文": [("**文**を 読みます。", "ぶん")],
     "本": [("**本**を 読みます。", "ほん")],
@@ -791,10 +822,11 @@ JUKUGO_READING_SPLITS: dict[str, list[str]] = {
     "学校": ["がっ", "こう"],
     "友達": ["とも", "だち"],
     "春秋": ["しゅん", "じゅう"],
+    "春夏秋冬": ["しゅん", "か", "しゅう", "とう"],
     "今朝": ["け", "さ"],
     "果物": ["くだ", "もの"],
     "犬猫": ["いぬ", "ねこ"],
-    "羽色": ["は", "いろ"],
+    "羽色": ["はね", "いろ"],
     "楽器": ["がっ", "き"],
     "勝負": ["しょう", "ぶ"],
     "出発": ["しゅっ", "ぱつ"],
@@ -996,7 +1028,7 @@ NUMBER_CONTEXT: dict[str, list[tuple[str, str]]] = {
     "七": [("**七**人 います。", "なな"), ("りんごが **七**つ あります。", "なな"), ("**七**時です。", "しち")],
     "八": [("**八**人 います。", "はち"), ("りんごが **八**つ あります。", "やっ"), ("**八**時です。", "はち")],
     "九": [("**九**人 います。", "きゅう"), ("りんごが **九**つ あります。", "ここの"), ("**九**時です。", "きゅう")],
-    "十": [("**十**人 います。", "じゅう"), ("**十**分 まちます。", "じゅう"), ("**十**月です。", "じゅう")],
+    "十": [("**十**人 います。", "じゅう"), ("**十**分 まちます。", "じゅっ"), ("**十**月です。", "じゅう")],
     "百": [("**百**円です。", "ひゃく"), ("**百**点 とりました。", "ひゃく")],
     "千": [("**千**円です。", "せん"), ("**千**年 前の はなしです。", "せん")],
 }
@@ -1026,56 +1058,7 @@ def highlight_char_in_word(sentence: str, word: str, char_index: int) -> str | N
 
 
 def kun_context(char: str, kun_raw: str) -> tuple[str, str] | None:
-    if char in KANJI_KUN_SENTENCES:
-        return None
-    if "." in kun_raw:
-        stem, okuri = kun_raw.split(".", 1)
-        okuri = okuri.replace("-", "")
-    else:
-        stem, okuri = kun_raw, ""
-    stem_hira = clean_kana(stem)
-    if not stem_hira:
-        return None
-    if okuri == "つ":
-        return f"りんごが **{char}**つ あります。", stem_hira
-    if okuri == "人":
-        return f"家族は **{char}**人 です。", stem_hira
-    if okuri in ("く", "ぐ"):
-        return f"ここから **{char}**{okuri}。", stem_hira
-    if okuri in ("む", "ぶ", "ぬ"):
-        return f"みんなで **{char}**{okuri}。", stem_hira
-    if okuri == "す":
-        if char == "申":
-            return f"ここに **{char}**し込みを しました。", stem_hira
-        return f"友達と **{char}**{okuri}。", stem_hira
-    if okuri == "き":
-        return f"音楽を **{char}**{okuri}。", stem_hira
-    if okuri == "み":
-        return f"本を **{char}**{okuri}。", stem_hira
-    if okuri == "て":
-        return f"ごはんを **{char}**{okuri}。", stem_hira
-    if okuri == "め":
-        return f"水を **{char}**{okuri}。", stem_hira
-    if okuri.startswith("が"):
-        return f"階段を **{char}**がりました。", stem_hira
-    if okuri.startswith("り") and okuri != "り":
-        return f"階段を **{char}**りました。", stem_hira
-    if okuri.startswith("べ"):
-        return f"ごはんを **{char}**べます。", stem_hira
-    if okuri.startswith("み"):
-        return f"テレビを **{char}**みます。", stem_hira
-    if okuri.startswith("き"):
-        return f"音楽を **{char}**きます。", stem_hira
-    if okuri.startswith("よ"):
-        return f"本を **{char}**みます。", stem_hira
-    if okuri.startswith("か"):
-        return f"字を **{char}**きます。", stem_hira
-    if okuri.startswith("はな"):
-        return f"友達と **{char}**します。", stem_hira
-    if okuri.startswith("い"):
-        return f"本当のことを **{char}**います。", stem_hira
-    if okuri == "ける":
-        return f"お花に **{char}**けました。", stem_hira
+    """Auto kun templates disabled (L16: caused unnatural drill sentences)."""
     return None
 
 
@@ -1139,14 +1122,6 @@ def build_kanji_contexts(char: str, meta: dict, jukugo_pairs: list[tuple[str, st
     for sentence, reading in KANJI_KUN_SENTENCES.get(char, []):
         add(sentence, reading)
 
-    kun_list = meta.get("readings_kun") or []
-    on_list = meta.get("readings_on") or []
-
-    for kun_raw in kun_list[:3]:
-        ctx = kun_context(char, kun_raw)
-        if ctx:
-            add(ctx[0], ctx[1])
-
     for word, yomi in jukugo_pairs:
         if char not in word:
             continue
@@ -1161,6 +1136,14 @@ def build_kanji_contexts(char: str, meta: dict, jukugo_pairs: list[tuple[str, st
         highlighted = highlight_char_in_word(j_sentence, word, idx)
         if highlighted:
             add(highlighted, part)
+
+    kun_list = meta.get("readings_kun") or []
+    on_list = meta.get("readings_on") or []
+
+    for kun_raw in kun_list[:3]:
+        ctx = kun_context(char, kun_raw)
+        if ctx:
+            add(ctx[0], ctx[1])
 
     for sentence, reading in bare_kun_contexts(char, meta):
         add(sentence, reading)
@@ -1258,9 +1241,141 @@ def load_jukugo() -> list[dict]:
     return rows
 
 
+# NotebookLM / デモフィードバックで差し替えた例文（テンプレート流用バグの修正）
+NOTEBOOKLM_KANJI_OVERRIDES: dict[str, list[dict[str, str]]] = {
+    "円": [
+        {"sentence": "えんぴつで きれいな **円**を えがきます。", "reading": "えん"},
+        {"sentence": "ノートを 百**円**で 買いました。", "reading": "えん"},
+    ],
+    "明": [
+        {"sentence": "カーテンを あけて 部屋を **明**るく します。", "reading": "あか"},
+        {"sentence": "東の 空が **明**るく なってきました。", "reading": "あか"},
+    ],
+    "予": [{"sentence": "明日の **予**定を カレンダーに 書きます。", "reading": "よ"}],
+    "助": [{"sentence": "道に まよっている 友だちを **助**けました。", "reading": "たす"}],
+    "勝": [{"sentence": "かけっこで 友だちに **勝**ちました。", "reading": "か"}],
+    "遊": [{"sentence": "公園で 友だちと **遊**びました。", "reading": "あそ"}],
+    "返": [{"sentence": "図書館に 本を **返**しました。", "reading": "かえ"}],
+    "定": [{"sentence": "みんなで 会う 日を **定**めました。", "reading": "さだ"}],
+    "宿": [{"sentence": "学校から 帰って すぐに **宿**題を します。", "reading": "しゅく"}],
+    "打": [{"sentence": "バットで ボールを **打**ちました。", "reading": "う"}],
+    "育": [{"sentence": "うえきばちで アサガオを **育**てます。", "reading": "そだ"}],
+    "点": [{"sentence": "ストーブに 火を **点**けました。", "reading": "つ"}],
+    "用": [{"sentence": "理科の 実験で 虫めがねを **用**います。", "reading": "もち"}],
+    "全": [{"sentence": "ゆうきの 言うことは **全**く 正しいです。", "reading": "まっ"}],
+    "正": [
+        {"sentence": "**正**しい 答えです。", "reading": "ただ"},
+        {"sentence": "**正**門から 入りました。", "reading": "せい"},
+    ],
+    "十": [
+        {"sentence": "**十**人 います。", "reading": "じゅう"},
+        {"sentence": "**十**分 まちます。", "reading": "じゅっ"},
+        {"sentence": "**十**月です。", "reading": "じゅう"},
+    ],
+    "並": [
+        {"sentence": "お店に **並**んで 待ちました。", "reading": "なら"},
+        {"sentence": "本を **並**べました。", "reading": "なら"},
+    ],
+    "鳴": [{"sentence": "小鳥が チュンチュンと **鳴**きます。", "reading": "な"}],
+    "県": [{"sentence": "**県**庁の 建物を 見学しました。", "reading": "けん"}],
+    "歯": [{"sentence": "ごはんの あとで **歯**を みがきます。", "reading": "は"}],
+    "発": [{"sentence": "電車の **発**車時刻を しらべます。", "reading": "はつ"}],
+    "調": [{"sentence": "辞書で ことばの 意味を **調**べます。", "reading": "しら"}],
+    "和": [{"sentence": "みんなで **和**やかに 話し合いました。", "reading": "なご"}],
+    "岐": [{"sentence": "**岐**阜の きれいな 川を 見ました。", "reading": "ぎ"}],
+    "媛": [{"sentence": "愛**媛**県へ 行きたいです。", "reading": "ひめ"}],
+    "以": [{"sentence": "宿題は **以**前に 終わらせます。", "reading": "い"}],
+}
+
+
+def _row_from_examples(char: str, grade: int, examples: list[dict[str, str]]) -> dict:
+    trimmed = examples[:4]
+    return {
+        "char": char,
+        "readings": [trimmed[0]["reading"]],
+        "grade": grade,
+        "examples": trimmed,
+        "sentences": [ex["sentence"] for ex in trimmed],
+    }
+
+
+def clean_kanji_bank(source_rows: list[dict], fresh_rows: list[dict]) -> list[dict]:
+    """Keep good examples, drop template bugs, apply NotebookLM overrides."""
+    by_char: dict[str, dict] = {row["char"]: row for row in source_rows}
+    fresh_by_char = {row["char"]: row for row in fresh_rows}
+    for char in KANJI_KUN_SENTENCES:
+        if char in fresh_by_char:
+            by_char[char] = fresh_by_char[char]
+    for char in NOTEBOOKLM_KANJI_OVERRIDES:
+        if char in fresh_by_char:
+            by_char[char] = fresh_by_char[char]
+
+    cleaned: list[dict] = []
+    for char, row in by_char.items():
+        grade = int(row["grade"])
+        if char in NOTEBOOKLM_KANJI_OVERRIDES:
+            examples = NOTEBOOKLM_KANJI_OVERRIDES[char]
+        else:
+            examples = [
+                ex
+                for ex in row.get("examples", [])
+                if not is_kun_template_bug(char, ex["sentence"])
+                and is_natural_example(char, ex["sentence"])
+            ]
+        if not examples:
+            continue
+        cleaned.append(_row_from_examples(char, grade, examples))
+
+    cleaned.sort(key=lambda r: (r["grade"], r["char"]))
+    return cleaned
+
+
+def validate_kanji_bank(rows: list[dict]) -> None:
+    errors: list[str] = []
+    for row in rows:
+        char = row["char"]
+        for example in row.get("examples", []):
+            sentence = example["sentence"]
+            if is_kun_template_bug(char, sentence):
+                errors.append(f"{char}: template bug: {plain_sentence(sentence)}")
+            if not is_natural_example(char, sentence):
+                errors.append(f"{char}: unnatural: {plain_sentence(sentence)}")
+    if errors:
+        raise SystemExit("kanji bank validation failed:\n" + "\n".join(errors[:20]))
+
+
+def write_kanji_meta(lookup: dict[str, dict]) -> None:
+    rows: list[dict] = []
+    for char, meta in lookup.items():
+        if not isinstance(meta.get("grade"), int) or meta["grade"] > 6:
+            continue
+        readings = clean_readings((meta.get("readings_kun") or []) + (meta.get("readings_on") or []))
+        rows.append({"char": char, "grade": int(meta["grade"]), "readings": readings})
+    for char, meta in SUPPLEMENTAL_KANJI.items():
+        rows.append(
+            {
+                "char": char,
+                "grade": int(meta["grade"]),
+                "readings": list(meta["readings"]),
+            }
+        )
+    rows.sort(key=lambda r: (r["grade"], r["char"]))
+    (OUT / "kanji_meta.json").write_text(
+        json.dumps(rows, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    kanji = load_kanji()
+    lookup = load_kanji_lookup()
+    write_kanji_meta(lookup)
+
+    source_path = OUT / "kanji.json"
+    source_rows = json.loads(source_path.read_text(encoding="utf-8")) if source_path.exists() else []
+    fresh_rows = load_kanji()
+    kanji = clean_kanji_bank(source_rows, fresh_rows)
+    validate_kanji_bank(kanji)
     jukugo = load_jukugo()
     (OUT / "kanji.json").write_text(json.dumps(kanji, ensure_ascii=False, indent=2), encoding="utf-8")
     (OUT / "jukugo.json").write_text(json.dumps(jukugo, ensure_ascii=False, indent=2), encoding="utf-8")

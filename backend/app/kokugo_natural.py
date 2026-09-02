@@ -40,6 +40,7 @@ SKIP_JUKUGO = frozenset(
         "肉魚",
         "自転",
         "冬夏",
+        "春秋",
         "赤青",
         "走道",
         "村会",
@@ -202,6 +203,7 @@ SAFE_JUKUGO_SUFFIX_TEMPLATES: list[tuple[str, str]] = [
 # 熟語の読みで複数正解を許す（正解キーはバンクの reading）
 JUKUGO_READING_ALTERNATES: dict[str, set[str]] = {
     "にほん": {"にほん", "にっぽん"},
+    "ねいろ": {"ねいろ", "おんいろ"},
 }
 
 
@@ -231,8 +233,56 @@ def is_standalone_kanji_highlight(char: str, sentence: str) -> bool:
     return True
 
 
+def is_kun_template_bug(char: str, sentence: str) -> bool:
+    """Detect auto-generated kun-context template sentences that read unnaturally."""
+    plain = plain_sentence(sentence)
+    if "本当のことを" in plain and char != "言":
+        return True
+    if plain.startswith("りんごが") and "つ あります" in plain and char not in "一二三四五六七八九十":
+        return True
+    if plain.startswith("お花に") and char != "生":
+        return True
+    if plain.startswith("字を") and char != "書":
+        return True
+    if plain.startswith("家族は") and "人 です" in plain:
+        return True
+    broken_prefixes = (
+        "ここから",
+        "水を",
+        "音楽を",
+        "ごはんを",
+        "テレビを",
+        "階段を",
+        "規格に",
+        "本が",
+    )
+    if plain.startswith(broken_prefixes):
+        if char == "話" and plain.startswith("友達と"):
+            return False
+        if char == "読" and plain.startswith("本を"):
+            return False
+        if char == "食" and plain.startswith("ごはんを"):
+            return False
+        if char == "聞" and plain.startswith("音楽を"):
+            return False
+        if char == "見" and plain.startswith("テレビを"):
+            return False
+        if char == "飲" and plain.startswith("水を"):
+            return False
+        return True
+    if plain.startswith("みんなで") and ("を" not in plain and "に" not in plain):
+        return True
+    if plain.startswith("友達と") and plain.endswith("。") and "話" not in plain:
+        return True
+    if re.search(r"本を \*\*[^*]+\*\*み", sentence):
+        return True
+    return False
+
+
 def is_natural_example(target: str, sentence: str) -> bool:
     plain = plain_sentence(sentence)
+    if is_kun_template_bug(target, sentence):
+        return False
     if plain.count(target) != 1:
         return False
     if f"**{target}**" not in sentence:
