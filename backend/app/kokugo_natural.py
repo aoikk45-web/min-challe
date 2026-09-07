@@ -204,6 +204,8 @@ SAFE_JUKUGO_SUFFIX_TEMPLATES: list[tuple[str, str]] = [
 JUKUGO_READING_ALTERNATES: dict[str, set[str]] = {
     "にほん": {"にほん", "にっぽん"},
     "ねいろ": {"ねいろ", "おんいろ"},
+    # 漢字の訓（送り仮名つき）を語全体で答えたときも正解にする
+    "やす": {"やす", "やすむ", "やすみ"},
 }
 
 

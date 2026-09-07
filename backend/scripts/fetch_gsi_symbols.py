@@ -26,6 +26,7 @@ LABEL_CROP_FALLBACK_RATIO = 0.78
 SYMBOL_CROP_RATIO_OVERRIDES: dict[str, float] = {
     "ekitikatetu": 0.64,
     "toshokan": 0.75,
+    "teienro": 0.55,
 }
 
 
