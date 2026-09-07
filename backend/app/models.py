@@ -14,6 +14,8 @@ class Household(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(80))
+    unlock_pin_hash: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    parent_pin_hash: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
 
     members: Mapped[list[Member]] = relationship(back_populates="household")
     point_rules: Mapped[list[PointRule]] = relationship(back_populates="household")

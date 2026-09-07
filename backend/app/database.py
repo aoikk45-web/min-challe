@@ -27,6 +27,11 @@ def migrate_schema() -> None:
         reward_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(rewards)"))}
         if reward_cols and "daily_limit" not in reward_cols:
             conn.execute(text("ALTER TABLE rewards ADD COLUMN daily_limit INTEGER"))
+        hh_cols = {row[1] for row in conn.execute(text("PRAGMA table_info(households)"))}
+        if hh_cols and "unlock_pin_hash" not in hh_cols:
+            conn.execute(text("ALTER TABLE households ADD COLUMN unlock_pin_hash VARCHAR(120)"))
+        if hh_cols and "parent_pin_hash" not in hh_cols:
+            conn.execute(text("ALTER TABLE households ADD COLUMN parent_pin_hash VARCHAR(120)"))
 
 
 def get_db():

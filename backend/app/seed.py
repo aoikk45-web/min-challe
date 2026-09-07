@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from .database import SessionLocal
 from .drill_progress import ensure_all_progress
+from .pinutil import ensure_default_pins
 from .models import Household, Member, PointRule
 
 HOUSEHOLD_ID = 1
@@ -64,6 +65,7 @@ def _seed(db: Session) -> None:
     )
     db.add_all([parent, child])
     db.flush()
+    ensure_default_pins(hh)
     _seed_point_rules(db, hh.id)
     ensure_all_progress(db, child.id)
 

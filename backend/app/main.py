@@ -10,6 +10,7 @@ from .database import Base, engine, migrate_schema
 from .deps import demo_family, parse_role
 from .models import Household, Member
 from .album import router as album_router
+from .auth import router as auth_router
 from .plans import router as plans_router
 from .drills import router as drills_router
 from .points import router as points_router
@@ -49,6 +50,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(auth_router)
 app.include_router(plans_router)
 app.include_router(drills_router)
 app.include_router(points_router)
