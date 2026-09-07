@@ -365,6 +365,65 @@ export function setPromiseCheck(id: number, checked: boolean) {
   }).then((res) => readJson<PromiseItem>(res))
 }
 
+export type AuthStatus = {
+  configured: boolean
+  household_name: string
+}
+
+async function readAuthError(res: Response): Promise<string> {
+  try {
+    const body = (await res.json()) as { detail?: string }
+    if (typeof body.detail === 'string') return body.detail
+  } catch {
+    /* ignore */
+  }
+  return 'うまくいかなかったよ'
+}
+
+export function fetchAuthStatus() {
+  return fetch('/api/auth/status').then((res) => readJson<AuthStatus>(res))
+}
+
+export async function setupPins(unlockPin: string, parentPin: string) {
+  const res = await fetch('/api/auth/setup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ unlock_pin: unlockPin, parent_pin: parentPin }),
+  })
+  if (!res.ok) throw new Error(await readAuthError(res))
+}
+
+export async function unlockWithPin(pin: string) {
+  const res = await fetch('/api/auth/unlock', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pin }),
+  })
+  if (!res.ok) throw new Error(await readAuthError(res))
+}
+
+export async function verifyParentPin(pin: string) {
+  const res = await fetch('/api/auth/verify-parent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pin }),
+  })
+  if (!res.ok) throw new Error(await readAuthError(res))
+}
+
+export async function changePins(body: {
+  current_parent_pin: string
+  unlock_pin?: string
+  parent_pin?: string
+}) {
+  const res = await fetch('/api/auth/change-pins', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) throw new Error(await readAuthError(res))
+}
+
 export type AlbumKind = 'plan' | 'drill' | 'redeem' | 'stamp' | 'memo'
 
 export type AlbumEntry = {
