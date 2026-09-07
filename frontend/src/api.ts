@@ -312,6 +312,59 @@ export async function giveStamp(note: string, eventKey = 'stamp') {
   return (await res.json()) as PointSummary
 }
 
+export type PromiseItem = {
+  id: number
+  name: string
+  penalty: number
+  enabled: boolean
+  checked: boolean
+  locked: boolean
+}
+
+export type PromiseDay = {
+  day: string
+  items: PromiseItem[]
+  settled_yesterday: boolean
+  deducted_total: number
+}
+
+export function fetchPromises(role: Role) {
+  return fetch(`/api/promises?role=${role}`).then((res) => readJson<PromiseDay>(res))
+}
+
+export function createPromiseItem(body: { name: string; penalty: number }) {
+  return fetch('/api/promises/items?role=parent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then((res) => readJson<PromiseItem>(res))
+}
+
+export function updatePromiseItem(
+  id: number,
+  body: Partial<Pick<PromiseItem, 'name' | 'penalty' | 'enabled'>>,
+) {
+  return fetch(`/api/promises/items/${id}?role=parent`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then((res) => readJson<PromiseItem>(res))
+}
+
+export function deletePromiseItem(id: number) {
+  return fetch(`/api/promises/items/${id}?role=parent`, { method: 'DELETE' }).then((res) => {
+    if (!res.ok) throw new Error('request failed')
+  })
+}
+
+export function setPromiseCheck(id: number, checked: boolean) {
+  return fetch(`/api/promises/checks/${id}?role=child`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ checked }),
+  }).then((res) => readJson<PromiseItem>(res))
+}
+
 export type AlbumKind = 'plan' | 'drill' | 'redeem' | 'stamp' | 'memo'
 
 export type AlbumEntry = {

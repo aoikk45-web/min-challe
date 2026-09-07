@@ -18,6 +18,7 @@ import { usePointsRefresh } from '../pointsRefresh'
 const pillars = [
   { to: '/plan', emoji: '📒', title: 'けいかく', child: 'きょう なにを する？', parent: '今週の予定を置く' },
   { to: '/drill', emoji: '📝', title: 'ドリル', child: 'さんすう・こくご・りか・しゃかい', parent: 'さんすう・こくご・理科・社会' },
+  { to: '/promises', emoji: '✅', title: 'おおやくそく', child: 'まいにち チェック', parent: '項目と減点を設定' },
   { to: '/points', emoji: '🏅', title: 'ポイント', child: 'がんばりが みえるよ', parent: 'ルールをごほうび' },
   { to: '/album', emoji: '📔', title: 'アルバム', child: 'できた きろく', parent: '成長の記録' },
 ]

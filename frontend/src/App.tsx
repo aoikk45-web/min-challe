@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
-import { BookOpen, ClipboardList, Home, Star, Trophy } from 'lucide-react'
+import { BookOpen, CheckSquare, ClipboardList, Home, Star, Trophy } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { RoleProvider, useRole } from './role'
 import { useHousehold } from './api'
@@ -8,7 +8,7 @@ import PlanPage from './pages/PlanPage'
 import DrillPage from './pages/DrillPage'
 import PointsPage from './pages/PointsPage'
 import AlbumPage from './pages/AlbumPage'
-
+import PromisesPage from './pages/PromisesPage'
 function Shell() {
   const { role, setRole } = useRole()
   const { data, error, loading } = useHousehold(role)
@@ -59,6 +59,7 @@ function Shell() {
             <Route path="/plan" element={<PlanPage role={role} />} />
             <Route path="/drill" element={<DrillPage role={role} />} />
             <Route path="/points" element={<PointsPage role={role} />} />
+            <Route path="/promises" element={<PromisesPage role={role} />} />
             <Route path="/album" element={<AlbumPage role={role} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -66,12 +67,13 @@ function Shell() {
       </main>
 
       <nav className="fixed bottom-0 left-1/2 z-10 w-full max-w-lg -translate-x-1/2 border-t border-orange-100 bg-white/95 px-2 py-2 backdrop-blur">
-        <ul className="grid grid-cols-5 gap-1 text-center text-[11px] font-bold">
-          <NavItem to="/" icon={<Home size={22} />} label="ホーム" />
-          <NavItem to="/plan" icon={<BookOpen size={22} />} label="けいかく" />
-          <NavItem to="/drill" icon={<ClipboardList size={22} />} label="ドリル" />
-          <NavItem to="/points" icon={<Trophy size={22} />} label="ポイント" />
-          <NavItem to="/album" icon={<Star size={22} />} label="アルバム" />
+        <ul className="grid grid-cols-6 gap-1 text-center text-[10px] font-bold">
+          <NavItem to="/" icon={<Home size={20} />} label="ホーム" />
+          <NavItem to="/plan" icon={<BookOpen size={20} />} label="けいかく" />
+          <NavItem to="/drill" icon={<ClipboardList size={20} />} label="ドリル" />
+          <NavItem to="/promises" icon={<CheckSquare size={20} />} label="やくそく" />
+          <NavItem to="/points" icon={<Trophy size={20} />} label="ポイント" />
+          <NavItem to="/album" icon={<Star size={20} />} label="アルバム" />
         </ul>
       </nav>
     </div>

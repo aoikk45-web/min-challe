@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -18,6 +18,7 @@ class Household(Base):
     members: Mapped[list[Member]] = relationship(back_populates="household")
     point_rules: Mapped[list[PointRule]] = relationship(back_populates="household")
     rewards: Mapped[list[Reward]] = relationship(back_populates="household")
+    promise_items: Mapped[list["PromiseItem"]] = relationship(back_populates="household")
 
 
 class Member(Base):
@@ -153,3 +154,40 @@ class AlbumEntry(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime)
 
     member: Mapped[Member] = relationship(back_populates="album_entries")
+
+
+class PromiseItem(Base):
+    __tablename__ = "promise_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    household_id: Mapped[int] = mapped_column(ForeignKey("households.id"))
+    name: Mapped[str] = mapped_column(String(80))
+    penalty: Mapped[int] = mapped_column(Integer)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+
+    household: Mapped[Household] = relationship(back_populates="promise_items")
+    checks: Mapped[list["PromiseCheck"]] = relationship(back_populates="item")
+
+
+class PromiseCheck(Base):
+    __tablename__ = "promise_checks"
+    __table_args__ = (UniqueConstraint("member_id", "item_id", "day", name="uq_promise_check_day"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    item_id: Mapped[int] = mapped_column(ForeignKey("promise_items.id"))
+    day: Mapped[date] = mapped_column(Date)
+    checked: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    item: Mapped[PromiseItem] = relationship(back_populates="checks")
+
+
+class PromiseSettlement(Base):
+    __tablename__ = "promise_settlements"
+    __table_args__ = (UniqueConstraint("member_id", "day", name="uq_promise_settle_day"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("members.id"))
+    day: Mapped[date] = mapped_column(Date)
+    created_at: Mapped[datetime] = mapped_column(DateTime)

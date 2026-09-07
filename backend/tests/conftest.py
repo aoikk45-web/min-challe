@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
+# Use a separate DB so pytest never wipes the family's minchalle.db.
+_TEST_DB = Path(__file__).resolve().parents[1] / "data" / "minchalle_test.db"
+os.environ["MINCHALLE_DATABASE_URL"] = f"sqlite:///{_TEST_DB}"
+
 from fastapi.testclient import TestClient
 
 from app.timeutil import today_jst
