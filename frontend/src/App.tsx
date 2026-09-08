@@ -61,7 +61,7 @@ function Shell() {
           <Routes>
             <Route path="/" element={<HomePage household={data} role={role} />} />
             <Route path="/plan" element={<PlanPage role={role} />} />
-            <Route path="/drill" element={<DrillPage role={role} />} />
+            <Route path="/drill" element={<DrillPage role={role} grade={data.child.grade ?? 3} />} />
             <Route
               path="/points"
               element={
