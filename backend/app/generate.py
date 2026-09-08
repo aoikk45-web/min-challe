@@ -4,6 +4,7 @@ import random
 import unicodedata
 
 from .kokugo import pick_ten as kokugo_pick_ten
+from .eigo import pick_ten as eigo_pick_ten, EIGO_KINDS
 from .rika import pick_ten as rika_pick_ten, RIKA_KINDS
 from .shakai import GeneratedQuestion, pick_ten as shakai_pick_ten
 
@@ -11,7 +12,7 @@ MATH_KINDS = ("たしざん", "ひきざん", "かけざん", "わりざん")
 KOKUGO_KINDS = ("かんじのよみ", "じゅくごのよみ")
 DOKKAI_KINDS = ("おはなしのどくかい",)
 SHAKAI_KINDS = ("とどうふけん", "にほんのちり", "ちずきごう", "けんのかたち")
-KINDS = MATH_KINDS + KOKUGO_KINDS + DOKKAI_KINDS + SHAKAI_KINDS + RIKA_KINDS
+KINDS = MATH_KINDS + KOKUGO_KINDS + DOKKAI_KINDS + SHAKAI_KINDS + RIKA_KINDS + EIGO_KINDS
 PROGRESS_KINDS = KINDS
 
 MAX_STEP = 100
@@ -169,6 +170,8 @@ def generate_ten(kind: str, step: int = 1) -> list[GeneratedQuestion]:
         return shakai_pick_ten(kind, step)
     if kind in RIKA_KINDS:
         return rika_pick_ten(kind, step)
+    if kind in EIGO_KINDS:
+        return eigo_pick_ten(kind, step)
     step = min(max(step, 1), MAX_STEP)
     seen: set[str] = set()
     out: list[GeneratedQuestion] = []

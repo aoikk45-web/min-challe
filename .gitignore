@@ -4,11 +4,13 @@ dist/
 __pycache__/
 *.pyc
 .pytest_cache/
-backend/data/
+backend/data/*
 !backend/data/kokugo/
 !backend/data/kokugo/**
 !backend/data/rika/
 !backend/data/rika/**
+!backend/data/eigo/
+!backend/data/eigo/**
 *.db
 .DS_Store
 agent-tools/
