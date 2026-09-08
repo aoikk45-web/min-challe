@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from .database import SessionLocal
 from .drill_progress import ensure_all_progress
@@ -12,7 +13,28 @@ DEFAULT_RULES = [
     ("drill_perfect", "全問正解ボーナス", 5),
     ("plan_complete", "計画を1つ完了", 8),
     ("stamp", "できたねスタンプ", 3),
+    ("game_clear", "ミニゲームクリア", 5),
 ]
+
+
+def ensure_builtin_rules(db: Session, household_id: int) -> None:
+    existing = {
+        row.event_key
+        for row in db.scalars(select(PointRule).where(PointRule.household_id == household_id)).all()
+    }
+    for key, label, points in DEFAULT_RULES:
+        if key in existing:
+            continue
+        db.add(
+            PointRule(
+                household_id=household_id,
+                event_key=key,
+                label=label,
+                points=points,
+                enabled=True,
+            )
+        )
+    db.flush()
 
 
 def seed_if_empty() -> None:
@@ -26,6 +48,8 @@ def seed_if_empty() -> None:
         child = next((m for m in hh.members if m.role == "child"), None)
         if db.query(PointRule).filter(PointRule.household_id == HOUSEHOLD_ID).count() == 0:
             _seed_point_rules(db, HOUSEHOLD_ID)
+        else:
+            ensure_builtin_rules(db, HOUSEHOLD_ID)
         if child is not None:
             ensure_all_progress(db, child.id)
         db.commit()

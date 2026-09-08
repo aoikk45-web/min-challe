@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from .models import PointLedger, PointRule
 
-BUILTIN_KEYS = ("drill_complete", "drill_perfect", "plan_complete", "stamp")
+BUILTIN_KEYS = ("drill_complete", "drill_perfect", "plan_complete", "stamp", "game_clear")
 
 
 def now_utc() -> datetime:

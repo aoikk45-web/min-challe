@@ -15,7 +15,7 @@ def test_seed_starts_empty_with_builtin_rules():
     assert summary["balance"] == 0
     rules = client.get("/api/points/rules").json()
     keys = {r["event_key"] for r in rules}
-    assert keys == {"drill_complete", "drill_perfect", "plan_complete", "stamp"}
+    assert keys == {"drill_complete", "drill_perfect", "plan_complete", "stamp", "game_clear"}
     assert client.get("/api/points/rewards").json() == []
 
 
