@@ -13,6 +13,7 @@ import {
 import type { Role } from '../role'
 import { notifyPointsUpdated } from '../pointsRefresh'
 import { Empty } from './PlanPage'
+import { rankCatchUpKinds } from '../catchUpKinds'
 
 function drillImageSrc(url: string): string {
   if (url.startsWith('/shakai/symbols/')) {
@@ -161,7 +162,7 @@ function LevelBadge({
   )
 }
 
-export default function DrillPage({ role }: { role: Role }) {
+export default function DrillPage({ role, grade = 3 }: { role: Role; grade?: number }) {
   const [history, setHistory] = useState<DrillHistoryItem[]>([])
   const [progress, setProgress] = useState<DrillProgress[]>([])
   const [session, setSession] = useState<DrillSession | null>(null)
@@ -259,6 +260,8 @@ export default function DrillPage({ role }: { role: Role }) {
   }
 
   const inProgress = history.find((row) => row.status === 'in_progress')
+  const catchUp =
+    role === 'child' && !inProgress ? rankCatchUpKinds(progress, grade) : { mode: 'behind' as const, kinds: [] }
 
   return (
     <div className="space-y-4">
@@ -273,22 +276,53 @@ export default function DrillPage({ role }: { role: Role }) {
               つづける（{inProgress.kind}）
             </button>
           ) : (
-            <ul className={`grid grid-cols-2 gap-3 ${openSubject ? 'relative z-20 pb-2' : ''}`}>
-              {SUBJECT_GROUPS.map((subject) => (
-                <li key={subject.id} className={subject.id === 'eigo' ? 'col-span-2 sm:col-span-1' : undefined}>
-                  <SubjectCard
-                    subject={subject}
-                    open={openSubject === subject.id}
-                    onToggle={() =>
-                      setOpenSubject((current) => (current === subject.id ? null : subject.id))
-                    }
-                    onClose={() => setOpenSubject(null)}
-                    progress={progress}
-                    onBegin={begin}
-                  />
-                </li>
-              ))}
-            </ul>
+            <>
+              {catchUp.kinds.length > 0 && (
+                <div className="mb-4 rounded-2xl bg-cream px-4 py-3">
+                  <p className="text-sm font-black text-sky">おうえんドリル</p>
+                  <p className="mt-1 text-xs font-bold text-ink/60">
+                    {catchUp.mode === 'behind'
+                      ? `小学${grade}年の すすみより おくれているよ`
+                      : `小学${grade}年の めやすに くらべて すすみが ゆっくりなドリル`}
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {catchUp.kinds.map((row) => (
+                      <li key={row.kind}>
+                        <button
+                          type="button"
+                          onClick={() => begin(row.kind)}
+                          className="flex w-full items-center justify-between gap-2 rounded-2xl bg-white px-4 py-3 text-left font-black shadow-sm"
+                        >
+                          <span className="min-w-0">
+                            <span className="block">{row.kind}</span>
+                            <span className="mt-0.5 block text-xs font-bold text-ink/50">{row.stepLabel}</span>
+                          </span>
+                          <span className="shrink-0 text-xs font-bold text-coral">
+                            {row.lag > 0 ? `めやすまで +${row.lag}` : 'ちょっと おうえん'}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <ul className={`grid grid-cols-2 gap-3 ${openSubject ? 'relative z-20 pb-2' : ''}`}>
+                {SUBJECT_GROUPS.map((subject) => (
+                  <li key={subject.id} className={subject.id === 'eigo' ? 'col-span-2 sm:col-span-1' : undefined}>
+                    <SubjectCard
+                      subject={subject}
+                      open={openSubject === subject.id}
+                      onToggle={() =>
+                        setOpenSubject((current) => (current === subject.id ? null : subject.id))
+                      }
+                      onClose={() => setOpenSubject(null)}
+                      progress={progress}
+                      onBegin={begin}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </section>
       )}
