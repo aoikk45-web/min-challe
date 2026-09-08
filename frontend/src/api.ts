@@ -235,6 +235,14 @@ export function fetchPointSummary(role: Role) {
   return fetch(`/api/points/summary?role=${role}`).then((res) => readJson<PointSummary>(res))
 }
 
+export function claimGameClear(game: 'cups' | 'memory' | 'invaders' | 'breakout' | 'racing') {
+  return fetch('/api/games/clear?role=child', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ game }),
+  }).then((res) => readJson<{ points_earned: number; balance: number }>(res))
+}
+
 export function fetchLedger(role: Role) {
   return fetch(`/api/points/ledger?role=${role}`).then((res) => readJson<LedgerEntry[]>(res))
 }

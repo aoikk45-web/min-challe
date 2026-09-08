@@ -222,6 +222,10 @@ def list_rules(
     family: tuple[Household, Member, Member] = Depends(demo_family),
     db: Session = Depends(get_db),
 ):
+    from .seed import ensure_builtin_rules
+
+    ensure_builtin_rules(db, _hh(family).id)
+    db.commit()
     return db.scalars(
         select(PointRule).where(PointRule.household_id == _hh(family).id).order_by(PointRule.id)
     ).all()
@@ -371,7 +375,7 @@ def redeem_reward(
     return _build_summary(db, family)
 
 
-AUTO_AWARD_KEYS = ("drill_complete", "drill_perfect", "plan_complete")
+AUTO_AWARD_KEYS = ("drill_complete", "drill_perfect", "plan_complete", "game_clear")
 
 
 @router.post("/stamp", response_model=SummaryOut)

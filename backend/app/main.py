@@ -15,6 +15,7 @@ from .plans import router as plans_router
 from .drills import router as drills_router
 from .points import router as points_router
 from .promises import router as promises_router
+from .games import router as games_router
 from .seed import seed_if_empty
 
 
@@ -56,6 +57,7 @@ app.include_router(drills_router)
 app.include_router(points_router)
 app.include_router(album_router)
 app.include_router(promises_router)
+app.include_router(games_router)
 
 
 @app.get("/api/health")
