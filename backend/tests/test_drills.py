@@ -130,6 +130,8 @@ def test_progress_api_lists_all_drill_kinds():
         "たいようとかげ",
         "ひかりとおと",
         "てんきとみず",
+        "たんご",
+        "あいさつ",
     }
     tashi = next(row for row in rows if row["kind"] == "たしざん")
     assert tashi["step"] == 1

@@ -49,7 +49,12 @@ const RIKA_KINDS: { kind: DrillKind; emoji: string }[] = [
   { kind: 'てんきとみず', emoji: '🌧️' },
 ]
 
-type SubjectId = 'sansuu' | 'kokugo' | 'rika' | 'shakai'
+const EIGO_KINDS: { kind: DrillKind; emoji: string }[] = [
+  { kind: 'たんご', emoji: '🍎' },
+  { kind: 'あいさつ', emoji: '👋' },
+]
+
+type SubjectId = 'sansuu' | 'kokugo' | 'rika' | 'shakai' | 'eigo'
 
 const SUBJECT_GROUPS: {
   id: SubjectId
@@ -61,6 +66,7 @@ const SUBJECT_GROUPS: {
   { id: 'kokugo', label: 'こくご', emoji: '📚', kinds: KOKUGO_KINDS },
   { id: 'rika', label: 'りか', emoji: '🔬', kinds: RIKA_KINDS },
   { id: 'shakai', label: 'しゃかい', emoji: '🗾', kinds: SHAKAI_KINDS },
+  { id: 'eigo', label: 'えいご', emoji: '🔤', kinds: EIGO_KINDS },
 ]
 
 function isKokugo(kind: string) {
@@ -79,12 +85,24 @@ function isRika(kind: string) {
   return RIKA_KINDS.some((item) => item.kind === kind)
 }
 
+function isEigo(kind: string) {
+  return EIGO_KINDS.some((item) => item.kind === kind)
+}
+
 function isStageKind(kind: string) {
-  return isShakai(kind) || isDokkai(kind) || isRika(kind)
+  return isShakai(kind) || isDokkai(kind) || isRika(kind) || isEigo(kind)
 }
 
 function isChoiceDrill(kind: string) {
-  return isKokugo(kind) || isShakai(kind) || isDokkai(kind) || isRika(kind)
+  return isKokugo(kind) || isShakai(kind) || isDokkai(kind) || isRika(kind) || isEigo(kind)
+}
+
+function speakEnglish(text: string) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const utter = new SpeechSynthesisUtterance(text)
+  utter.lang = 'en-US'
+  window.speechSynthesis.speak(utter)
 }
 
 function progressFor(progress: DrillProgress[], kind: string) {
@@ -255,9 +273,9 @@ export default function DrillPage({ role }: { role: Role }) {
               つづける（{inProgress.kind}）
             </button>
           ) : (
-            <ul className="grid grid-cols-2 gap-3">
+            <ul className={`grid grid-cols-2 gap-3 ${openSubject ? 'relative z-20 pb-2' : ''}`}>
               {SUBJECT_GROUPS.map((subject) => (
-                <li key={subject.id}>
+                <li key={subject.id} className={subject.id === 'eigo' ? 'col-span-2 sm:col-span-1' : undefined}>
                   <SubjectCard
                     subject={subject}
                     open={openSubject === subject.id}
@@ -323,7 +341,7 @@ function SubjectCard({
   const panelVisible = open ? 'flex' : 'hidden'
   return (
     <div
-      className="group relative"
+      className={`group relative ${open ? 'z-30' : 'z-0'}`}
       onMouseLeave={onClose}
     >
       <button
@@ -341,7 +359,9 @@ function SubjectCard({
         </span>
       </button>
       <ul
-        className={`absolute top-full right-0 left-0 z-20 max-h-72 flex-col gap-2 overflow-y-auto rounded-2xl bg-white p-2 pt-2 shadow-lg ${panelVisible} md:group-hover:flex md:group-focus-within:flex`}
+        className={`absolute ${
+          subject.id === 'eigo' ? 'bottom-full mb-1' : 'top-full mt-0'
+        } right-0 left-0 z-20 max-h-72 flex-col gap-2 overflow-y-auto rounded-2xl bg-white p-2 shadow-lg ${panelVisible} md:group-hover:flex md:group-focus-within:flex`}
       >
         {subject.kinds.map((item) => (
           <li key={item.kind}>
@@ -532,8 +552,27 @@ function PlayView({
               {feedback.child_answer && (
                 <p className="mt-2 break-words text-sm">あなたのこたえ: {feedback.child_answer}</p>
               )}
-              <p className="mt-2 break-words text-sm">こたえは {feedback.correct}</p>
+              {isEigo(session.kind) && feedback.correct ? (
+                <button
+                  type="button"
+                  onClick={() => speakEnglish(feedback.correct!)}
+                  className="mt-2 break-words text-sm font-black underline decoration-dotted underline-offset-2"
+                >
+                  こたえは {feedback.correct} 🔊
+                </button>
+              ) : (
+                <p className="mt-2 break-words text-sm">こたえは {feedback.correct}</p>
+              )}
             </>
+          )}
+          {feedback.is_correct && isEigo(session.kind) && feedback.correct && (
+            <button
+              type="button"
+              onClick={() => speakEnglish(feedback.correct!)}
+              className="mt-2 break-words text-sm font-black text-mint underline decoration-dotted underline-offset-2"
+            >
+              {feedback.correct} 🔊
+            </button>
           )}
           {feedback.explanation && (
             <p className="mt-2 break-words text-left text-sm leading-relaxed text-ink/80">{feedback.explanation}</p>
@@ -544,17 +583,38 @@ function PlayView({
         </div>
       ) : choiceDrill && shown.choices ? (
         <div className="mt-6 grid grid-cols-2 gap-3">
-          {shown.choices.map((choice) => (
-            <button
-              key={choice}
-              type="button"
-              disabled={busy}
-              onClick={() => submit(choice)}
-              className="rounded-2xl bg-cream px-3 py-4 text-base font-black disabled:opacity-50"
-            >
-              {choice}
-            </button>
-          ))}
+          {shown.choices.map((choice) =>
+            isEigo(session.kind) ? (
+              <div key={choice} className="flex overflow-hidden rounded-2xl bg-cream">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => submit(choice)}
+                  className="min-w-0 flex-1 px-3 py-4 text-left text-base font-black disabled:opacity-50"
+                >
+                  {choice}
+                </button>
+                <button
+                  type="button"
+                  aria-label={`${choice} をよむ`}
+                  onClick={() => speakEnglish(choice)}
+                  className="shrink-0 border-l border-ink/10 px-3 py-4 text-lg"
+                >
+                  🔊
+                </button>
+              </div>
+            ) : (
+              <button
+                key={choice}
+                type="button"
+                disabled={busy}
+                onClick={() => submit(choice)}
+                className="rounded-2xl bg-cream px-3 py-4 text-base font-black disabled:opacity-50"
+              >
+                {choice}
+              </button>
+            ),
+          )}
         </div>
       ) : (
         <form
@@ -639,14 +699,37 @@ function ResultView({
         )}
       </div>
       <ul className="space-y-3 rounded-3xl bg-white p-5 shadow-sm">
-        {session.questions.map((q) => (
-          <li key={q.id} className="text-sm leading-relaxed">
-            <p className="font-bold break-words">{q.seq}. {q.prompt}</p>
-            <p className={`mt-1 font-black break-words ${q.is_correct ? 'text-mint' : 'text-coral'}`}>
-              {q.is_correct ? '○' : `× ${q.correct}`}
-            </p>
-          </li>
-        ))}
+        {session.questions.map((q) => {
+          const eigo = isEigo(session.kind)
+          const answerLabel = eigo
+            ? q.is_correct
+              ? `○ ${q.correct}`
+              : `× ${q.correct}`
+            : q.is_correct
+              ? '○'
+              : `× ${q.correct}`
+          return (
+            <li key={q.id} className="text-sm leading-relaxed">
+              <p className="font-bold break-words">{q.seq}. {q.prompt}</p>
+              {eigo && q.correct ? (
+                <button
+                  type="button"
+                  onClick={() => speakEnglish(q.correct!)}
+                  className={`mt-1 font-black break-words underline decoration-dotted underline-offset-2 ${
+                    q.is_correct ? 'text-mint' : 'text-coral'
+                  }`}
+                >
+                  {answerLabel}
+                  <span className="ml-1 text-xs font-bold text-ink/50">🔊</span>
+                </button>
+              ) : (
+                <p className={`mt-1 font-black break-words ${q.is_correct ? 'text-mint' : 'text-coral'}`}>
+                  {answerLabel}
+                </p>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </section>
   )
