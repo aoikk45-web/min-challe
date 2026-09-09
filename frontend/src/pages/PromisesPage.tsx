@@ -21,7 +21,7 @@ export default function PromisesPage({ role }: { role: Role }) {
     const next = await fetchPromises(role)
     setDay(next)
     if (next.deducted_total > 0) {
-      setMessage(`きのうの おおやくそくで ${next.deducted_total}点 へったよ`)
+      setMessage(`きのうの おやくそくで ${next.deducted_total}点 へったよ`)
     }
   }, [role])
 
@@ -51,7 +51,7 @@ export default function PromisesPage({ role }: { role: Role }) {
   return (
     <div className="space-y-4">
       <section className="rounded-3xl bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-black">毎日おおやくそく</h2>
+        <h2 className="text-lg font-black">毎日のおやくそく</h2>
         <p className="mt-1 text-sm text-ink/60">
           {role === 'child'
             ? 'できたものに チェックしてね。わすれたら ポイントが へるよ。'

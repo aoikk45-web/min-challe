@@ -10,7 +10,7 @@
 | 0 | [gate.md](./gate.md) | **いま止まっている場所**。最初に見る |
 | 1 | [roles.md](./roles.md) | 人と AI の役割。AI は承認なしに実装しない |
 | 2 | [loop.md](./loop.md) | ゲートA（提案）とゲートB（結果） |
-| 3 | [spec.md](./spec.md) | **大まかな仕様（プロダクト正本の候補）** |
+| 3 | [spec.md](./spec.md) | **プロダクト仕様の正本（現行機能）** |
 | 4 | [requirements.md](./requirements.md) | spec の箇条書き版 |
 | 5 | [design.md](./design.md) | 詳細設計草案（API・テーブル）。仕様承認後 |
 | 6 | [backlog.md](./backlog.md) | ループ単位のタスク |

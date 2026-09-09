@@ -149,7 +149,7 @@ def settle_pending(db: Session, household_id: int, member_id: int) -> int:
                 PointLedger(
                     member_id=member_id,
                     delta=-take,
-                    reason=f"おおやくそく: {item.name}",
+                    reason=f"おやくそく: {item.name}",
                     event_key="promise_miss",
                     related_id=item.id,
                     created_at=now_utc(),
