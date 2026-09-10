@@ -235,7 +235,9 @@ export function fetchPointSummary(role: Role) {
   return fetch(`/api/points/summary?role=${role}`).then((res) => readJson<PointSummary>(res))
 }
 
-export function claimGameClear(game: 'cups' | 'memory' | 'invaders' | 'breakout' | 'racing') {
+export function claimGameClear(
+  game: 'cups' | 'memory' | 'invaders' | 'breakout' | 'racing' | 'family',
+) {
   return fetch('/api/games/clear?role=child', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

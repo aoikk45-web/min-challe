@@ -30,6 +30,13 @@ def test_game_clear_respects_disabled_rule():
     assert res.json()["points_earned"] == 0
 
 
+def test_game_clear_family():
+    client = TestClient(app)
+    res = client.post("/api/games/clear", params={"role": "child"}, json={"game": "family"})
+    assert res.status_code == 200
+    assert res.json()["points_earned"] == 5
+
+
 def test_parent_cannot_claim_game_clear():
     client = TestClient(app)
     res = client.post("/api/games/clear", params={"role": "parent"}, json={"game": "cups"})

@@ -3,14 +3,16 @@ import type { Role } from '../role'
 import BreakoutGame from './games/BreakoutGame'
 import CarGame from './games/CarGame'
 import CupGame from './games/CupGame'
+import FamilyMergeGame from './games/FamilyMergeGame'
 import InvadersGame from './games/InvadersGame'
 import MemoryGame from './games/MemoryGame'
 
-type GameId = 'cups' | 'memory' | 'invaders' | 'breakout' | 'racing'
+type GameId = 'cups' | 'memory' | 'invaders' | 'breakout' | 'racing' | 'family'
 
 const GAMES: { id: GameId; emoji: string; title: string; blurb: string }[] = [
   { id: 'cups', emoji: '🥤', title: 'カップゲーム', blurb: 'たまの ばしょを あてよう' },
   { id: 'memory', emoji: '🃏', title: 'しんけいすいじゃく', blurb: 'おなじ えを ペアにしよう' },
+  { id: 'family', emoji: '👨‍👩‍👦', title: '3世代あわせ', blurb: 'おじいおばあから ゆうきを つくろう' },
   { id: 'invaders', emoji: '👾', title: 'インベーダー', blurb: 'てきを ぜんぶ たおそう' },
   { id: 'breakout', emoji: '🧱', title: 'ブロックくずし', blurb: 'ブロックを ぜんぶ くずそう' },
   { id: 'racing', emoji: '🚗', title: 'くるまレース', blurb: 'くるまを よけて すすもう' },
@@ -21,6 +23,7 @@ export default function GamesPage({ role }: { role: Role }) {
 
   if (active === 'cups') return <CupGame onBack={() => setActive(null)} />
   if (active === 'memory') return <MemoryGame onBack={() => setActive(null)} />
+  if (active === 'family') return <FamilyMergeGame onBack={() => setActive(null)} />
   if (active === 'invaders') return <InvadersGame onBack={() => setActive(null)} />
   if (active === 'breakout') return <BreakoutGame onBack={() => setActive(null)} />
   if (active === 'racing') return <CarGame onBack={() => setActive(null)} />

@@ -14,7 +14,7 @@ from .seed import ensure_builtin_rules
 
 router = APIRouter(prefix="/api/games", tags=["games"])
 
-GameName = Literal["cups", "memory", "invaders", "breakout", "racing"]
+GameName = Literal["cups", "memory", "invaders", "breakout", "racing", "family"]
 
 GAME_REASONS: dict[str, str] = {
     "cups": "カップゲームできた",
@@ -22,6 +22,7 @@ GAME_REASONS: dict[str, str] = {
     "invaders": "インベーダーできた",
     "breakout": "ブロックくずしできた",
     "racing": "くるまレースできた",
+    "family": "3世代あわせできた",
 }
 
 
