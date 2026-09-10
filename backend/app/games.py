@@ -22,7 +22,7 @@ GAME_REASONS: dict[str, str] = {
     "invaders": "インベーダーできた",
     "breakout": "ブロックくずしできた",
     "racing": "くるまレースできた",
-    "family": "3世代あわせできた",
+    "family": "4世代あわせできた",
 }
 
 

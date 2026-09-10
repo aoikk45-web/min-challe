@@ -4,7 +4,18 @@ import { notifyPointsUpdated } from '../../pointsRefresh'
 
 type Status = 'ready' | 'playing' | 'won' | 'lost'
 
-type Kind = 'oji_f' | 'oba_f' | 'oji_m' | 'oba_m' | 'papa' | 'mama' | 'yuuki'
+type Kind =
+  | 'hiiji_f'
+  | 'hiiba_f'
+  | 'hiiji_m'
+  | 'hiiba_m'
+  | 'oji_f'
+  | 'oba_f'
+  | 'oji_m'
+  | 'oba_m'
+  | 'papa'
+  | 'mama'
+  | 'yuuki'
 
 type Ball = {
   id: number
@@ -21,32 +32,46 @@ const W = 360
 const H = 520
 const FLOOR = H - 16
 const WALL = 12
-const DANGER_Y = 88
-const DROP_Y = 56
+const DANGER_Y = 96
+const DROP_Y = 52
 const GRAVITY = 0.28
 const REST = 0.18
 const FRICTION = 0.988
 
-const DROP_KINDS: Kind[] = ['oji_f', 'oba_f', 'oji_m', 'oba_m']
+/** 落とせるのはいちばん小さいひい世代だけ */
+const DROP_KINDS: Kind[] = ['hiiji_f', 'hiiba_f', 'hiiji_m', 'hiiba_m']
 
 const META: Record<
   Kind,
   { label: string; emoji: string; color: string; r: number }
 > = {
-  oji_f: { label: 'おじい', emoji: '👴', color: '#7eb8e8', r: 22 },
-  oba_f: { label: 'おばあ', emoji: '👵', color: '#9ec9f0', r: 22 },
-  oji_m: { label: 'おじい', emoji: '👴', color: '#f0a0b8', r: 22 },
-  oba_m: { label: 'おばあ', emoji: '👵', color: '#f5b8c8', r: 22 },
-  papa: { label: 'パパ', emoji: '👨', color: '#6bc4a0', r: 32 },
-  mama: { label: 'ママ', emoji: '👩', color: '#e8a060', r: 32 },
-  yuuki: { label: 'ゆうき', emoji: '🧒', color: '#f5d56e', r: 44 },
+  hiiji_f: { label: 'ひいじい', emoji: '👴', color: '#a8c8e8', r: 15 },
+  hiiba_f: { label: 'ひいばあ', emoji: '👵', color: '#b8d4f0', r: 15 },
+  hiiji_m: { label: 'ひいじい', emoji: '👴', color: '#f0b0c0', r: 15 },
+  hiiba_m: { label: 'ひいばあ', emoji: '👵', color: '#f5c0d0', r: 15 },
+  oji_f: { label: 'おじい', emoji: '👴', color: '#7eb8e8', r: 23 },
+  oba_f: { label: 'おばあ', emoji: '👵', color: '#9ec9f0', r: 23 },
+  oji_m: { label: 'おじい', emoji: '👴', color: '#f0a0b8', r: 23 },
+  oba_m: { label: 'おばあ', emoji: '👵', color: '#f5b8c8', r: 23 },
+  papa: { label: 'パパ', emoji: '👨', color: '#6bc4a0', r: 33 },
+  mama: { label: 'ママ', emoji: '👩', color: '#e8a060', r: 33 },
+  yuuki: { label: 'ゆうき', emoji: '🧒', color: '#f5d56e', r: 46 },
 }
 
 function mergeResult(a: Kind, b: Kind): Kind | null {
+  // 同種: ひい → そふぼ
+  if (a === b) {
+    if (a === 'hiiji_f') return 'oji_f'
+    if (a === 'hiiba_f') return 'oba_f'
+    if (a === 'hiiji_m') return 'oji_m'
+    if (a === 'hiiba_m') return 'oba_m'
+    return null
+  }
   const set = new Set([a, b])
-  if (set.has('oji_f') && set.has('oba_f') && a !== b) return 'papa'
-  if (set.has('oji_m') && set.has('oba_m') && a !== b) return 'mama'
-  if (set.has('papa') && set.has('mama') && a !== b) return 'yuuki'
+  // 異種ペア: そふぼ → 親、親 → ゆうき
+  if (set.has('oji_f') && set.has('oba_f')) return 'papa'
+  if (set.has('oji_m') && set.has('oba_m')) return 'mama'
+  if (set.has('papa') && set.has('mama')) return 'yuuki'
   return null
 }
 
@@ -379,12 +404,13 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
         <button type="button" onClick={onBack} className="rounded-full bg-cream px-4 py-2 text-sm font-bold">
           ← もどる
         </button>
-        <h2 className="text-lg font-black">3世代あわせ</h2>
+        <h2 className="text-lg font-black">4世代あわせ</h2>
         <span className="w-16" />
       </div>
 
       <p className="text-sm text-ink/70">
-        父方のおじい＋おばあ → パパ。母方のおじい＋おばあ → ママ。パパ＋ママ → ゆうき！
+        同じひいじい／ひいばあどうし → おじい／おばあ。おじい＋おばあ → パパ／ママ。パパ＋ママ →
+        ゆうき！
       </p>
 
       <div className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm shadow-sm">
