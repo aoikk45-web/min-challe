@@ -62,50 +62,151 @@ const R_HII = Math.round(R_YUUKI * 0.42)
 const R_SOFU = Math.round(R_YUUKI * 0.62)
 const R_OYA = Math.round(R_YUUKI * 0.82)
 
+type FaceStyle = {
+  hair: 'black-short' | 'black-bob' | 'bald' | 'white-short' | 'gray-short'
+  glasses?: boolean
+  roundFace?: boolean
+  gender: 'm' | 'f' | 'child'
+}
+
 const META: Record<
   Kind,
-  { label: string; tip: string; emoji: string; color: string; ring: string; r: number }
+  { label: string; tip: string; color: string; ring: string; r: number; face: FaceStyle }
 > = {
-  // てつお・ひなこ → みがく
-  hiiji_ao: { label: 'てつお', tip: 'てつお', emoji: '👴', color: '#3b82f6', ring: '#1e3a8a', r: R_HII },
-  hiiba_ao: { label: 'ひなこ', tip: 'ひなこ', emoji: '👵', color: '#60a5fa', ring: '#1e40af', r: R_HII },
-  jiji_ao: { label: 'みがく', tip: 'みがく', emoji: '👨', color: '#1d4ed8', ring: '#172554', r: R_SOFU },
-  // まさとし・きぬこ → いくこ
-  hiiji_mizu: { label: 'まさとし', tip: 'まさとし', emoji: '👴', color: '#06b6d4', ring: '#155e75', r: R_HII },
-  hiiba_mizu: { label: 'きぬこ', tip: 'きぬこ', emoji: '👵', color: '#22d3ee', ring: '#0e7490', r: R_HII },
-  baba_mizu: { label: 'いくこ', tip: 'いくこ', emoji: '👩', color: '#0891b2', ring: '#164e63', r: R_SOFU },
-  // じゅんきち・しずえ → きよみ
-  hiiji_aka: { label: 'じゅんきち', tip: 'じゅんきち', emoji: '👴', color: '#ef4444', ring: '#991b1b', r: R_HII },
-  hiiba_aka: { label: 'しずえ', tip: 'しずえ', emoji: '👵', color: '#f87171', ring: '#b91c1c', r: R_HII },
-  jiji_aka: { label: 'きよみ', tip: 'きよみ', emoji: '👩', color: '#dc2626', ring: '#7f1d1d', r: R_SOFU },
-  // かずえ・さきこ → あきら
-  hiiji_orenji: { label: 'かずえ', tip: 'かずえ', emoji: '👵', color: '#f97316', ring: '#9a3412', r: R_HII },
-  hiiba_orenji: { label: 'さきこ', tip: 'さきこ', emoji: '👵', color: '#fb923c', ring: '#c2410c', r: R_HII },
-  baba_orenji: { label: 'あきら', tip: 'あきら', emoji: '👨', color: '#ea580c', ring: '#7c2d12', r: R_SOFU },
-  // みがく・いくこ → かおり ／ あきら・きよみ → としや ／ かおり・としや → ゆうき
-  papa_ao: { label: 'かおり', tip: 'かおり', emoji: '👩', color: '#2563eb', ring: '#1e3a8a', r: R_OYA },
-  mama_aka: { label: 'としや', tip: 'としや', emoji: '👨', color: '#e11d48', ring: '#881337', r: R_OYA },
-  yuuki: { label: 'ゆうき', tip: 'ゆうき', emoji: '🧒', color: '#facc15', ring: '#a16207', r: R_YUUKI },
+  // かおり系列 = 赤・オレンジ
+  hiiji_ao: {
+    label: 'てつお',
+    tip: 'てつお',
+    color: '#ef4444',
+    ring: '#991b1b',
+    r: R_HII,
+    face: { hair: 'gray-short', gender: 'm' },
+  },
+  hiiba_ao: {
+    label: 'ひなこ',
+    tip: 'ひなこ',
+    color: '#fb923c',
+    ring: '#c2410c',
+    r: R_HII,
+    face: { hair: 'gray-short', gender: 'f' },
+  },
+  jiji_ao: {
+    label: 'みがく',
+    tip: 'みがく',
+    color: '#dc2626',
+    ring: '#7f1d1d',
+    r: R_SOFU,
+    face: { hair: 'bald', glasses: true, gender: 'm' },
+  },
+  hiiji_mizu: {
+    label: 'まさとし',
+    tip: 'まさとし',
+    color: '#f97316',
+    ring: '#9a3412',
+    r: R_HII,
+    face: { hair: 'gray-short', gender: 'm' },
+  },
+  hiiba_mizu: {
+    label: 'きぬこ',
+    tip: 'きぬこ',
+    color: '#fdba74',
+    ring: '#c2410c',
+    r: R_HII,
+    face: { hair: 'gray-short', gender: 'f' },
+  },
+  baba_mizu: {
+    label: 'いくこ',
+    tip: 'いくこ',
+    color: '#ea580c',
+    ring: '#7c2d12',
+    r: R_SOFU,
+    face: { hair: 'black-short', roundFace: true, gender: 'f' },
+  },
+  // としや系列 = 青・水色
+  hiiji_aka: {
+    label: 'じゅんきち',
+    tip: 'じゅんきち',
+    color: '#3b82f6',
+    ring: '#1e3a8a',
+    r: R_HII,
+    face: { hair: 'gray-short', gender: 'm' },
+  },
+  hiiba_aka: {
+    label: 'しずえ',
+    tip: 'しずえ',
+    color: '#60a5fa',
+    ring: '#1e40af',
+    r: R_HII,
+    face: { hair: 'gray-short', gender: 'f' },
+  },
+  jiji_aka: {
+    label: 'きよみ',
+    tip: 'きよみ',
+    color: '#1d4ed8',
+    ring: '#172554',
+    r: R_SOFU,
+    face: { hair: 'white-short', glasses: true, gender: 'f' },
+  },
+  hiiji_orenji: {
+    label: 'かずえ',
+    tip: 'かずえ',
+    color: '#06b6d4',
+    ring: '#155e75',
+    r: R_HII,
+    face: { hair: 'gray-short', gender: 'f' },
+  },
+  hiiba_orenji: {
+    label: 'さきこ',
+    tip: 'さきこ',
+    color: '#22d3ee',
+    ring: '#0e7490',
+    r: R_HII,
+    face: { hair: 'gray-short', gender: 'f' },
+  },
+  baba_orenji: {
+    label: 'あきら',
+    tip: 'あきら',
+    color: '#0891b2',
+    ring: '#164e63',
+    r: R_SOFU,
+    face: { hair: 'gray-short', glasses: true, gender: 'm' },
+  },
+  papa_ao: {
+    label: 'かおり',
+    tip: 'かおり',
+    color: '#e11d48',
+    ring: '#881337',
+    r: R_OYA,
+    face: { hair: 'black-bob', glasses: true, gender: 'f' },
+  },
+  mama_aka: {
+    label: 'としや',
+    tip: 'としや',
+    color: '#2563eb',
+    ring: '#1e3a8a',
+    r: R_OYA,
+    face: { hair: 'black-short', gender: 'm' },
+  },
+  yuuki: {
+    label: 'ゆうき',
+    tip: 'ゆうき',
+    color: '#facc15',
+    ring: '#a16207',
+    r: R_YUUKI,
+    face: { hair: 'black-short', gender: 'child' },
+  },
 }
 
 function mergeResult(a: Kind, b: Kind): Kind | null {
   if (a === b) return null
   const set = new Set([a, b])
 
-  // てつお＋ひなこ → みがく
   if (set.has('hiiji_ao') && set.has('hiiba_ao')) return 'jiji_ao'
-  // まさとし＋きぬこ → いくこ
   if (set.has('hiiji_mizu') && set.has('hiiba_mizu')) return 'baba_mizu'
-  // じゅんきち＋しずえ → きよみ
   if (set.has('hiiji_aka') && set.has('hiiba_aka')) return 'jiji_aka'
-  // かずえ＋さきこ → あきら
   if (set.has('hiiji_orenji') && set.has('hiiba_orenji')) return 'baba_orenji'
-
-  // みがく＋いくこ → かおり
   if (set.has('jiji_ao') && set.has('baba_mizu')) return 'papa_ao'
-  // あきら＋きよみ → としや
   if (set.has('jiji_aka') && set.has('baba_orenji')) return 'mama_aka'
-  // かおり＋としや → ゆうき
   if (set.has('papa_ao') && set.has('mama_aka')) return 'yuuki'
   return null
 }
@@ -384,6 +485,93 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       }
     }
 
+    function drawFace(
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      r: number,
+      face: FaceStyle,
+    ) {
+      const skin = '#f3d2b3'
+      const hairColor =
+        face.hair === 'white-short'
+          ? '#f3f4f6'
+          : face.hair === 'gray-short'
+            ? '#9ca3af'
+            : face.hair === 'bald'
+              ? '#f3d2b3'
+              : '#1f2937'
+      const faceRx = face.roundFace ? r * 0.55 : r * 0.48
+      const faceRy = face.roundFace ? r * 0.52 : r * 0.55
+      const faceY = y - r * 0.08
+
+      // head / face
+      ctx.beginPath()
+      ctx.ellipse(x, faceY, faceRx, faceRy, 0, 0, Math.PI * 2)
+      ctx.fillStyle = skin
+      ctx.fill()
+      ctx.lineWidth = Math.max(1, r * 0.03)
+      ctx.strokeStyle = 'rgba(61,44,30,0.25)'
+      ctx.stroke()
+
+      // hair
+      if (face.hair === 'bald') {
+        ctx.beginPath()
+        ctx.ellipse(x, faceY - faceRy * 0.55, faceRx * 0.7, faceRy * 0.22, 0, 0, Math.PI * 2)
+        ctx.fillStyle = '#e8c4a0'
+        ctx.fill()
+      } else if (face.hair === 'black-bob') {
+        ctx.beginPath()
+        ctx.ellipse(x, faceY - faceRy * 0.15, faceRx * 1.08, faceRy * 0.95, 0, Math.PI, Math.PI * 2)
+        ctx.fillStyle = hairColor
+        ctx.fill()
+        ctx.fillRect(x - faceRx * 1.05, faceY - faceRy * 0.1, faceRx * 0.28, faceRy * 0.95)
+        ctx.fillRect(x + faceRx * 0.77, faceY - faceRy * 0.1, faceRx * 0.28, faceRy * 0.95)
+      } else {
+        // short hair cap
+        ctx.beginPath()
+        ctx.ellipse(x, faceY - faceRy * 0.35, faceRx * 1.02, faceRy * 0.7, 0, Math.PI, Math.PI * 2)
+        ctx.fillStyle = hairColor
+        ctx.fill()
+        if (face.gender === 'm' || face.gender === 'child') {
+          ctx.fillRect(x - faceRx * 0.95, faceY - faceRy * 0.25, faceRx * 1.9, faceRy * 0.28)
+        }
+      }
+
+      // eyes
+      const eyeY = faceY - r * 0.02
+      const eyeGap = faceRx * 0.35
+      ctx.fillStyle = '#1f2937'
+      ctx.beginPath()
+      ctx.arc(x - eyeGap, eyeY, Math.max(1.5, r * 0.045), 0, Math.PI * 2)
+      ctx.arc(x + eyeGap, eyeY, Math.max(1.5, r * 0.045), 0, Math.PI * 2)
+      ctx.fill()
+
+      // smile
+      ctx.beginPath()
+      ctx.arc(x, faceY + faceRy * 0.25, faceRx * 0.28, 0.15 * Math.PI, 0.85 * Math.PI)
+      ctx.strokeStyle = '#b45309'
+      ctx.lineWidth = Math.max(1.2, r * 0.04)
+      ctx.stroke()
+
+      // glasses
+      if (face.glasses) {
+        const gr = Math.max(3, r * 0.16)
+        ctx.strokeStyle = '#374151'
+        ctx.lineWidth = Math.max(1.5, r * 0.045)
+        ctx.beginPath()
+        ctx.arc(x - eyeGap, eyeY, gr, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(x + eyeGap, eyeY, gr, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(x - eyeGap + gr, eyeY)
+        ctx.lineTo(x + eyeGap - gr, eyeY)
+        ctx.stroke()
+      }
+    }
+
     function drawBall(b: Ball) {
       const m = META[b.kind]
       ctx!.beginPath()
@@ -393,23 +581,19 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       ctx!.lineWidth = Math.max(3, Math.round(b.r * 0.12))
       ctx!.strokeStyle = m.ring
       ctx!.stroke()
-      ctx!.font = `${Math.floor(b.r * 1.15)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`
+
+      drawFace(ctx!, b.x, b.y - b.r * 0.06, b.r, m.face)
+
+      const tip = m.tip
+      const size = Math.max(8, Math.min(Math.floor(b.r * 0.38), Math.floor((b.r * 1.7) / tip.length)))
+      ctx!.font = `bold ${size}px sans-serif`
       ctx!.textAlign = 'center'
       ctx!.textBaseline = 'middle'
-      ctx!.fillText(m.emoji, b.x, b.y - Math.max(2, b.r * 0.08))
-      // 色名のヒント（小さい世代ほど重要）
-      if (b.r <= R_OYA + 1) {
-        const tip = m.tip
-        if (tip) {
-          const size = Math.max(8, Math.min(Math.floor(b.r * 0.42), Math.floor((b.r * 1.6) / tip.length)))
-          ctx!.font = `bold ${size}px sans-serif`
-          ctx!.fillStyle = '#fff'
-          ctx!.strokeStyle = m.ring
-          ctx!.lineWidth = 3
-          ctx!.strokeText(tip, b.x, b.y + b.r * 0.4)
-          ctx!.fillText(tip, b.x, b.y + b.r * 0.4)
-        }
-      }
+      ctx!.fillStyle = '#fff'
+      ctx!.strokeStyle = m.ring
+      ctx!.lineWidth = 3
+      ctx!.strokeText(tip, b.x, b.y + b.r * 0.62)
+      ctx!.fillText(tip, b.x, b.y + b.r * 0.62)
     }
 
     function draw() {
@@ -453,20 +637,17 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
         ctx!.lineWidth = Math.max(3, Math.round(m.r * 0.12))
         ctx!.strokeStyle = m.ring
         ctx!.stroke()
-        ctx!.font = `${Math.floor(m.r * 1.15)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`
+        drawFace(ctx!, s.aimX, DROP_Y - m.r * 0.06, m.r, m.face)
+        const tip = m.tip
+        const size = Math.max(8, Math.min(Math.floor(m.r * 0.38), Math.floor((m.r * 1.7) / tip.length)))
+        ctx!.font = `bold ${size}px sans-serif`
         ctx!.textAlign = 'center'
         ctx!.textBaseline = 'middle'
-        ctx!.fillText(m.emoji, s.aimX, DROP_Y - Math.max(2, m.r * 0.08))
-        const tip = m.tip
-        if (tip) {
-          const size = Math.max(8, Math.min(Math.floor(m.r * 0.42), Math.floor((m.r * 1.6) / tip.length)))
-          ctx!.font = `bold ${size}px sans-serif`
-          ctx!.fillStyle = '#fff'
-          ctx!.strokeStyle = m.ring
-          ctx!.lineWidth = 3
-          ctx!.strokeText(tip, s.aimX, DROP_Y + m.r * 0.4)
-          ctx!.fillText(tip, s.aimX, DROP_Y + m.r * 0.4)
-        }
+        ctx!.fillStyle = '#fff'
+        ctx!.strokeStyle = m.ring
+        ctx!.lineWidth = 3
+        ctx!.strokeText(tip, s.aimX, DROP_Y + m.r * 0.62)
+        ctx!.fillText(tip, s.aimX, DROP_Y + m.r * 0.62)
         ctx!.globalAlpha = 1
         ctx!.strokeStyle = 'rgba(61,44,30,0.2)'
         ctx!.lineWidth = 1
