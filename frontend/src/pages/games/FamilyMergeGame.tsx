@@ -66,14 +66,14 @@ const META: Record<
   Kind,
   { label: string; tip: string; emoji: string; color: string; ring: string; r: number }
 > = {
-  // としお・ひなこ → いくこ
-  hiiji_ao: { label: 'としお', tip: 'としお', emoji: '👴', color: '#3b82f6', ring: '#1e3a8a', r: R_HII },
+  // てつお・ひなこ → みがく
+  hiiji_ao: { label: 'てつお', tip: 'てつお', emoji: '👴', color: '#3b82f6', ring: '#1e3a8a', r: R_HII },
   hiiba_ao: { label: 'ひなこ', tip: 'ひなこ', emoji: '👵', color: '#60a5fa', ring: '#1e40af', r: R_HII },
-  jiji_ao: { label: 'いくこ', tip: 'いくこ', emoji: '👩', color: '#1d4ed8', ring: '#172554', r: R_SOFU },
-  // まさとし・きぬこ → みがく
+  jiji_ao: { label: 'みがく', tip: 'みがく', emoji: '👨', color: '#1d4ed8', ring: '#172554', r: R_SOFU },
+  // まさとし・きぬこ → いくこ
   hiiji_mizu: { label: 'まさとし', tip: 'まさとし', emoji: '👴', color: '#06b6d4', ring: '#155e75', r: R_HII },
   hiiba_mizu: { label: 'きぬこ', tip: 'きぬこ', emoji: '👵', color: '#22d3ee', ring: '#0e7490', r: R_HII },
-  baba_mizu: { label: 'みがく', tip: 'みがく', emoji: '👨', color: '#0891b2', ring: '#164e63', r: R_SOFU },
+  baba_mizu: { label: 'いくこ', tip: 'いくこ', emoji: '👩', color: '#0891b2', ring: '#164e63', r: R_SOFU },
   // じゅんきち・しずえ → きよみ
   hiiji_aka: { label: 'じゅんきち', tip: 'じゅんきち', emoji: '👴', color: '#ef4444', ring: '#991b1b', r: R_HII },
   hiiba_aka: { label: 'しずえ', tip: 'しずえ', emoji: '👵', color: '#f87171', ring: '#b91c1c', r: R_HII },
@@ -82,7 +82,7 @@ const META: Record<
   hiiji_orenji: { label: 'かずえ', tip: 'かずえ', emoji: '👵', color: '#f97316', ring: '#9a3412', r: R_HII },
   hiiba_orenji: { label: 'さきこ', tip: 'さきこ', emoji: '👵', color: '#fb923c', ring: '#c2410c', r: R_HII },
   baba_orenji: { label: 'あきら', tip: 'あきら', emoji: '👨', color: '#ea580c', ring: '#7c2d12', r: R_SOFU },
-  // いくこ・みがく → かおり ／ きよみ・あきら → としや ／ かおり・としや → ゆうき
+  // みがく・いくこ → かおり ／ あきら・きよみ → としや ／ かおり・としや → ゆうき
   papa_ao: { label: 'かおり', tip: 'かおり', emoji: '👩', color: '#2563eb', ring: '#1e3a8a', r: R_OYA },
   mama_aka: { label: 'としや', tip: 'としや', emoji: '👨', color: '#e11d48', ring: '#881337', r: R_OYA },
   yuuki: { label: 'ゆうき', tip: 'ゆうき', emoji: '🧒', color: '#facc15', ring: '#a16207', r: R_YUUKI },
@@ -92,18 +92,18 @@ function mergeResult(a: Kind, b: Kind): Kind | null {
   if (a === b) return null
   const set = new Set([a, b])
 
-  // としお＋ひなこ → いくこ
+  // てつお＋ひなこ → みがく
   if (set.has('hiiji_ao') && set.has('hiiba_ao')) return 'jiji_ao'
-  // まさとし＋きぬこ → みがく
+  // まさとし＋きぬこ → いくこ
   if (set.has('hiiji_mizu') && set.has('hiiba_mizu')) return 'baba_mizu'
   // じゅんきち＋しずえ → きよみ
   if (set.has('hiiji_aka') && set.has('hiiba_aka')) return 'jiji_aka'
   // かずえ＋さきこ → あきら
   if (set.has('hiiji_orenji') && set.has('hiiba_orenji')) return 'baba_orenji'
 
-  // いくこ＋みがく → かおり
+  // みがく＋いくこ → かおり
   if (set.has('jiji_ao') && set.has('baba_mizu')) return 'papa_ao'
-  // きよみ＋あきら → としや
+  // あきら＋きよみ → としや
   if (set.has('jiji_aka') && set.has('baba_orenji')) return 'mama_aka'
   // かおり＋としや → ゆうき
   if (set.has('papa_ao') && set.has('mama_aka')) return 'yuuki'
@@ -505,8 +505,8 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       </div>
 
       <p className="text-sm leading-relaxed text-ink/70">
-        としお＋ひなこ→いくこ、まさとし＋きぬこ→みがく、じゅんきち＋しずえ→きよみ、かずえ＋さきこ→あきら。
-        いくこ＋みがく→かおり、きよみ＋あきら→としや。かおり＋としや→ゆうき！
+        てつお＋ひなこ→みがく、まさとし＋きぬこ→いくこ、じゅんきち＋しずえ→きよみ、かずえ＋さきこ→あきら。
+        みがく＋いくこ→かおり、あきら＋きよみ→としや。かおり＋としや→ゆうき！
       </p>
 
       <div className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm shadow-sm">
