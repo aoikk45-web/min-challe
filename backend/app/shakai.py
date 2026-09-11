@@ -319,11 +319,16 @@ def _kenkatachi_choices(code: str, correct: str) -> list[str]:
     return _shuffle_choices(correct, region_names)
 
 
-def _one_kenkatachi(step: int, *, with_context: bool) -> GeneratedQuestion:
+def _one_kenkatachi(
+    step: int,
+    *,
+    with_context: bool,
+    pref: dict | None = None,
+) -> GeneratedQuestion:
     pool = _pref_pool(step) or list(PREFECTURES)
-    pref = random.choice(pool)
-    name = str(pref["name"])
-    code = str(pref["code"])
+    picked = pref or random.choice(pool)
+    name = str(picked["name"])
+    code = str(picked["code"])
     prompt = "いろが ついた とちは どの けん？"
     if with_context:
         prompt = f"この ちいきの ちずで みどりに なっている ばしょです。\n{prompt}"
@@ -333,6 +338,46 @@ def _one_kenkatachi(step: int, *, with_context: bool) -> GeneratedQuestion:
         choices=_kenkatachi_choices(code, name),
         image_url=f"/shakai/maps/{code}.svg",
     )
+
+
+def _cycle_prefs(pool: list[dict], count: int) -> list[dict]:
+    """池をシャッフルして繰り返し、できるだけ連続同一を避ける。"""
+    if not pool:
+        pool = list(PREFECTURES)
+    out: list[dict] = []
+    bag: list[dict] = []
+    while len(out) < count:
+        if not bag:
+            bag = list(pool)
+            random.shuffle(bag)
+            if out and len(bag) > 1 and bag[0]["code"] == out[-1]["code"]:
+                bag.append(bag.pop(0))
+        pref = bag.pop(0)
+        if out and pref["code"] == out[-1]["code"] and (bag or len(pool) > 1):
+            alt = next((row for row in bag if row["code"] != out[-1]["code"]), None)
+            if alt is None:
+                others = [row for row in pool if row["code"] != out[-1]["code"]]
+                if others:
+                    alt = random.choice(others)
+            if alt is not None:
+                if alt in bag:
+                    bag.remove(alt)
+                    bag.append(pref)
+                pref = alt
+        out.append(pref)
+    return out
+
+
+def pick_ten_kenkatachi(step: int = 1) -> list[GeneratedQuestion]:
+    """県の形はステージの県数が少なくても、連続同一を避けて10問作る。"""
+    step = min(max(step, 1), MAX_STEP)
+    pool = _pref_pool(step) or list(PREFECTURES)
+    prefs = _cycle_prefs(pool, 10)
+    use_context = step >= WORD_STEP_FROM
+    return [
+        _one_kenkatachi(step, with_context=use_context and index >= 8, pref=pref)
+        for index, pref in enumerate(prefs)
+    ]
 
 
 def _one(kind: str, step: int, *, with_context: bool) -> GeneratedQuestion:
@@ -350,6 +395,8 @@ def _one(kind: str, step: int, *, with_context: bool) -> GeneratedQuestion:
 def pick_ten(kind: str, step: int = 1) -> list[GeneratedQuestion]:
     if kind == "ちずきごう":
         return pick_ten_chizukigo(step)
+    if kind == "けんのかたち":
+        return pick_ten_kenkatachi(step)
     step = min(max(step, 1), MAX_STEP)
     seen: set[str] = set()
     out: list[GeneratedQuestion] = []
@@ -360,13 +407,19 @@ def pick_ten(kind: str, step: int = 1) -> list[GeneratedQuestion]:
             if len(out) >= target:
                 return
             question = _one(kind, step, with_context=with_context)
-            key = f"{question.prompt}|{question.image_url or ''}"
+            key = f"{question.correct}|{question.prompt}|{question.image_url or ''}"
             if key in seen:
                 continue
             seen.add(key)
             out.append(question)
+        # 足りない分は連続同一を避けて埋める
         while len(out) < target:
-            out.append(_one(kind, step, with_context=with_context))
+            question = _one(kind, step, with_context=with_context)
+            if out and question.correct == out[-1].correct:
+                alt = _one(kind, step, with_context=with_context)
+                if alt.correct != out[-1].correct:
+                    question = alt
+            out.append(question)
 
     if use_context and kind != "ちずきごう":
         fill(8, with_context=False)

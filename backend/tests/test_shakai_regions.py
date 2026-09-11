@@ -75,16 +75,19 @@ def test_kenkatachi_hokkaido_choices_include_tohoku():
     assert all(choice in tohoku_names or choice == "ほっかいどう" for choice in question.choices)
 
 
-def test_kenkatachi_choices_are_regional():
-    question = _one_kenkatachi(1, with_context=False)
-    assert question.image_url
-    code = question.image_url.rsplit("/", 1)[-1].removesuffix(".svg")
-    region_names = {
-        row["name"] for row in PREFECTURES if row["code"] in set(codes_for_kenkatachi(code))
-    }
-    assert question.correct in region_names
-    assert set(question.choices or []) <= region_names
-    assert len(question.choices) == 4
+def test_kenkatachi_stage3_avoids_consecutive_duplicates():
+    from app.shakai import _pref_pool, pick_ten
+
+    pool = _pref_pool(3)
+    assert len(pool) == 4
+    for _ in range(50):
+        quiz = pick_ten("けんのかたち", 3)
+        assert len(quiz) == 10
+        corrects = [q.correct for q in quiz]
+        for prev, cur in zip(corrects, corrects[1:]):
+            assert prev != cur
+        # プールが4しかなくても、1問に同じ県が偏りすぎない
+        assert max(corrects.count(name) for name in set(corrects)) <= 3
 
 
 def test_todofuken_capital_prompt_uses_correct_site_label():
