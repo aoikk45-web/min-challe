@@ -370,7 +370,7 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
         ctx!.arc(s.aimX, DROP_Y, m.r, 0, Math.PI * 2)
         ctx!.fillStyle = m.color
         ctx!.fill()
-        ctx!.font = `${Math.floor(m.r * 1.05)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`
+        ctx!.font = `${Math.floor(m.r * 1.25)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`
         ctx!.textAlign = 'center'
         ctx!.textBaseline = 'middle'
         ctx!.fillText(m.emoji, s.aimX, DROP_Y - 1)
