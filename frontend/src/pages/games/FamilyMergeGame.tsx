@@ -44,7 +44,7 @@ const GRAVITY = 0.34
 const REST = 0.18
 const FRICTION = 0.988
 
-/** 落とせるのは4色のひいじい／ひいばあ */
+/** 落とせるのは最上位世代（8人） */
 const DROP_KINDS: Kind[] = [
   'hiiji_ao',
   'hiiba_ao',
@@ -66,41 +66,46 @@ const META: Record<
   Kind,
   { label: string; tip: string; emoji: string; color: string; ring: string; r: number }
 > = {
-  hiiji_ao: { label: 'ひいじい・あお', tip: 'あお', emoji: '👴', color: '#3b82f6', ring: '#1e3a8a', r: R_HII },
-  hiiba_ao: { label: 'ひいばあ・あお', tip: 'あお', emoji: '👵', color: '#60a5fa', ring: '#1e40af', r: R_HII },
-  hiiji_mizu: { label: 'ひいじい・みず', tip: 'みず', emoji: '👴', color: '#06b6d4', ring: '#155e75', r: R_HII },
-  hiiba_mizu: { label: 'ひいばあ・みず', tip: 'みず', emoji: '👵', color: '#22d3ee', ring: '#0e7490', r: R_HII },
-  hiiji_aka: { label: 'ひいじい・あか', tip: 'あか', emoji: '👴', color: '#ef4444', ring: '#991b1b', r: R_HII },
-  hiiba_aka: { label: 'ひいばあ・あか', tip: 'あか', emoji: '👵', color: '#f87171', ring: '#b91c1c', r: R_HII },
-  hiiji_orenji: { label: 'ひいじい・おれんじ', tip: 'おれんじ', emoji: '👴', color: '#f97316', ring: '#9a3412', r: R_HII },
-  hiiba_orenji: { label: 'ひいばあ・おれんじ', tip: 'おれんじ', emoji: '👵', color: '#fb923c', ring: '#c2410c', r: R_HII },
-  jiji_ao: { label: 'じいじ・あお', tip: 'あお', emoji: '👴', color: '#1d4ed8', ring: '#172554', r: R_SOFU },
-  baba_mizu: { label: 'ばあば・みず', tip: 'みず', emoji: '👵', color: '#0891b2', ring: '#164e63', r: R_SOFU },
-  jiji_aka: { label: 'じいじ・あか', tip: 'あか', emoji: '👴', color: '#dc2626', ring: '#7f1d1d', r: R_SOFU },
-  baba_orenji: { label: 'ばあば・おれんじ', tip: 'おれんじ', emoji: '👵', color: '#ea580c', ring: '#7c2d12', r: R_SOFU },
-  papa_ao: { label: 'パパ・あお', tip: 'あお', emoji: '👨', color: '#2563eb', ring: '#1e3a8a', r: R_OYA },
-  mama_aka: { label: 'ママ・あか', tip: 'あか', emoji: '👩', color: '#e11d48', ring: '#881337', r: R_OYA },
-  yuuki: { label: 'ゆうき・きいろ', tip: 'きいろ', emoji: '🧒', color: '#facc15', ring: '#a16207', r: R_YUUKI },
+  // としお・ひなこ → いくこ
+  hiiji_ao: { label: 'としお', tip: 'としお', emoji: '👴', color: '#3b82f6', ring: '#1e3a8a', r: R_HII },
+  hiiba_ao: { label: 'ひなこ', tip: 'ひなこ', emoji: '👵', color: '#60a5fa', ring: '#1e40af', r: R_HII },
+  jiji_ao: { label: 'いくこ', tip: 'いくこ', emoji: '👩', color: '#1d4ed8', ring: '#172554', r: R_SOFU },
+  // まさとし・きぬこ → みがく
+  hiiji_mizu: { label: 'まさとし', tip: 'まさとし', emoji: '👴', color: '#06b6d4', ring: '#155e75', r: R_HII },
+  hiiba_mizu: { label: 'きぬこ', tip: 'きぬこ', emoji: '👵', color: '#22d3ee', ring: '#0e7490', r: R_HII },
+  baba_mizu: { label: 'みがく', tip: 'みがく', emoji: '👨', color: '#0891b2', ring: '#164e63', r: R_SOFU },
+  // じゅんきち・しずえ → きよみ
+  hiiji_aka: { label: 'じゅんきち', tip: 'じゅんきち', emoji: '👴', color: '#ef4444', ring: '#991b1b', r: R_HII },
+  hiiba_aka: { label: 'しずえ', tip: 'しずえ', emoji: '👵', color: '#f87171', ring: '#b91c1c', r: R_HII },
+  jiji_aka: { label: 'きよみ', tip: 'きよみ', emoji: '👩', color: '#dc2626', ring: '#7f1d1d', r: R_SOFU },
+  // かずえ・さきこ → あきら
+  hiiji_orenji: { label: 'かずえ', tip: 'かずえ', emoji: '👵', color: '#f97316', ring: '#9a3412', r: R_HII },
+  hiiba_orenji: { label: 'さきこ', tip: 'さきこ', emoji: '👵', color: '#fb923c', ring: '#c2410c', r: R_HII },
+  baba_orenji: { label: 'あきら', tip: 'あきら', emoji: '👨', color: '#ea580c', ring: '#7c2d12', r: R_SOFU },
+  // いくこ・みがく → かおり ／ きよみ・あきら → としや ／ かおり・としや → ゆうき
+  papa_ao: { label: 'かおり', tip: 'かおり', emoji: '👩', color: '#2563eb', ring: '#1e3a8a', r: R_OYA },
+  mama_aka: { label: 'としや', tip: 'としや', emoji: '👨', color: '#e11d48', ring: '#881337', r: R_OYA },
+  yuuki: { label: 'ゆうき', tip: 'ゆうき', emoji: '🧒', color: '#facc15', ring: '#a16207', r: R_YUUKI },
 }
 
 function mergeResult(a: Kind, b: Kind): Kind | null {
   if (a === b) return null
   const set = new Set([a, b])
 
-  // ①あお ひいじい＋ひいばあ → あおじいじ
+  // としお＋ひなこ → いくこ
   if (set.has('hiiji_ao') && set.has('hiiba_ao')) return 'jiji_ao'
-  // ②みず ひいじい＋ひいばあ → みずばあば
+  // まさとし＋きぬこ → みがく
   if (set.has('hiiji_mizu') && set.has('hiiba_mizu')) return 'baba_mizu'
-  // ③あか ひいじい＋ひいばあ → あかじいじ
+  // じゅんきち＋しずえ → きよみ
   if (set.has('hiiji_aka') && set.has('hiiba_aka')) return 'jiji_aka'
-  // ④おれんじ ひいじい＋ひいばあ → おれんじばあば
+  // かずえ＋さきこ → あきら
   if (set.has('hiiji_orenji') && set.has('hiiba_orenji')) return 'baba_orenji'
 
-  // あおじいじ＋みずばあば → あおパパ
+  // いくこ＋みがく → かおり
   if (set.has('jiji_ao') && set.has('baba_mizu')) return 'papa_ao'
-  // あかじいじ＋おれんじばあば → あかママ
+  // きよみ＋あきら → としや
   if (set.has('jiji_aka') && set.has('baba_orenji')) return 'mama_aka'
-  // あおパパ＋あかママ → きいろゆうき
+  // かおり＋としや → ゆうき
   if (set.has('papa_ao') && set.has('mama_aka')) return 'yuuki'
   return null
 }
@@ -393,15 +398,16 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       ctx!.textBaseline = 'middle'
       ctx!.fillText(m.emoji, b.x, b.y - Math.max(2, b.r * 0.08))
       // 色名のヒント（小さい世代ほど重要）
-      if (b.r <= R_SOFU + 1) {
+      if (b.r <= R_OYA + 1) {
         const tip = m.tip
         if (tip) {
-          ctx!.font = `bold ${Math.max(9, Math.floor(b.r * 0.36))}px sans-serif`
+          const size = Math.max(8, Math.min(Math.floor(b.r * 0.42), Math.floor((b.r * 1.6) / tip.length)))
+          ctx!.font = `bold ${size}px sans-serif`
           ctx!.fillStyle = '#fff'
           ctx!.strokeStyle = m.ring
           ctx!.lineWidth = 3
-          ctx!.strokeText(tip, b.x, b.y + b.r * 0.42)
-          ctx!.fillText(tip, b.x, b.y + b.r * 0.42)
+          ctx!.strokeText(tip, b.x, b.y + b.r * 0.4)
+          ctx!.fillText(tip, b.x, b.y + b.r * 0.4)
         }
       }
     }
@@ -453,12 +459,13 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
         ctx!.fillText(m.emoji, s.aimX, DROP_Y - Math.max(2, m.r * 0.08))
         const tip = m.tip
         if (tip) {
-          ctx!.font = `bold ${Math.max(9, Math.floor(m.r * 0.36))}px sans-serif`
+          const size = Math.max(8, Math.min(Math.floor(m.r * 0.42), Math.floor((m.r * 1.6) / tip.length)))
+          ctx!.font = `bold ${size}px sans-serif`
           ctx!.fillStyle = '#fff'
           ctx!.strokeStyle = m.ring
           ctx!.lineWidth = 3
-          ctx!.strokeText(tip, s.aimX, DROP_Y + m.r * 0.42)
-          ctx!.fillText(tip, s.aimX, DROP_Y + m.r * 0.42)
+          ctx!.strokeText(tip, s.aimX, DROP_Y + m.r * 0.4)
+          ctx!.fillText(tip, s.aimX, DROP_Y + m.r * 0.4)
         }
         ctx!.globalAlpha = 1
         ctx!.strokeStyle = 'rgba(61,44,30,0.2)'
@@ -498,8 +505,8 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       </div>
 
       <p className="text-sm leading-relaxed text-ink/70">
-        同じ色のひいじい＋ひいばあ → じいじ／ばあば。あおじいじ＋みずばあば → あおパパ。あかじいじ＋おれんじばあば
-        → あかママ。パパ＋ママ → きいろゆうき。点線までつみあがったらおわり。
+        としお＋ひなこ→いくこ、まさとし＋きぬこ→みがく、じゅんきち＋しずえ→きよみ、かずえ＋さきこ→あきら。
+        いくこ＋みがく→かおり、きよみ＋あきら→としや。かおり＋としや→ゆうき！
       </p>
 
       <div className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm shadow-sm">

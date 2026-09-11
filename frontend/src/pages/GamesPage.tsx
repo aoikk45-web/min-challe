@@ -12,7 +12,7 @@ type GameId = 'cups' | 'memory' | 'invaders' | 'breakout' | 'racing' | 'family'
 const GAMES: { id: GameId; emoji: string; title: string; blurb: string }[] = [
   { id: 'cups', emoji: '🥤', title: 'カップゲーム', blurb: 'たまの ばしょを あてよう' },
   { id: 'memory', emoji: '🃏', title: 'しんけいすいじゃく', blurb: 'おなじ えを ペアにしよう' },
-  { id: 'family', emoji: '👨‍👩‍👦', title: '4世代あわせ', blurb: 'ひいじいから ゆうきを つくろう' },
+  { id: 'family', emoji: '👨‍👩‍👦', title: '4世代あわせ', blurb: 'かぞくの なまえを あわせて ゆうきを つくろう' },
   { id: 'invaders', emoji: '👾', title: 'インベーダー', blurb: 'てきを ぜんぶ たおそう' },
   { id: 'breakout', emoji: '🧱', title: 'ブロックくずし', blurb: 'ブロックを ぜんぶ くずそう' },
   { id: 'racing', emoji: '🚗', title: 'くるまレース', blurb: 'くるまを よけて すすもう' },
