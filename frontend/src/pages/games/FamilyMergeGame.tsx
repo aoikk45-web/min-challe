@@ -5,16 +5,20 @@ import { notifyPointsUpdated } from '../../pointsRefresh'
 type Status = 'ready' | 'playing' | 'won' | 'lost'
 
 type Kind =
-  | 'hiiji_f'
-  | 'hiiba_f'
-  | 'hiiji_m'
-  | 'hiiba_m'
-  | 'oji_f'
-  | 'oba_f'
-  | 'oji_m'
-  | 'oba_m'
-  | 'papa'
-  | 'mama'
+  | 'hiiji_ao'
+  | 'hiiba_ao'
+  | 'hiiji_mizu'
+  | 'hiiba_mizu'
+  | 'hiiji_aka'
+  | 'hiiba_aka'
+  | 'hiiji_orenji'
+  | 'hiiba_orenji'
+  | 'jiji_ao'
+  | 'baba_mizu'
+  | 'jiji_aka'
+  | 'baba_orenji'
+  | 'papa_ao'
+  | 'mama_aka'
   | 'yuuki'
 
 type Ball = {
@@ -38,114 +42,64 @@ const GRAVITY = 0.34
 const REST = 0.18
 const FRICTION = 0.988
 
-/** 落とせるのはいちばん小さいひい世代だけ */
-const DROP_KINDS: Kind[] = ['hiiji_f', 'hiiba_f', 'hiiji_m', 'hiiba_m']
+/** 落とせるのは4色のひいじい／ひいばあ */
+const DROP_KINDS: Kind[] = [
+  'hiiji_ao',
+  'hiiba_ao',
+  'hiiji_mizu',
+  'hiiba_mizu',
+  'hiiji_aka',
+  'hiiba_aka',
+  'hiiji_orenji',
+  'hiiba_orenji',
+]
 
 /** ゆうきの直径 = 画面幅のちょうど 1/4。他世代も比例拡大。 */
 const R_YUUKI = Math.round(W / 8)
+const R_HII = Math.round(R_YUUKI * 0.42)
+const R_SOFU = Math.round(R_YUUKI * 0.62)
+const R_OYA = Math.round(R_YUUKI * 0.82)
+
 const META: Record<
   Kind,
-  { label: string; emoji: string; color: string; ring: string; r: number }
+  { label: string; tip: string; emoji: string; color: string; ring: string; r: number }
 > = {
-  // 落とす4種 — 色をはっきり分ける
-  hiiji_f: {
-    label: 'ひいじい・あお',
-    emoji: '👴',
-    color: '#3b82f6',
-    ring: '#1e3a8a',
-    r: Math.round(R_YUUKI * 0.42),
-  },
-  hiiba_f: {
-    label: 'ひいばあ・みず',
-    emoji: '👵',
-    color: '#22d3ee',
-    ring: '#0e7490',
-    r: Math.round(R_YUUKI * 0.42),
-  },
-  hiiji_m: {
-    label: 'ひいじい・あか',
-    emoji: '👴',
-    color: '#f43f5e',
-    ring: '#9f1239',
-    r: Math.round(R_YUUKI * 0.42),
-  },
-  hiiba_m: {
-    label: 'ひいばあ・むらさき',
-    emoji: '👵',
-    color: '#c084fc',
-    ring: '#6b21a8',
-    r: Math.round(R_YUUKI * 0.42),
-  },
-  // ひいじい＋ひいばあ の4パターン結果
-  oji_f: {
-    label: 'じいじ・あお',
-    emoji: '👴',
-    color: '#1d4ed8',
-    ring: '#172554',
-    r: Math.round(R_YUUKI * 0.62),
-  },
-  oba_f: {
-    label: 'ばあば・みどり',
-    emoji: '👵',
-    color: '#10b981',
-    ring: '#065f46',
-    r: Math.round(R_YUUKI * 0.62),
-  },
-  oji_m: {
-    label: 'じいじ・あか',
-    emoji: '👴',
-    color: '#be123c',
-    ring: '#4c0519',
-    r: Math.round(R_YUUKI * 0.62),
-  },
-  oba_m: {
-    label: 'ばあば・むらさき',
-    emoji: '👵',
-    color: '#7c3aed',
-    ring: '#4c1d95',
-    r: Math.round(R_YUUKI * 0.62),
-  },
-  papa: {
-    label: 'パパ',
-    emoji: '👨',
-    color: '#f59e0b',
-    ring: '#92400e',
-    r: Math.round(R_YUUKI * 0.82),
-  },
-  mama: {
-    label: 'ママ',
-    emoji: '👩',
-    color: '#ec4899',
-    ring: '#9d174d',
-    r: Math.round(R_YUUKI * 0.82),
-  },
-  yuuki: {
-    label: 'ゆうき',
-    emoji: '🧒',
-    color: '#facc15',
-    ring: '#a16207',
-    r: R_YUUKI,
-  },
+  hiiji_ao: { label: 'ひいじい・あお', tip: 'あお', emoji: '👴', color: '#3b82f6', ring: '#1e3a8a', r: R_HII },
+  hiiba_ao: { label: 'ひいばあ・あお', tip: 'あお', emoji: '👵', color: '#60a5fa', ring: '#1e40af', r: R_HII },
+  hiiji_mizu: { label: 'ひいじい・みず', tip: 'みず', emoji: '👴', color: '#06b6d4', ring: '#155e75', r: R_HII },
+  hiiba_mizu: { label: 'ひいばあ・みず', tip: 'みず', emoji: '👵', color: '#22d3ee', ring: '#0e7490', r: R_HII },
+  hiiji_aka: { label: 'ひいじい・あか', tip: 'あか', emoji: '👴', color: '#ef4444', ring: '#991b1b', r: R_HII },
+  hiiba_aka: { label: 'ひいばあ・あか', tip: 'あか', emoji: '👵', color: '#f87171', ring: '#b91c1c', r: R_HII },
+  hiiji_orenji: { label: 'ひいじい・おれんじ', tip: 'おれんじ', emoji: '👴', color: '#f97316', ring: '#9a3412', r: R_HII },
+  hiiba_orenji: { label: 'ひいばあ・おれんじ', tip: 'おれんじ', emoji: '👵', color: '#fb923c', ring: '#c2410c', r: R_HII },
+  jiji_ao: { label: 'じいじ・あお', tip: 'あお', emoji: '👴', color: '#1d4ed8', ring: '#172554', r: R_SOFU },
+  baba_mizu: { label: 'ばあば・みず', tip: 'みず', emoji: '👵', color: '#0891b2', ring: '#164e63', r: R_SOFU },
+  jiji_aka: { label: 'じいじ・あか', tip: 'あか', emoji: '👴', color: '#dc2626', ring: '#7f1d1d', r: R_SOFU },
+  baba_orenji: { label: 'ばあば・おれんじ', tip: 'おれんじ', emoji: '👵', color: '#ea580c', ring: '#7c2d12', r: R_SOFU },
+  papa_ao: { label: 'パパ・あお', tip: 'あお', emoji: '👨', color: '#2563eb', ring: '#1e3a8a', r: R_OYA },
+  mama_aka: { label: 'ママ・あか', tip: 'あか', emoji: '👩', color: '#e11d48', ring: '#881337', r: R_OYA },
+  yuuki: { label: 'ゆうき・きいろ', tip: 'きいろ', emoji: '🧒', color: '#facc15', ring: '#a16207', r: R_YUUKI },
 }
 
 function mergeResult(a: Kind, b: Kind): Kind | null {
   if (a === b) return null
   const set = new Set([a, b])
 
-  // ひいじい＋ひいばあ（4パターン）→ じいじ／ばあば
-  // あお＋みず → じいじ・あお
-  if (set.has('hiiji_f') && set.has('hiiba_f')) return 'oji_f'
-  // あお＋むらさき → ばあば・みどり
-  if (set.has('hiiji_f') && set.has('hiiba_m')) return 'oba_f'
-  // あか＋みず → じいじ・あか
-  if (set.has('hiiji_m') && set.has('hiiba_f')) return 'oji_m'
-  // あか＋むらさき → ばあば・むらさき
-  if (set.has('hiiji_m') && set.has('hiiba_m')) return 'oba_m'
+  // ①あお ひいじい＋ひいばあ → あおじいじ
+  if (set.has('hiiji_ao') && set.has('hiiba_ao')) return 'jiji_ao'
+  // ②みず ひいじい＋ひいばあ → みずばあば
+  if (set.has('hiiji_mizu') && set.has('hiiba_mizu')) return 'baba_mizu'
+  // ③あか ひいじい＋ひいばあ → あかじいじ
+  if (set.has('hiiji_aka') && set.has('hiiba_aka')) return 'jiji_aka'
+  // ④おれんじ ひいじい＋ひいばあ → おれんじばあば
+  if (set.has('hiiji_orenji') && set.has('hiiba_orenji')) return 'baba_orenji'
 
-  // じいじ＋ばあば → パパ／ママ、パパ＋ママ → ゆうき
-  if (set.has('oji_f') && set.has('oba_f')) return 'papa'
-  if (set.has('oji_m') && set.has('oba_m')) return 'mama'
-  if (set.has('papa') && set.has('mama')) return 'yuuki'
+  // あおじいじ＋みずばあば → あおパパ
+  if (set.has('jiji_ao') && set.has('baba_mizu')) return 'papa_ao'
+  // あかじいじ＋おれんじばあば → あかママ
+  if (set.has('jiji_aka') && set.has('baba_orenji')) return 'mama_aka'
+  // あおパパ＋あかママ → きいろゆうき
+  if (set.has('papa_ao') && set.has('mama_aka')) return 'yuuki'
   return null
 }
 
@@ -403,10 +357,10 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       ctx!.textBaseline = 'middle'
       ctx!.fillText(m.emoji, b.x, b.y - Math.max(2, b.r * 0.08))
       // 色名のヒント（小さい世代ほど重要）
-      if (b.r <= META.oji_f.r + 1) {
-        const tip = m.label.includes('・') ? m.label.split('・')[1]! : ''
+      if (b.r <= R_SOFU + 1) {
+        const tip = m.tip
         if (tip) {
-          ctx!.font = `bold ${Math.max(9, Math.floor(b.r * 0.38))}px sans-serif`
+          ctx!.font = `bold ${Math.max(9, Math.floor(b.r * 0.36))}px sans-serif`
           ctx!.fillStyle = '#fff'
           ctx!.strokeStyle = m.ring
           ctx!.lineWidth = 3
@@ -461,9 +415,9 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
         ctx!.textAlign = 'center'
         ctx!.textBaseline = 'middle'
         ctx!.fillText(m.emoji, s.aimX, DROP_Y - Math.max(2, m.r * 0.08))
-        const tip = m.label.includes('・') ? m.label.split('・')[1]! : ''
+        const tip = m.tip
         if (tip) {
-          ctx!.font = `bold ${Math.max(9, Math.floor(m.r * 0.38))}px sans-serif`
+          ctx!.font = `bold ${Math.max(9, Math.floor(m.r * 0.36))}px sans-serif`
           ctx!.fillStyle = '#fff'
           ctx!.strokeStyle = m.ring
           ctx!.lineWidth = 3
@@ -507,9 +461,9 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
         <span className="w-16" />
       </div>
 
-      <p className="text-sm text-ink/70">
-        ひいじい＋ひいばあ（色のくみあわせ4つ）→ じいじ／ばあば。じいじ＋ばあば → パパ／ママ。パパ＋ママ
-        → ゆうき！
+      <p className="text-sm leading-relaxed text-ink/70">
+        同じ色のひいじい＋ひいばあ → じいじ／ばあば。あおじいじ＋みずばあば → あおパパ。あかじいじ＋おれんじばあば
+        → あかママ。パパ＋ママ → きいろゆうき。点線までつみあがったらおわり。
       </p>
 
       <div className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm shadow-sm">
@@ -556,7 +510,7 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
 
       {status === 'lost' && (
         <div className="rounded-3xl bg-white p-4 text-center shadow-sm">
-          <p className="text-lg font-black text-coral">あふれて しまった…</p>
+          <p className="text-lg font-black text-coral">点線まで つみあがった…</p>
           <button
             type="button"
             onClick={() => hardReset(true)}
