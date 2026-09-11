@@ -30,6 +30,8 @@ type Ball = {
   vy: number
   r: number
   settled: boolean
+  /** 一度でも点線より下に入ったか（落とす位置は点線より上なので必須） */
+  enteredPlay: boolean
 }
 
 const W = 400
@@ -165,6 +167,7 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       vy: 0.8,
       r,
       settled: false,
+      enteredPlay: false,
     })
     s.dropping = true
     const n = randomDrop()
@@ -286,6 +289,8 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
                 vy: -1.2,
                 r: nr,
                 settled: false,
+                // マージ地点が点線より下ならプレイ済み扱い
+                enteredPlay: ny - nr > DANGER_Y,
               })
               s.mergeFlash = 12
               if (next === 'yuuki' && !awardedRef.current) {
@@ -326,15 +331,31 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
 
       if (s.mergeFlash > 0) s.mergeFlash -= 1
 
-      const moving = s.balls.some((b) => Math.abs(b.vx) > 0.35 || Math.abs(b.vy) > 0.35)
+      for (const b of s.balls) {
+        // 球の上端が点線より下に入ったら「場に入った」
+        if (!b.enteredPlay && b.y - b.r > DANGER_Y + 2) {
+          b.enteredPlay = true
+        }
+      }
+
+      const moving = s.balls.some((b) => Math.abs(b.vx) > 0.4 || Math.abs(b.vy) > 0.4)
       if (!moving) s.dropping = false
 
-      const overflow = s.balls.some(
-        (b) => b.y - b.r < DANGER_Y && Math.abs(b.vy) < 0.3 && Math.abs(b.vx) < 0.3,
-      )
+      // 一度場に入った球が、落ち着いた状態で点線より上に残っていたら負け
+      // （落とした直後・横詰まりで上に留まっただけの球は対象外）
+      const overflow =
+        !s.dropping &&
+        !moving &&
+        s.balls.some(
+          (b) =>
+            b.enteredPlay &&
+            b.y - b.r < DANGER_Y &&
+            Math.abs(b.vy) < 0.25 &&
+            Math.abs(b.vx) < 0.25,
+        )
       if (overflow) {
         s.dangerFrames += 1
-        if (s.dangerFrames > 45) {
+        if (s.dangerFrames > 75) {
           s.status = 'lost'
           setStatus('lost')
         }
