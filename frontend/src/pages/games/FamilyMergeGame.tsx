@@ -692,7 +692,12 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
 
       <div className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm shadow-sm">
         <span className="font-bold text-ink/60">つぎ</span>
-        <span className="text-2xl">{META[nextKind].emoji}</span>
+        <span
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-black text-white"
+          style={{ backgroundColor: META[nextKind].color }}
+        >
+          {META[nextKind].tip.slice(0, 1)}
+        </span>
         <span className="font-black">{META[nextKind].label}</span>
         <span className="ml-auto text-xs text-ink/50">左右で位置・タップでおとす</span>
       </div>
