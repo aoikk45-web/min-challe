@@ -124,7 +124,8 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
     balls: [] as Ball[],
     aimX: W / 2,
     next: randomDrop() as Kind,
-    dropping: false,
+    lastDropId: null as number | null,
+    dropWait: 0,
     mergeFlash: 0,
     dangerFrames: 0,
     pointerDown: false,
@@ -140,7 +141,8 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
     s.balls = []
     s.aimX = W / 2
     s.next = n
-    s.dropping = false
+    s.lastDropId = null
+    s.dropWait = 0
     s.mergeFlash = 0
     s.dangerFrames = 0
     s.pointerDown = false
@@ -149,8 +151,18 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
 
   function canDrop() {
     const s = stateRef.current
-    if (s.status !== 'playing' || s.dropping) return false
-    return s.balls.every((b) => Math.abs(b.vx) < 0.35 && Math.abs(b.vy) < 0.35)
+    if (s.status !== 'playing') return false
+    if (s.lastDropId == null) return true
+    // 待ちすぎたら強制で次を落とせる（横詰まりの微小振動対策）
+    if (s.dropWait > 50) return true
+    const last = s.balls.find((b) => b.id === s.lastDropId)
+    if (!last) return true
+    // 最後に落とした球が場に入り、ほぼ止まったら OK
+    return (
+      last.enteredPlay &&
+      Math.abs(last.vx) < 0.8 &&
+      Math.abs(last.vy) < 0.8
+    )
   }
 
   function tryDrop() {
@@ -158,18 +170,20 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
     if (!canDrop()) return
     const kind = s.next
     const r = META[kind].r
+    const id = idSeq++
     s.balls.push({
-      id: idSeq++,
+      id,
       kind,
       x: s.aimX,
       y: DROP_Y,
       vx: 0,
-      vy: 0.8,
+      vy: 1.2,
       r,
       settled: false,
       enteredPlay: false,
     })
-    s.dropping = true
+    s.lastDropId = id
+    s.dropWait = 0
     const n = randomDrop()
     s.next = n
     setNextKind(n)
@@ -338,14 +352,15 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
         }
       }
 
-      const moving = s.balls.some((b) => Math.abs(b.vx) > 0.4 || Math.abs(b.vy) > 0.4)
-      if (!moving) s.dropping = false
+      if (s.lastDropId != null) s.dropWait += 1
+
+      const last = s.lastDropId == null ? null : s.balls.find((b) => b.id === s.lastDropId)
+      const lastSettling =
+        last != null && (!last.enteredPlay || Math.abs(last.vx) > 0.8 || Math.abs(last.vy) > 0.8)
 
       // 一度場に入った球が、落ち着いた状態で点線より上に残っていたら負け
-      // （落とした直後・横詰まりで上に留まっただけの球は対象外）
       const overflow =
-        !s.dropping &&
-        !moving &&
+        !lastSettling &&
         s.balls.some(
           (b) =>
             b.enteredPlay &&
