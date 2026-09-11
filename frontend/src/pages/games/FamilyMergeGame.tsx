@@ -28,34 +28,36 @@ type Ball = {
   settled: boolean
 }
 
-const W = 360
-const H = 520
-const FLOOR = H - 16
-const WALL = 12
-const DANGER_Y = 96
-const DROP_Y = 52
-const GRAVITY = 0.28
+const W = 400
+const H = 640
+const FLOOR = H - 20
+const WALL = 14
+const DANGER_Y = 124
+const DROP_Y = 62
+const GRAVITY = 0.34
 const REST = 0.18
 const FRICTION = 0.988
 
 /** 落とせるのはいちばん小さいひい世代だけ */
 const DROP_KINDS: Kind[] = ['hiiji_f', 'hiiba_f', 'hiiji_m', 'hiiba_m']
 
+/** ゆうきの直径 = 画面幅のちょうど 1/4。他世代も比例拡大。 */
+const R_YUUKI = Math.round(W / 8)
 const META: Record<
   Kind,
   { label: string; emoji: string; color: string; r: number }
 > = {
-  hiiji_f: { label: 'ひいじい', emoji: '👴', color: '#a8c8e8', r: 15 },
-  hiiba_f: { label: 'ひいばあ', emoji: '👵', color: '#b8d4f0', r: 15 },
-  hiiji_m: { label: 'ひいじい', emoji: '👴', color: '#f0b0c0', r: 15 },
-  hiiba_m: { label: 'ひいばあ', emoji: '👵', color: '#f5c0d0', r: 15 },
-  oji_f: { label: 'おじい', emoji: '👴', color: '#7eb8e8', r: 23 },
-  oba_f: { label: 'おばあ', emoji: '👵', color: '#9ec9f0', r: 23 },
-  oji_m: { label: 'おじい', emoji: '👴', color: '#f0a0b8', r: 23 },
-  oba_m: { label: 'おばあ', emoji: '👵', color: '#f5b8c8', r: 23 },
-  papa: { label: 'パパ', emoji: '👨', color: '#6bc4a0', r: 33 },
-  mama: { label: 'ママ', emoji: '👩', color: '#e8a060', r: 33 },
-  yuuki: { label: 'ゆうき', emoji: '🧒', color: '#f5d56e', r: 46 },
+  hiiji_f: { label: 'ひいじい', emoji: '👴', color: '#a8c8e8', r: Math.round(R_YUUKI * 0.42) },
+  hiiba_f: { label: 'ひいばあ', emoji: '👵', color: '#b8d4f0', r: Math.round(R_YUUKI * 0.42) },
+  hiiji_m: { label: 'ひいじい', emoji: '👴', color: '#f0b0c0', r: Math.round(R_YUUKI * 0.42) },
+  hiiba_m: { label: 'ひいばあ', emoji: '👵', color: '#f5c0d0', r: Math.round(R_YUUKI * 0.42) },
+  oji_f: { label: 'おじい', emoji: '👴', color: '#7eb8e8', r: Math.round(R_YUUKI * 0.62) },
+  oba_f: { label: 'おばあ', emoji: '👵', color: '#9ec9f0', r: Math.round(R_YUUKI * 0.62) },
+  oji_m: { label: 'おじい', emoji: '👴', color: '#f0a0b8', r: Math.round(R_YUUKI * 0.62) },
+  oba_m: { label: 'おばあ', emoji: '👵', color: '#f5b8c8', r: Math.round(R_YUUKI * 0.62) },
+  papa: { label: 'パパ', emoji: '👨', color: '#6bc4a0', r: Math.round(R_YUUKI * 0.82) },
+  mama: { label: 'ママ', emoji: '👩', color: '#e8a060', r: Math.round(R_YUUKI * 0.82) },
+  yuuki: { label: 'ゆうき', emoji: '🧒', color: '#f5d56e', r: R_YUUKI },
 }
 
 function mergeResult(a: Kind, b: Kind): Kind | null {
@@ -324,7 +326,7 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       ctx!.lineWidth = 2
       ctx!.strokeStyle = 'rgba(61,44,30,0.25)'
       ctx!.stroke()
-      ctx!.font = `${Math.floor(b.r * 1.05)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`
+      ctx!.font = `${Math.floor(b.r * 1.25)}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`
       ctx!.textAlign = 'center'
       ctx!.textBaseline = 'middle'
       ctx!.fillText(m.emoji, b.x, b.y - 1)
@@ -424,7 +426,7 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
         ref={canvasRef}
         width={W}
         height={H}
-        className="mx-auto block w-full max-w-[360px] touch-none rounded-3xl border-2 border-orange-100 bg-[#fff8ee] shadow-sm"
+        className="mx-auto block w-full max-w-[400px] touch-none rounded-3xl border-2 border-orange-100 bg-[#fff8ee] shadow-sm"
       />
 
       {status === 'ready' && (
