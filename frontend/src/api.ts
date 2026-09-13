@@ -245,6 +245,40 @@ export function claimGameClear(
   }).then((res) => readJson<{ points_earned: number; balance: number }>(res))
 }
 
+export type GameAccess = {
+  drills_finished: number
+  plays_used: number
+  plays_remaining: number
+  drills_toward_next: number
+  drills_per_play: number
+}
+
+export function fetchGameAccess() {
+  return fetch('/api/games/access?role=child').then((res) => readJson<GameAccess>(res))
+}
+
+export function startGamePlay(
+  game: 'cups' | 'memory' | 'invaders' | 'breakout' | 'racing' | 'family',
+) {
+  return fetch('/api/games/play?role=child', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ game }),
+  }).then(async (res) => {
+    if (!res.ok) {
+      const text = await res.text()
+      let detail = text
+      try {
+        detail = JSON.parse(text).detail ?? text
+      } catch {
+        /* keep text */
+      }
+      throw new Error(typeof detail === 'string' ? detail : 'ミニゲームを始められません')
+    }
+    return readJson<GameAccess>(res)
+  })
+}
+
 export function fetchLedger(role: Role) {
   return fetch(`/api/points/ledger?role=${role}`).then((res) => readJson<LedgerEntry[]>(res))
 }

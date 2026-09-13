@@ -41,3 +41,43 @@ def test_parent_cannot_claim_game_clear():
     client = TestClient(app)
     res = client.post("/api/games/clear", params={"role": "parent"}, json={"game": "cups"})
     assert res.status_code == 403
+
+
+def _finish_one_drill(client: TestClient, kind: str = "たしざん") -> None:
+    session = client.post("/api/drills/start", params={"role": "child"}, json={"kind": kind}).json()
+    for question in session["questions"]:
+        client.post(
+            f"/api/drills/{session['id']}/answer",
+            params={"role": "child"},
+            json={"question_id": question["id"], "answer": "0"},
+        )
+
+
+def test_game_play_requires_three_drills():
+    client = TestClient(app)
+    access = client.get("/api/games/access", params={"role": "child"}).json()
+    assert access["plays_remaining"] == 0
+    assert access["drills_per_play"] == 3
+
+    denied = client.post("/api/games/play", params={"role": "child"}, json={"game": "cups"})
+    assert denied.status_code == 403
+
+    for kind in ("たしざん", "ひきざん", "かけざん"):
+        _finish_one_drill(client, kind)
+
+    access = client.get("/api/games/access", params={"role": "child"}).json()
+    assert access["drills_finished"] == 3
+    assert access["plays_remaining"] == 1
+
+    ok = client.post("/api/games/play", params={"role": "child"}, json={"game": "family"})
+    assert ok.status_code == 200
+    assert ok.json()["plays_remaining"] == 0
+
+    again = client.post("/api/games/play", params={"role": "child"}, json={"game": "memory"})
+    assert again.status_code == 403
+
+
+def test_parent_cannot_start_game_play():
+    client = TestClient(app)
+    res = client.post("/api/games/play", params={"role": "parent"}, json={"game": "cups"})
+    assert res.status_code == 403

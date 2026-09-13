@@ -56,22 +56,20 @@ const DROP_KINDS: Kind[] = [
   'hiiba_orenji',
 ]
 
-/** ゆうきの直径 = 画面幅のちょうど 1/4。他世代も比例拡大。 */
-const R_YUUKI = Math.round(W / 8)
-const R_HII = Math.round(R_YUUKI * 0.42)
-const R_SOFU = Math.round(R_YUUKI * 0.62)
-const R_OYA = Math.round(R_YUUKI * 0.82)
-
-type FaceStyle = {
-  hair: 'black-short' | 'black-bob' | 'bald' | 'white-short' | 'gray-short'
-  glasses?: boolean
-  roundFace?: boolean
-  gender: 'm' | 'f' | 'child'
-}
+/**
+ * ひいじい／ひいばあを起点に、ゆうき側ほど大きくする。
+ * ゆうきの直径 ≈ 画面幅の 0.72（幅1/2 × 1.2 × 1.2）。
+ */
+const R_YUUKI = Math.round((W / 4) * 1.44)
+const R_HII = Math.round(R_YUUKI * 0.22)
+const R_SOFU = Math.round(R_YUUKI * 0.40)
+const R_OYA = Math.round(R_YUUKI * 0.68)
+/** 男性は同世代の女性より少し大きく */
+const rM = (base: number) => Math.round(base * 1.12)
 
 const META: Record<
   Kind,
-  { label: string; tip: string; color: string; ring: string; r: number; face: FaceStyle }
+  { label: string; tip: string; color: string; ring: string; r: number; emoji: string }
 > = {
   // かおり系列 = 赤・オレンジ
   hiiji_ao: {
@@ -79,8 +77,8 @@ const META: Record<
     tip: 'てつお',
     color: '#ef4444',
     ring: '#991b1b',
-    r: R_HII,
-    face: { hair: 'gray-short', gender: 'm' },
+    r: rM(R_HII),
+    emoji: '👴',
   },
   hiiba_ao: {
     label: 'ひなこ',
@@ -88,23 +86,23 @@ const META: Record<
     color: '#fb923c',
     ring: '#c2410c',
     r: R_HII,
-    face: { hair: 'gray-short', gender: 'f' },
+    emoji: '👵',
   },
   jiji_ao: {
     label: 'みがく',
     tip: 'みがく',
     color: '#dc2626',
     ring: '#7f1d1d',
-    r: R_SOFU,
-    face: { hair: 'bald', glasses: true, gender: 'm' },
+    r: rM(R_SOFU),
+    emoji: '👨‍🦲',
   },
   hiiji_mizu: {
     label: 'まさとし',
     tip: 'まさとし',
     color: '#f97316',
     ring: '#9a3412',
-    r: R_HII,
-    face: { hair: 'gray-short', gender: 'm' },
+    r: rM(R_HII),
+    emoji: '👴',
   },
   hiiba_mizu: {
     label: 'きぬこ',
@@ -112,7 +110,7 @@ const META: Record<
     color: '#fdba74',
     ring: '#c2410c',
     r: R_HII,
-    face: { hair: 'gray-short', gender: 'f' },
+    emoji: '👵',
   },
   baba_mizu: {
     label: 'いくこ',
@@ -120,7 +118,7 @@ const META: Record<
     color: '#ea580c',
     ring: '#7c2d12',
     r: R_SOFU,
-    face: { hair: 'black-short', roundFace: true, gender: 'f' },
+    emoji: '👵',
   },
   // としや系列 = 青・水色
   hiiji_aka: {
@@ -128,8 +126,8 @@ const META: Record<
     tip: 'じゅんきち',
     color: '#3b82f6',
     ring: '#1e3a8a',
-    r: R_HII,
-    face: { hair: 'gray-short', gender: 'm' },
+    r: rM(R_HII),
+    emoji: '👴',
   },
   hiiba_aka: {
     label: 'しずえ',
@@ -137,7 +135,7 @@ const META: Record<
     color: '#60a5fa',
     ring: '#1e40af',
     r: R_HII,
-    face: { hair: 'gray-short', gender: 'f' },
+    emoji: '👵',
   },
   jiji_aka: {
     label: 'きよみ',
@@ -145,15 +143,15 @@ const META: Record<
     color: '#1d4ed8',
     ring: '#172554',
     r: R_SOFU,
-    face: { hair: 'white-short', glasses: true, gender: 'f' },
+    emoji: '👵',
   },
   hiiji_orenji: {
     label: 'かずえ',
     tip: 'かずえ',
     color: '#06b6d4',
     ring: '#155e75',
-    r: R_HII,
-    face: { hair: 'gray-short', gender: 'f' },
+    r: rM(R_HII),
+    emoji: '👴',
   },
   hiiba_orenji: {
     label: 'さきこ',
@@ -161,15 +159,15 @@ const META: Record<
     color: '#22d3ee',
     ring: '#0e7490',
     r: R_HII,
-    face: { hair: 'gray-short', gender: 'f' },
+    emoji: '👵',
   },
   baba_orenji: {
     label: 'あきら',
     tip: 'あきら',
     color: '#0891b2',
     ring: '#164e63',
-    r: R_SOFU,
-    face: { hair: 'gray-short', glasses: true, gender: 'm' },
+    r: rM(R_SOFU),
+    emoji: '👴',
   },
   papa_ao: {
     label: 'かおり',
@@ -177,15 +175,15 @@ const META: Record<
     color: '#e11d48',
     ring: '#881337',
     r: R_OYA,
-    face: { hair: 'black-bob', glasses: true, gender: 'f' },
+    emoji: '👩',
   },
   mama_aka: {
     label: 'としや',
     tip: 'としや',
     color: '#2563eb',
     ring: '#1e3a8a',
-    r: R_OYA,
-    face: { hair: 'black-short', gender: 'm' },
+    r: rM(R_OYA),
+    emoji: '👨',
   },
   yuuki: {
     label: 'ゆうき',
@@ -193,7 +191,7 @@ const META: Record<
     color: '#facc15',
     ring: '#a16207',
     r: R_YUUKI,
-    face: { hair: 'black-short', gender: 'child' },
+    emoji: '👦',
   },
 }
 
@@ -409,8 +407,8 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
                 vy: -1.2,
                 r: nr,
                 settled: false,
-                // マージ地点が点線より下ならプレイ済み扱い
-                enteredPlay: ny - nr > DANGER_Y,
+                // マージ地点の下端が点線より下ならプレイ済み
+                enteredPlay: ny + nr > DANGER_Y,
               })
               s.mergeFlash = 12
               if (next === 'yuuki' && !awardedRef.current) {
@@ -452,8 +450,8 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       if (s.mergeFlash > 0) s.mergeFlash -= 1
 
       for (const b of s.balls) {
-        // 球の上端が点線より下に入ったら「場に入った」
-        if (!b.enteredPlay && b.y - b.r > DANGER_Y + 2) {
+        // 下端が点線を越えたら場に入った（大きい球でも成立）
+        if (!b.enteredPlay && b.y + b.r > DANGER_Y + 2) {
           b.enteredPlay = true
         }
       }
@@ -461,22 +459,15 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       if (s.lastDropId != null) s.dropWait += 1
 
       const last = s.lastDropId == null ? null : s.balls.find((b) => b.id === s.lastDropId)
-      const lastSettling =
-        last != null && (!last.enteredPlay || Math.abs(last.vx) > 0.8 || Math.abs(last.vy) > 0.8)
 
-      // 一度場に入った球が、落ち着いた状態で点線より上に残っていたら負け
-      const overflow =
-        !lastSettling &&
-        s.balls.some(
-          (b) =>
-            b.enteredPlay &&
-            b.y - b.r < DANGER_Y &&
-            Math.abs(b.vy) < 0.25 &&
-            Math.abs(b.vx) < 0.25,
-        )
+      // 点線より上に玉があれば負け（落としてすぐの1球だけ短い猶予）
+      const overflow = s.balls.some((b) => {
+        if (last != null && b.id === last.id && s.dropWait < 40) return false
+        return b.y - b.r < DANGER_Y
+      })
       if (overflow) {
         s.dangerFrames += 1
-        if (s.dangerFrames > 75) {
+        if (s.dangerFrames > 36) {
           s.status = 'lost'
           setStatus('lost')
         }
@@ -485,91 +476,18 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       }
     }
 
-    function drawFace(
+    function drawEmoji(
       ctx: CanvasRenderingContext2D,
       x: number,
       y: number,
       r: number,
-      face: FaceStyle,
+      emoji: string,
     ) {
-      const skin = '#f3d2b3'
-      const hairColor =
-        face.hair === 'white-short'
-          ? '#f3f4f6'
-          : face.hair === 'gray-short'
-            ? '#9ca3af'
-            : face.hair === 'bald'
-              ? '#f3d2b3'
-              : '#1f2937'
-      const faceRx = face.roundFace ? r * 0.55 : r * 0.48
-      const faceRy = face.roundFace ? r * 0.52 : r * 0.55
-      const faceY = y - r * 0.08
-
-      // head / face
-      ctx.beginPath()
-      ctx.ellipse(x, faceY, faceRx, faceRy, 0, 0, Math.PI * 2)
-      ctx.fillStyle = skin
-      ctx.fill()
-      ctx.lineWidth = Math.max(1, r * 0.03)
-      ctx.strokeStyle = 'rgba(61,44,30,0.25)'
-      ctx.stroke()
-
-      // hair
-      if (face.hair === 'bald') {
-        ctx.beginPath()
-        ctx.ellipse(x, faceY - faceRy * 0.55, faceRx * 0.7, faceRy * 0.22, 0, 0, Math.PI * 2)
-        ctx.fillStyle = '#e8c4a0'
-        ctx.fill()
-      } else if (face.hair === 'black-bob') {
-        ctx.beginPath()
-        ctx.ellipse(x, faceY - faceRy * 0.15, faceRx * 1.08, faceRy * 0.95, 0, Math.PI, Math.PI * 2)
-        ctx.fillStyle = hairColor
-        ctx.fill()
-        ctx.fillRect(x - faceRx * 1.05, faceY - faceRy * 0.1, faceRx * 0.28, faceRy * 0.95)
-        ctx.fillRect(x + faceRx * 0.77, faceY - faceRy * 0.1, faceRx * 0.28, faceRy * 0.95)
-      } else {
-        // short hair cap
-        ctx.beginPath()
-        ctx.ellipse(x, faceY - faceRy * 0.35, faceRx * 1.02, faceRy * 0.7, 0, Math.PI, Math.PI * 2)
-        ctx.fillStyle = hairColor
-        ctx.fill()
-        if (face.gender === 'm' || face.gender === 'child') {
-          ctx.fillRect(x - faceRx * 0.95, faceY - faceRy * 0.25, faceRx * 1.9, faceRy * 0.28)
-        }
-      }
-
-      // eyes
-      const eyeY = faceY - r * 0.02
-      const eyeGap = faceRx * 0.35
-      ctx.fillStyle = '#1f2937'
-      ctx.beginPath()
-      ctx.arc(x - eyeGap, eyeY, Math.max(1.5, r * 0.045), 0, Math.PI * 2)
-      ctx.arc(x + eyeGap, eyeY, Math.max(1.5, r * 0.045), 0, Math.PI * 2)
-      ctx.fill()
-
-      // smile
-      ctx.beginPath()
-      ctx.arc(x, faceY + faceRy * 0.25, faceRx * 0.28, 0.15 * Math.PI, 0.85 * Math.PI)
-      ctx.strokeStyle = '#b45309'
-      ctx.lineWidth = Math.max(1.2, r * 0.04)
-      ctx.stroke()
-
-      // glasses
-      if (face.glasses) {
-        const gr = Math.max(3, r * 0.16)
-        ctx.strokeStyle = '#374151'
-        ctx.lineWidth = Math.max(1.5, r * 0.045)
-        ctx.beginPath()
-        ctx.arc(x - eyeGap, eyeY, gr, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(x + eyeGap, eyeY, gr, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(x - eyeGap + gr, eyeY)
-        ctx.lineTo(x + eyeGap - gr, eyeY)
-        ctx.stroke()
-      }
+      const size = Math.max(14, Math.floor(r * 1.05))
+      ctx.font = `${size}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(emoji, x, y - r * 0.08)
     }
 
     function drawBall(b: Ball) {
@@ -582,7 +500,7 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       ctx!.strokeStyle = m.ring
       ctx!.stroke()
 
-      drawFace(ctx!, b.x, b.y - b.r * 0.06, b.r, m.face)
+      drawEmoji(ctx!, b.x, b.y, b.r, m.emoji)
 
       const tip = m.tip
       const size = Math.max(8, Math.min(Math.floor(b.r * 0.38), Math.floor((b.r * 1.7) / tip.length)))
@@ -637,7 +555,7 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
         ctx!.lineWidth = Math.max(3, Math.round(m.r * 0.12))
         ctx!.strokeStyle = m.ring
         ctx!.stroke()
-        drawFace(ctx!, s.aimX, DROP_Y - m.r * 0.06, m.r, m.face)
+        drawEmoji(ctx!, s.aimX, DROP_Y, m.r, m.emoji)
         const tip = m.tip
         const size = Math.max(8, Math.min(Math.floor(m.r * 0.38), Math.floor((m.r * 1.7) / tip.length)))
         ctx!.font = `bold ${size}px sans-serif`
@@ -693,10 +611,11 @@ export default function FamilyMergeGame({ onBack }: { onBack: () => void }) {
       <div className="flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm shadow-sm">
         <span className="font-bold text-ink/60">つぎ</span>
         <span
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-black text-white"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-base"
           style={{ backgroundColor: META[nextKind].color }}
+          aria-hidden
         >
-          {META[nextKind].tip.slice(0, 1)}
+          {META[nextKind].emoji}
         </span>
         <span className="font-black">{META[nextKind].label}</span>
         <span className="ml-auto text-xs text-ink/50">左右で位置・タップでおとす</span>
