@@ -95,7 +95,12 @@ function isStageKind(kind: string) {
 }
 
 function isChoiceDrill(kind: string) {
+  if (kind === 'とどうふけん') return false
   return isKokugo(kind) || isShakai(kind) || isDokkai(kind) || isRika(kind) || isEigo(kind)
+}
+
+function isHiraganaAnswer(kind: string) {
+  return isKokugo(kind) || kind === 'とどうふけん'
 }
 
 function speakEnglish(text: string) {
@@ -499,8 +504,8 @@ function PlayView({
     if (!current) return
     const value = answer ?? draft
     if (value.trim() === '') return
-    const kokugo = isKokugo(session.kind)
-    if (!kokugo && !choiceDrill) {
+    const hiragana = isHiraganaAnswer(session.kind)
+    if (!hiragana && !choiceDrill) {
       const num = Number(value)
       if (Number.isNaN(num)) return
     }
@@ -509,7 +514,7 @@ function PlayView({
       const next = await answerDrill(
         session.id,
         current.id,
-        kokugo || choiceDrill ? value.trim() : String(Number(value)),
+        hiragana || choiceDrill ? value.trim() : String(Number(value)),
       )
       const answered = next.questions.find((q) => q.id === current.id) ?? null
       setFeedback(answered)
@@ -659,14 +664,14 @@ function PlayView({
           }}
         >
           <input
-            inputMode={isKokugo(session.kind) ? 'text' : 'numeric'}
+            inputMode={isHiraganaAnswer(session.kind) ? 'text' : 'numeric'}
             lang="ja"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             className="w-full rounded-2xl bg-cream px-4 py-3 text-center text-3xl font-black"
             aria-label="こたえ"
             autoFocus
-            placeholder={isKokugo(session.kind) ? 'ひらがな' : ''}
+            placeholder={isHiraganaAnswer(session.kind) ? 'ひらがな' : ''}
           />
           <button
             type="submit"

@@ -287,14 +287,45 @@ def test_kokugo_grades_katakana_as_hiragana():
     assert answered["correct"] is not None
 
 
-def test_start_shakai_has_choices():
+def test_start_todofuken_is_text_input():
     client = TestClient(app)
     data = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "とどうふけん"}).json()
     assert data["kind"] == "とどうふけん"
     assert len(data["questions"]) == 10
     first = data["questions"][0]
-    assert first["choices"] is not None
-    assert len(first["choices"]) == 4
+    assert first["choices"] is None
+    assert first["correct"] is None  # hidden until answered
+
+
+def test_todofuken_pick_ten_has_no_choices():
+    items = generate_ten("とどうふけん", 1)
+    assert len(items) == 10
+    for question in items:
+        assert question.choices is None
+        assert question.correct
+
+
+def test_todofuken_answer_accepts_hiragana():
+    client = TestClient(app)
+    session = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "とどうふけん"}).json()
+    first = session["questions"][0]
+    # peek correct from DB via answering with wrong then we need the correct - use generate
+    from app.database import SessionLocal
+    from app.models import DrillQuestion
+
+    db = SessionLocal()
+    row = db.get(DrillQuestion, first["id"])
+    assert row is not None
+    correct = row.correct
+    db.close()
+    res = client.post(
+        f"/api/drills/{session['id']}/answer",
+        params={"role": "child"},
+        json={"question_id": first["id"], "answer": correct},
+    )
+    assert res.status_code == 200
+    answered = next(q for q in res.json()["questions"] if q["id"] == first["id"])
+    assert answered["is_correct"] is True
 
 
 def test_shakai_pick_ten_has_four_choices():

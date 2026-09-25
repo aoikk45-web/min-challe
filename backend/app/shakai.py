@@ -234,15 +234,15 @@ def _one_todofuken(step: int, *, with_context: bool) -> GeneratedQuestion:
     name = str(pref["name"])
     code = str(pref["code"])
     capital = str(pref["capital"])
-    capitals = [str(row["capital"]) for row in PREFECTURES]
     site_label = _capital_site_label(code)
     prompt = f"{name}の {site_label}は？"
     if with_context:
         prompt = f"{random.choice(_capital_contexts(code))}\n{prompt}"
+    # 県庁所在地はひらがな入力（4択にしない）
     return GeneratedQuestion(
         prompt=prompt,
         correct=capital,
-        choices=_shuffle_choices(capital, capitals),
+        choices=None,
     )
 
 
