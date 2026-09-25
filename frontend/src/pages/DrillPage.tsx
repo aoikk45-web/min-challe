@@ -95,24 +95,14 @@ function isStageKind(kind: string) {
 }
 
 function isChoiceDrill(kind: string) {
-  if (
-    kind === 'とどうふけん' ||
-    kind === 'けんのかたち' ||
-    kind === 'ちずきごう' ||
-    isKokugo(kind)
-  ) {
+  if (kind === 'とどうふけん' || kind === 'けんのかたち' || isKokugo(kind)) {
     return false
   }
   return isShakai(kind) || isDokkai(kind) || isRika(kind) || isEigo(kind)
 }
 
 function isHiraganaAnswer(kind: string) {
-  return (
-    isKokugo(kind) ||
-    kind === 'とどうふけん' ||
-    kind === 'けんのかたち' ||
-    kind === 'ちずきごう'
-  )
+  return isKokugo(kind) || kind === 'とどうふけん' || kind === 'けんのかたち'
 }
 
 function speakEnglish(text: string) {

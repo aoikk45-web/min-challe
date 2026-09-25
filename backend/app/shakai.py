@@ -190,10 +190,11 @@ def _chiri_bank() -> list[dict]:
     return _chiri_cache
 
 
-def _shuffle_choices(correct: str, pool: list[str]) -> list[str]:
+def _shuffle_choices(correct: str, pool: list[str], *, count: int = 4) -> list[str]:
+    need_wrong = max(0, count - 1)
     wrong = [item for item in pool if item != correct]
-    picks = random.sample(wrong, min(3, len(wrong)))
-    while len(picks) < 3 and wrong:
+    picks = random.sample(wrong, min(need_wrong, len(wrong)))
+    while len(picks) < need_wrong and wrong:
         extra = random.choice(wrong)
         if extra not in picks:
             picks.append(extra)
@@ -212,13 +213,13 @@ def _symbol_pool(step: int) -> list[dict]:
     return [row for row in _symbols() if int(row["grade"]) <= max_grade]
 
 
-def _symbol_choice_pool(step: int) -> list[str]:
+def _symbol_choice_pool(step: int, *, min_names: int = 8) -> list[str]:
     pool = _symbol_pool(step)
-    if len(pool) >= 4:
+    if len(pool) >= min_names:
         return [str(row["name"]) for row in pool]
     max_grade = _max_grade_for_step(step)
     names = [str(row["name"]) for row in _symbols() if int(row["grade"]) <= max_grade]
-    if len(names) >= 4:
+    if len(names) >= min_names:
         return names
     return [str(row["name"]) for row in _symbols()]
 
@@ -264,7 +265,7 @@ def _one_chizukigo(step: int, *, symbol: dict | None = None) -> GeneratedQuestio
     return GeneratedQuestion(
         prompt="この きごうは なに？",
         correct=name,
-        choices=None,
+        choices=_shuffle_choices(name, _symbol_choice_pool(step, min_names=8), count=8),
         image_url=f"/shakai/symbols/{picked['id']}.png",
     )
 
