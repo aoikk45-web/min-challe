@@ -213,7 +213,7 @@ def _symbol_pool(step: int) -> list[dict]:
     return [row for row in _symbols() if int(row["grade"]) <= max_grade]
 
 
-def _symbol_choice_pool(step: int, *, min_names: int = 8) -> list[str]:
+def _symbol_choice_pool(step: int, *, min_names: int = 10) -> list[str]:
     pool = _symbol_pool(step)
     if len(pool) >= min_names:
         return [str(row["name"]) for row in pool]
@@ -265,7 +265,7 @@ def _one_chizukigo(step: int, *, symbol: dict | None = None) -> GeneratedQuestio
     return GeneratedQuestion(
         prompt="この きごうは なに？",
         correct=name,
-        choices=_shuffle_choices(name, _symbol_choice_pool(step, min_names=8), count=8),
+        choices=_shuffle_choices(name, _symbol_choice_pool(step, min_names=10), count=10),
         image_url=f"/shakai/symbols/{picked['id']}.png",
     )
 
