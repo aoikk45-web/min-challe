@@ -95,12 +95,12 @@ function isStageKind(kind: string) {
 }
 
 function isChoiceDrill(kind: string) {
-  if (kind === 'とどうふけん') return false
+  if (kind === 'とどうふけん' || kind === 'けんのかたち') return false
   return isKokugo(kind) || isShakai(kind) || isDokkai(kind) || isRika(kind) || isEigo(kind)
 }
 
 function isHiraganaAnswer(kind: string) {
-  return isKokugo(kind) || kind === 'とどうふけん'
+  return isKokugo(kind) || kind === 'とどうふけん' || kind === 'けんのかたち'
 }
 
 function speakEnglish(text: string) {

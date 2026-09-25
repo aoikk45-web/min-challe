@@ -45,34 +45,26 @@ def test_kanto_map_excludes_distant_islands():
     assert display_feature(tokyo, "kanto")["geometry"] != tokyo["geometry"]
 
 
-def test_kenkatachi_okinawa_choices_include_kyushu():
+def test_kenkatachi_is_text_input_with_map():
     from unittest.mock import patch
 
     okinawa = next(row for row in PREFECTURES if row["code"] == "okinawa")
     with patch("app.shakai.random.choice", lambda pool: okinawa):
         question = _one_kenkatachi(6, with_context=False)
     assert question.correct == "おきなわけん"
-    assert question.choices is not None
-    assert len(question.choices) == 4
-    assert question.correct in question.choices
-    assert sum(1 for choice in question.choices if choice == "おきなわけん") == 1
-    assert sum(1 for choice in question.choices if choice != "おきなわけん") == 3
+    assert question.choices is None
+    assert question.image_url == "/shakai/maps/okinawa.svg"
 
 
-def test_kenkatachi_hokkaido_choices_include_tohoku():
+def test_kenkatachi_hokkaido_is_text_input_with_map():
     from unittest.mock import patch
 
     hokkaido = next(row for row in PREFECTURES if row["code"] == "hokkaido")
     with patch("app.shakai.random.choice", lambda pool: hokkaido):
         question = _one_kenkatachi(6, with_context=False)
     assert question.correct == "ほっかいどう"
-    assert question.choices is not None
-    assert len(question.choices) == 4
-    assert question.correct in question.choices
-    assert all(choice != "ほっかいどう" or choice == question.correct for choice in question.choices)
-    assert sum(1 for choice in question.choices if choice != "ほっかいどう") == 3
-    tohoku_names = {row["name"] for row in PREFECTURES if row["code"] in REGIONS["tohoku"]}
-    assert all(choice in tohoku_names or choice == "ほっかいどう" for choice in question.choices)
+    assert question.choices is None
+    assert question.image_url == "/shakai/maps/hokkaido.svg"
 
 
 def test_kenkatachi_stage3_avoids_consecutive_duplicates():
@@ -83,6 +75,7 @@ def test_kenkatachi_stage3_avoids_consecutive_duplicates():
     for _ in range(50):
         quiz = pick_ten("けんのかたち", 3)
         assert len(quiz) == 10
+        assert all(q.choices is None for q in quiz)
         corrects = [q.correct for q in quiz]
         for prev, cur in zip(corrects, corrects[1:]):
             assert prev != cur

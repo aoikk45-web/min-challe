@@ -335,7 +335,7 @@ def _one_kenkatachi(
     return GeneratedQuestion(
         prompt=prompt,
         correct=name,
-        choices=_kenkatachi_choices(code, name),
+        choices=None,
         image_url=f"/shakai/maps/{code}.svg",
     )
 
