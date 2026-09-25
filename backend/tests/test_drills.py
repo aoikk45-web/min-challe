@@ -327,26 +327,20 @@ def test_todofuken_answer_accepts_hiragana():
     assert answered["is_correct"] is True
 
 
-def test_shakai_pick_ten_has_four_choices():
+def test_chizukigo_pick_ten_has_no_choices():
     items = generate_ten("ちずきごう", 1)
     assert len(items) == 10
     for question in items:
-        assert question.choices is not None
-        assert len(question.choices) == 4
+        assert question.choices is None
         assert question.image_url is not None
 
 
 def test_chizukigo_step1_uses_distinct_symbols():
-    from app.shakai import _symbol_choice_pool
-
     items = generate_ten("ちずきごう", 1)
     assert len(items) == 10
     urls = [q.image_url for q in items]
     assert len(set(urls)) == 10
-    pool = set(_symbol_choice_pool(1))
-    for question in items:
-        assert all(choice in pool for choice in question.choices or [])
-
+    assert all(q.choices is None for q in items)
 
 def test_chizukigo_high_step_uses_more_symbols():
     from app.shakai import _symbol_pool

@@ -264,7 +264,7 @@ def _one_chizukigo(step: int, *, symbol: dict | None = None) -> GeneratedQuestio
     return GeneratedQuestion(
         prompt="この きごうは なに？",
         correct=name,
-        choices=_shuffle_choices(name, _symbol_choice_pool(step)),
+        choices=None,
         image_url=f"/shakai/symbols/{picked['id']}.png",
     )
 
