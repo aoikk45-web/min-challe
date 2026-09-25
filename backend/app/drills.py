@@ -246,7 +246,8 @@ def _session_uses_legacy_capital_prompts(session: DrillSession) -> bool:
 def _session_uses_legacy_kokugo(session: DrillSession) -> bool:
     if session.kind not in KOKUGO_KINDS:
         return False
-    return any(not q.choices_json for q in session.questions)
+    # 旧4択セッションは作り直す（いまは文字入力）
+    return any(bool(q.choices_json) for q in session.questions)
 
 
 def _session_is_stale(session: DrillSession, requested_kind: str) -> bool:

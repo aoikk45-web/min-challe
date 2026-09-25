@@ -223,7 +223,7 @@ def test_start_kokugo_jukugo():
     assert data["step"] == 1
     assert len(data["questions"]) == 10
     assert all(q["correct"] is None for q in data["questions"])
-    assert all(q["choices"] is not None and len(q["choices"]) == 4 for q in data["questions"])
+    assert all(q["choices"] is None for q in data["questions"])
 
 
 def test_kokugo_step1_uses_grade1_pool():
@@ -248,13 +248,12 @@ def test_kokugo_always_uses_context():
             assert "「" in question.prompt and "」の よみは？" in question.prompt
 
 
-def test_kokugo_pick_ten_has_four_choices():
+def test_kokugo_pick_ten_has_no_choices():
     for kind in ("かんじのよみ", "じゅくごのよみ"):
         items = generate_ten(kind, 1)
         for question in items:
-            assert question.choices is not None
-            assert len(question.choices) == 4
-            assert question.correct in question.choices
+            assert question.choices is None
+            assert question.correct
 
 
 def test_kokugo_sentence_from_step40():
@@ -572,7 +571,8 @@ def test_get_drill_closes_legacy_kokugo_session():
     session = client.post("/api/drills/start", params={"role": "child"}, json={"kind": "かんじのよみ"}).json()
     with SessionLocal() as db:
         row = db.get(DrillQuestion, session["questions"][0]["id"])
-        row.choices_json = None
+        # 旧4択形式をシミュレート
+        row.choices_json = '["あ","い","う","え"]'
         db.commit()
     res = client.get(f"/api/drills/{session['id']}", params={"role": "child"})
     assert res.status_code == 410

@@ -96,7 +96,8 @@ function isStageKind(kind: string) {
 
 function isChoiceDrill(kind: string) {
   if (kind === 'とどうふけん' || kind === 'けんのかたち') return false
-  return isKokugo(kind) || isShakai(kind) || isDokkai(kind) || isRika(kind) || isEigo(kind)
+  if (isKokugo(kind)) return false
+  return isShakai(kind) || isDokkai(kind) || isRika(kind) || isEigo(kind)
 }
 
 function isHiraganaAnswer(kind: string) {

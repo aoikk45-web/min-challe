@@ -126,9 +126,8 @@ def _one(kind: str, step: int) -> GeneratedQuestion:
         pool = _kanji_bank() if kind == "かんじのよみ" else _jukugo_bank()
     entry = random.choice(pool)
     prompt, answer = _prompt_context(entry)
-    choice_pool = _reading_pool(kind, step)
-    choices = _shuffle_reading_choices(answer, choice_pool)
-    return GeneratedQuestion(prompt=prompt, correct=answer, choices=choices)
+    # 漢字・熟語の読みはひらがな入力（4択にしない）
+    return GeneratedQuestion(prompt=prompt, correct=answer, choices=None)
 
 
 def pick_ten(kind: str, step: int = 1) -> list[GeneratedQuestion]:
