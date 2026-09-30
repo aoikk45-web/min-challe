@@ -40,6 +40,7 @@ const SHAKAI_KINDS: { kind: DrillKind; emoji: string }[] = [
   { kind: 'にほんのちり', emoji: '🏔️' },
   { kind: 'ちずきごう', emoji: '📍' },
   { kind: 'けんのかたち', emoji: '🗺️' },
+  { kind: 'えきのけん', emoji: '🚉' },
 ]
 
 const RIKA_KINDS: { kind: DrillKind; emoji: string }[] = [
@@ -90,11 +91,16 @@ function isEigo(kind: string) {
   return EIGO_KINDS.some((item) => item.kind === kind)
 }
 
+function isEkiKen(kind: string) {
+  return kind === 'えきのけん'
+}
+
 function isStageKind(kind: string) {
   return isShakai(kind) || isDokkai(kind) || isRika(kind) || isEigo(kind)
 }
 
 function isChoiceDrill(kind: string) {
+  if (isEkiKen(kind)) return false
   return isKokugo(kind) || isShakai(kind) || isDokkai(kind) || isRika(kind) || isEigo(kind)
 }
 
@@ -500,7 +506,8 @@ function PlayView({
     const value = answer ?? draft
     if (value.trim() === '') return
     const kokugo = isKokugo(session.kind)
-    if (!kokugo && !choiceDrill) {
+    const textAnswer = kokugo || choiceDrill || isEkiKen(session.kind)
+    if (!textAnswer) {
       const num = Number(value)
       if (Number.isNaN(num)) return
     }
@@ -509,7 +516,7 @@ function PlayView({
       const next = await answerDrill(
         session.id,
         current.id,
-        kokugo || choiceDrill ? value.trim() : String(Number(value)),
+        textAnswer ? value.trim() : String(Number(value)),
       )
       const answered = next.questions.find((q) => q.id === current.id) ?? null
       setFeedback(answered)
@@ -659,14 +666,14 @@ function PlayView({
           }}
         >
           <input
-            inputMode={isKokugo(session.kind) ? 'text' : 'numeric'}
+            inputMode={isKokugo(session.kind) || isEkiKen(session.kind) ? 'text' : 'numeric'}
             lang="ja"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             className="w-full rounded-2xl bg-cream px-4 py-3 text-center text-3xl font-black"
             aria-label="こたえ"
             autoFocus
-            placeholder={isKokugo(session.kind) ? 'ひらがな' : ''}
+            placeholder={isKokugo(session.kind) || isEkiKen(session.kind) ? 'ひらがな' : ''}
           />
           <button
             type="submit"

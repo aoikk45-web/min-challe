@@ -176,6 +176,74 @@ def _max_grade_for_step(step: int) -> int:
     return min(max(step, 1), MAX_STEP)
 
 
+# 駅名 → 都道府県。grade はステージ（1 がよく知る駅）。
+STATIONS: tuple[dict[str, str | int], ...] = (
+    {"name": "とうきょうえき", "prefecture": "とうきょうと", "grade": 1},
+    {"name": "おおさかえき", "prefecture": "おおさかふ", "grade": 1},
+    {"name": "きょうとえき", "prefecture": "きょうとふ", "grade": 1},
+    {"name": "なごやえき", "prefecture": "あいちけん", "grade": 1},
+    {"name": "さっぽろえき", "prefecture": "ほっかいどう", "grade": 1},
+    {"name": "せんだいえき", "prefecture": "みやぎけん", "grade": 1},
+    {"name": "ひろしまえき", "prefecture": "ひろしまけん", "grade": 1},
+    {"name": "はかたえき", "prefecture": "ふくおかけん", "grade": 1},
+    {"name": "よこはまえき", "prefecture": "かながわけん", "grade": 1},
+    {"name": "こうべえき", "prefecture": "ひょうごけん", "grade": 1},
+    {"name": "ならえき", "prefecture": "ならけん", "grade": 1},
+    {"name": "にいがたえき", "prefecture": "にいがたけん", "grade": 1},
+    {"name": "かなざわえき", "prefecture": "いしかわけん", "grade": 2},
+    {"name": "おかやまえき", "prefecture": "おかやまけん", "grade": 2},
+    {"name": "かごしまちゅうおうえき", "prefecture": "かごしまけん", "grade": 2},
+    {"name": "くまもとえき", "prefecture": "くまもとけん", "grade": 2},
+    {"name": "おおいたえき", "prefecture": "おおいたけん", "grade": 2},
+    {"name": "ながのえき", "prefecture": "ながのけん", "grade": 2},
+    {"name": "ちばえき", "prefecture": "ちばけん", "grade": 2},
+    {"name": "おおみやえき", "prefecture": "さいたまけん", "grade": 2},
+    {"name": "うつのみやえき", "prefecture": "とちぎけん", "grade": 2},
+    {"name": "みとえき", "prefecture": "いばらきけん", "grade": 2},
+    {"name": "しずおかえき", "prefecture": "しずおかけん", "grade": 2},
+    {"name": "わかやまえき", "prefecture": "わかやまけん", "grade": 2},
+    {"name": "あおもりえき", "prefecture": "あおもりけん", "grade": 3},
+    {"name": "もりおかえき", "prefecture": "いわてけん", "grade": 3},
+    {"name": "あきたえき", "prefecture": "あきたけん", "grade": 3},
+    {"name": "やまがたえき", "prefecture": "やまがたけん", "grade": 3},
+    {"name": "ふくしまえき", "prefecture": "ふくしまけん", "grade": 3},
+    {"name": "こうふえき", "prefecture": "やまなしけん", "grade": 3},
+    {"name": "ぎふえき", "prefecture": "ぎふけん", "grade": 3},
+    {"name": "つえき", "prefecture": "みえけん", "grade": 3},
+    {"name": "おおつえき", "prefecture": "しがけん", "grade": 3},
+    {"name": "まつええき", "prefecture": "しまねけん", "grade": 3},
+    {"name": "とっとりえき", "prefecture": "とっとりけん", "grade": 3},
+    {"name": "とやまえき", "prefecture": "とやまけん", "grade": 3},
+    {"name": "ふくいえき", "prefecture": "ふくいけん", "grade": 4},
+    {"name": "まえばしえき", "prefecture": "ぐんまけん", "grade": 4},
+    {"name": "こうちえき", "prefecture": "こうちけん", "grade": 4},
+    {"name": "まつやまえき", "prefecture": "えひめけん", "grade": 4},
+    {"name": "たかまつえき", "prefecture": "かがわけん", "grade": 4},
+    {"name": "とくしまえき", "prefecture": "とくしまけん", "grade": 4},
+    {"name": "ながさきえき", "prefecture": "ながさきけん", "grade": 4},
+    {"name": "さがえき", "prefecture": "さがけん", "grade": 4},
+    {"name": "みやざきえき", "prefecture": "みやざきけん", "grade": 4},
+    {"name": "やまぐちえき", "prefecture": "やまぐちけん", "grade": 4},
+    {"name": "なはえき", "prefecture": "おきなわけん", "grade": 4},
+    {"name": "しんじゅくえき", "prefecture": "とうきょうと", "grade": 5},
+    {"name": "しんおおさかえき", "prefecture": "おおさかふ", "grade": 5},
+    {"name": "はこだてえき", "prefecture": "ほっかいどう", "grade": 5},
+    {"name": "ひめじえき", "prefecture": "ひょうごけん", "grade": 5},
+    {"name": "くらしきえき", "prefecture": "おかやまけん", "grade": 5},
+    {"name": "べっぷえき", "prefecture": "おおいたけん", "grade": 5},
+    {"name": "にっこうえき", "prefecture": "とちぎけん", "grade": 5},
+    {"name": "ふなばしえき", "prefecture": "ちばけん", "grade": 5},
+    {"name": "うえのえき", "prefecture": "とうきょうと", "grade": 6},
+    {"name": "てんのうじえき", "prefecture": "おおさかふ", "grade": 6},
+    {"name": "さんのみやえき", "prefecture": "ひょうごけん", "grade": 6},
+    {"name": "うじえき", "prefecture": "きょうとふ", "grade": 6},
+    {"name": "かなやまえき", "prefecture": "あいちけん", "grade": 6},
+    {"name": "ながおかえき", "prefecture": "にいがたけん", "grade": 6},
+    {"name": "しものせきえき", "prefecture": "やまぐちけん", "grade": 6},
+    {"name": "おたるえき", "prefecture": "ほっかいどう", "grade": 6},
+)
+
+
 _chiri_cache: list[dict] | None = None
 _chiri_mtime: float = 0.0
 
@@ -380,6 +448,52 @@ def pick_ten_kenkatachi(step: int = 1) -> list[GeneratedQuestion]:
     ]
 
 
+def _prefecture_aliases(name: str) -> set[str]:
+    """正式名と、都府県の語尾を取った短い呼び方。"""
+    aliases = {name}
+    if name.endswith("けん") or name.endswith("ふ"):
+        aliases.add(name[:-1])
+    elif name.endswith("と") and not name.endswith("どう"):
+        aliases.add(name[:-1])
+    return aliases
+
+
+def prefecture_answer_matches(given: str, correct: str) -> bool:
+    from .generate import kokugo_reading_matches
+
+    for alias in _prefecture_aliases(correct):
+        if kokugo_reading_matches(given, alias):
+            return True
+    return False
+
+
+def _eki_pool(step: int) -> list[dict]:
+    max_grade = _max_grade_for_step(step)
+    return [row for row in STATIONS if int(row["grade"]) <= max_grade]
+
+
+def _one_eki_ken(step: int, *, station: dict | None = None) -> GeneratedQuestion:
+    pool = _eki_pool(step) or list(STATIONS)
+    picked = station or random.choice(pool)
+    name = str(picked["name"])
+    prefecture = str(picked["prefecture"])
+    return GeneratedQuestion(
+        prompt=f"{name} は どの とどうふけん？",
+        correct=prefecture,
+        choices=None,
+    )
+
+
+def pick_ten_eki_ken(step: int = 1) -> list[GeneratedQuestion]:
+    step = min(max(step, 1), MAX_STEP)
+    pool = list(_eki_pool(step) or STATIONS)
+    if len(pool) < 10:
+        pool = list(STATIONS)
+    random.shuffle(pool)
+    chosen = pool[:10]
+    return [_one_eki_ken(step, station=row) for row in chosen]
+
+
 def _one(kind: str, step: int, *, with_context: bool) -> GeneratedQuestion:
     if kind == "とどうふけん":
         return _one_todofuken(step, with_context=with_context)
@@ -389,6 +503,8 @@ def _one(kind: str, step: int, *, with_context: bool) -> GeneratedQuestion:
         return _one_chizukigo(step)
     if kind == "けんのかたち":
         return _one_kenkatachi(step, with_context=with_context)
+    if kind == "えきのけん":
+        return _one_eki_ken(step)
     raise ValueError(f"unknown shakai kind: {kind}")
 
 
@@ -397,6 +513,8 @@ def pick_ten(kind: str, step: int = 1) -> list[GeneratedQuestion]:
         return pick_ten_chizukigo(step)
     if kind == "けんのかたち":
         return pick_ten_kenkatachi(step)
+    if kind == "えきのけん":
+        return pick_ten_eki_ken(step)
     step = min(max(step, 1), MAX_STEP)
     seen: set[str] = set()
     out: list[GeneratedQuestion] = []

@@ -125,6 +125,7 @@ def test_progress_api_lists_all_drill_kinds():
         "にほんのちり",
         "ちずきごう",
         "けんのかたち",
+        "えきのけん",
         "いきもののせいかつ",
         "じしゃくとでんき",
         "たいようとかげ",
@@ -332,6 +333,65 @@ def test_shakai_progress_max_step():
     shakai = next(row for row in rows if row["kind"] == "ちずきごう")
     assert shakai["max_step"] == 6
     assert shakai["step_label"].startswith("ステージ")
+
+
+def test_eki_ken_pick_ten_is_text_input():
+    items = generate_ten("えきのけん", 1)
+    assert len(items) == 10
+    prompts = [question.prompt for question in items]
+    assert len(set(prompts)) == 10
+    for question in items:
+        assert question.choices is None
+        assert "えき" in question.prompt
+        assert "とどうふけん" in question.prompt
+        assert question.correct.endswith(("けん", "ふ", "と", "どう"))
+
+
+def test_eki_ken_higher_step_has_more_stations():
+    from app.shakai import _eki_pool
+
+    assert len(_eki_pool(6)) > len(_eki_pool(1))
+
+
+def test_prefecture_answer_accepts_short_name():
+    from app.shakai import prefecture_answer_matches
+
+    assert prefecture_answer_matches("とうきょうと", "とうきょうと")
+    assert prefecture_answer_matches("とうきょう", "とうきょうと")
+    assert prefecture_answer_matches("おおさか", "おおさかふ")
+    assert prefecture_answer_matches("きょうとふ", "きょうとふ")
+    assert prefecture_answer_matches("ほっかいどう", "ほっかいどう")
+    assert prefecture_answer_matches("おおさか", "とうきょうと") is False
+
+
+def test_eki_ken_answer_accepts_hiragana():
+    from app.database import SessionLocal
+    from app.models import DrillQuestion
+
+    client = TestClient(app)
+    session = client.post(
+        "/api/drills/start",
+        params={"role": "child"},
+        json={"kind": "えきのけん"},
+    ).json()
+    first = session["questions"][0]
+    assert first["choices"] is None
+    assert first["correct"] is None
+    with SessionLocal() as db:
+        row = db.get(DrillQuestion, first["id"])
+        assert row is not None
+        correct = row.correct
+    short = correct[:-1] if correct.endswith(("けん", "ふ")) or (
+        correct.endswith("と") and not correct.endswith("どう")
+    ) else correct
+    res = client.post(
+        f"/api/drills/{session['id']}/answer",
+        params={"role": "child"},
+        json={"question_id": first["id"], "answer": short},
+    )
+    assert res.status_code == 200
+    answered = next(q for q in res.json()["questions"] if q["id"] == first["id"])
+    assert answered["is_correct"] is True
 
 
 def test_shakai_context_from_stage5():
