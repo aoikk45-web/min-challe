@@ -50,6 +50,7 @@ Kind = Literal[
     "にほんのちり",
     "ちずきごう",
     "けんのかたち",
+    "えきのけん",
     "いきもののせいかつ",
     "じしゃくとでんき",
     "たいようとかげ",
@@ -532,6 +533,10 @@ def answer_drill(
     question.child_answer = given
     if session.kind in KOKUGO_KINDS:
         question.is_correct = kokugo_reading_matches(given, question.correct)
+    elif session.kind == "えきのけん":
+        from .shakai import prefecture_answer_matches
+
+        question.is_correct = prefecture_answer_matches(given, question.correct)
     elif session.kind in EIGO_KINDS:
         question.is_correct = given.strip().casefold() == str(question.correct).strip().casefold()
     elif session.kind in DOKKAI_KINDS or session.kind in SHAKAI_KINDS or session.kind in RIKA_KINDS:

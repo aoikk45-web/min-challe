@@ -11,7 +11,7 @@ from .shakai import GeneratedQuestion, pick_ten as shakai_pick_ten
 MATH_KINDS = ("たしざん", "ひきざん", "かけざん", "わりざん")
 KOKUGO_KINDS = ("かんじのよみ", "じゅくごのよみ")
 DOKKAI_KINDS = ("おはなしのどくかい",)
-SHAKAI_KINDS = ("とどうふけん", "にほんのちり", "ちずきごう", "けんのかたち")
+SHAKAI_KINDS = ("とどうふけん", "にほんのちり", "ちずきごう", "けんのかたち", "えきのけん")
 KINDS = MATH_KINDS + KOKUGO_KINDS + DOKKAI_KINDS + SHAKAI_KINDS + RIKA_KINDS + EIGO_KINDS
 PROGRESS_KINDS = KINDS
 
