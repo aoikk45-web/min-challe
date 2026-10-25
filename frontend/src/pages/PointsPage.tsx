@@ -4,6 +4,7 @@ import {
   deleteReward,
   fetchLedger,
   fetchPointSummary,
+  formatLedgerDate,
   fetchRewards,
   fetchRules,
   giveStamp,
@@ -295,9 +296,12 @@ function LedgerList({ ledger }: { ledger: LedgerEntry[] }) {
       {ledger.length === 0 && <p className="mt-2 text-sm text-ink/60">まだ動きがないよ。</p>}
       <ul className="mt-3 space-y-2">
         {ledger.map((row) => (
-          <li key={row.id} className="flex justify-between text-sm">
-            <span>{row.reason}</span>
-            <span className={`font-black ${row.delta >= 0 ? 'text-mint' : 'text-coral'}`}>
+          <li key={row.id} className="flex items-start justify-between gap-3 text-sm">
+            <span className="min-w-0">
+              <span className="block text-xs font-bold text-sky">{formatLedgerDate(row.created_at)}</span>
+              <span className="break-words">{row.reason}</span>
+            </span>
+            <span className={`shrink-0 font-black ${row.delta >= 0 ? 'text-mint' : 'text-coral'}`}>
               {row.delta >= 0 ? '+' : ''}
               {row.delta}
             </span>

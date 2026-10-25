@@ -482,6 +482,18 @@ export type AlbumEntry = {
   created_at: string
 }
 
+/** Point ledger timestamps are stored as UTC. Show the Japan calendar date only. */
+export function formatLedgerDate(iso: string): string {
+  const aware = iso.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : `${iso}Z`
+  const d = new Date(aware)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
 export function formatAlbumAt(iso: string): string {
   const aware = iso.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : `${iso}+09:00`
   const d = new Date(aware)
